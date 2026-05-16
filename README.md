@@ -118,6 +118,22 @@ PORT=3011 npm run dev
 
 ブラウザで http://localhost:3011 を開く。
 
+### テスト実行
+
+```bash
+# バックエンド (Rails Minitest / 標準同梱)
+cd backend
+bin/rails db:test:prepare   # 初回 / schema 変更後
+bin/rails test              # 全テスト実行
+
+# フロントエンド (Vitest)
+cd frontend
+npm test                    # ワンショット実行
+npm run test:watch          # 監視モード
+```
+
+テスト方針の全体像は [docs/テスト計画書.md](docs/テスト計画書.md) を参照。
+
 ### API 疎通確認 (curl)
 
 ```bash

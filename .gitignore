@@ -23,6 +23,7 @@ frontend/.nuxt/
 frontend/.output/
 frontend/.data/
 frontend/dist/
+frontend/coverage/
 
 # Ruby / Rails
 backend/tmp/

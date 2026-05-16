@@ -1,0 +1,31 @@
+# counter_cache (likes_count / comments_count) は fixture 直値 ではなく
+# テスト側で `assert_difference` を使って検証する。
+# このため fixture 上は default(0) のまま (likes.yml / comments.yml に 1 件あるが
+# trips.likes_count などは手動で 1 にしない)。
+
+alice_kyoto:
+  user: alice
+  title: 京都 3 日間
+  destination: 京都
+  started_on: <%= Date.new(2026, 4, 1) %>
+  ended_on: <%= Date.new(2026, 4, 3) %>
+  body: 桜が綺麗だった
+  visibility: public
+
+bob_okinawa:
+  user: bob
+  title: 沖縄旅
+  destination: 沖縄
+  started_on: <%= Date.new(2026, 5, 1) %>
+  ended_on: <%= Date.new(2026, 5, 5) %>
+  body: 海が綺麗
+  visibility: public
+
+alice_private:
+  user: alice
+  title: 内緒の旅
+  destination: 軽井沢
+  started_on: <%= Date.new(2026, 6, 1) %>
+  ended_on: <%= Date.new(2026, 6, 2) %>
+  body: 秘密
+  visibility: private

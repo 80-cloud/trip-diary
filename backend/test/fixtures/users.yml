@@ -1,0 +1,20 @@
+# パスワードは全員 "password123"。
+# テストでは BCrypt cost: 4 で高速化 (production は 12)。
+<% bcrypt = ->(plain) { BCrypt::Password.create(plain, cost: 4) } %>
+
+alice:
+  email: alice@example.com
+  password_digest: <%= bcrypt.call("password123") %>
+  display_name: Alice
+  bio: 京都が好き
+
+bob:
+  email: bob@example.com
+  password_digest: <%= bcrypt.call("password123") %>
+  display_name: Bob
+  bio: 沖縄が好き
+
+carol:
+  email: carol@example.com
+  password_digest: <%= bcrypt.call("password123") %>
+  display_name: Carol

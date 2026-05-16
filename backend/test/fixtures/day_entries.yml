@@ -1,0 +1,15 @@
+kyoto_day1:
+  trip: alice_kyoto
+  day_number: 1
+  happened_on: <%= Date.new(2026, 4, 1) %>
+  title: 清水寺
+  body: 朝イチで行った
+  position: 0
+
+kyoto_day2:
+  trip: alice_kyoto
+  day_number: 2
+  happened_on: <%= Date.new(2026, 4, 2) %>
+  title: 嵐山
+  body: 竹林を散策
+  position: 1

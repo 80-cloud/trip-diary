@@ -1,0 +1,23 @@
+# パスワードは全員 "password123"。
+# テストでは BCrypt cost: 4 で高速化 (Rails 本番デフォルトは 12)。
+# **注意**: 本 fixture は test DB 専用。`db:fixtures:load` 等で
+# development / production DB に流すと低 cost ハッシュが残り、
+# 強度が劣化する。test 以外では使わないこと。
+<% bcrypt = ->(plain) { BCrypt::Password.create(plain, cost: 4) } %>
+
+alice:
+  email: alice@example.com
+  password_digest: <%= bcrypt.call("password123") %>
+  display_name: Alice
+  bio: 京都が好き
+
+bob:
+  email: bob@example.com
+  password_digest: <%= bcrypt.call("password123") %>
+  display_name: Bob
+  bio: 沖縄が好き
+
+carol:
+  email: carol@example.com
+  password_digest: <%= bcrypt.call("password123") %>
+  display_name: Carol

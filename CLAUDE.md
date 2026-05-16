@@ -1,0 +1,208 @@
+# CLAUDE.md — Claude Code 行動規範 (trip-diary)
+
+> このファイルは Claude Code が毎セッション必ず読み込み、厳守するルール集です。
+> 姉妹プロジェクト [80-cloud/recipe-board](https://github.com/80-cloud/recipe-board) の CLAUDE.md を**参考**にし、旅行記録アプリ独自の事情に合わせて改変しています。
+
+---
+
+## ⚡ Quick Reference (速見表・最重要のみ)
+
+### 守るべき 7 つのルール
+
+1. **Issue ファースト**: 作業前に Issue 起票 → ブランチ作成 → 実装 → PR → マージ (直接 main push 禁止)
+2. **コミットメッセージ**: Conventional Commits 形式・日本語・50 字以内 (`feat:` / `fix:` / `docs:` / `chore:` 等)
+3. **ブランチ名**: `feature/#番号-説明` / `fix/#番号-説明` / `docs/#番号-説明` / `chore/#番号-説明`
+4. **PR**: 日本語タイトル・テンプレート使用・`Closes #番号` でリンク・Squash and merge
+5. **ポート**: Rails 3010 / Nuxt 3011 / MySQL 3316 (競合時は kill して正規ポートで起動)
+6. **AI 操作禁止**: `terraform destroy` / `terraform apply -auto-approve` / `aws *delete*` / `rm -rf` 等は人間承認必須
+7. **`.env` などの機密情報を絶対にコミットしない** (`git status` で必ず事前確認)
+
+### Jidoka 発動条件 (作業中に頭をよぎったら止まる)
+
+- 「たぶん」「だと思う」「のはず」が頭をよぎった瞬間
+- 「会話で出てきたから合ってるはず」と感じた瞬間
+- ビルドエラー / テスト失敗が発生した瞬間
+- ユーザーが「ちょっと待って」と言った瞬間
+
+→ いずれも **手を止め、`gh api` / `aws describe` / `curl` 等の実コマンドで裏取り**してから再開。
+
+### 全プロジェクト共通教訓
+
+1. ローカル設定値 (git config / npm config 等) と外部サービスのアカウント名は別物
+2. 思い込みより実コマンドでの検証 (実行こそ真実)
+3. 重要な固有名詞は記載前後に grep で一貫性確認
+4. 仕組みが事故を防げなかった時、個人を責めず仕組みを直す
+
+### 作業完了前の必須 3 ステップ (コードがある場合)
+
+1. **コードレビュー**: 自分のコードを他人として読み返す + 外部識別子の事実検証
+2. **ビルド**: `cd backend && bundle exec rails test` / `cd frontend && npm run build` がエラーなく完了
+3. **動作確認**: localhost:3011 (Nuxt) と localhost:3010/api/v1/* が正常応答
+
+---
+
+## プロジェクト概要
+
+| 項目 | 内容 |
+|---|---|
+| プロジェクト名 | 旅行記録アプリ (trip-diary) |
+| リポジトリ | https://github.com/80-cloud/trip-diary |
+| バックエンド | Ruby 3.4.9 + Ruby on Rails 8.1 (API モード) |
+| フロントエンド | Nuxt 4 + Vue 3 + Tailwind CSS (**TypeScript 不採用 = 純 JS**) |
+| データベース | MySQL 8.x (Docker コンテナ) |
+| 本番デプロイ | (Phase3) AWS EC2 + RDS (無料枠) |
+| 作業ディレクトリ | /Users/macmini/Desktop/TripDiary |
+| 提出先 | スクール講師 (Claude Code 利用は推奨されている) |
+| 学習姿勢 | 「習う → 慣れる → マスター」 ([docs/学習ロードマップ.md](docs/学習ロードマップ.md)) |
+
+---
+
+## 1. ブランチ命名規則
+
+作業を始める前に必ず Issue を作成し、その番号をブランチ名に含めること。
+
+| 種別 | 命名パターン | 例 |
+|---|---|---|
+| 新機能 | `feature/#(番号)-(短い説明)` | `feature/#1-auth` |
+| バグ修正 | `fix/#(番号)-(説明)` | `fix/#15-trip-save-bug` |
+| ドキュメント | `docs/#(番号)-(説明)` | `docs/#3-readme-update` |
+| 雑務・設定 | `chore/#(番号)-(説明)` | `chore/#2-setup-eslint` |
+
+**禁止事項:**
+- `main` ブランチへの直接 push は絶対禁止
+- Issue 番号のないブランチ名は作成しない
+- `master` ブランチは使用しない
+
+---
+
+## 2. Issue ファースト・ワークフロー
+
+```
+① GitHub で Issue を作成する (テンプレートを使用)
+         ↓
+② Issue 番号を確認する (例: #1)
+         ↓
+③ ブランチを作成する: git checkout -b feature/#1-説明
+         ↓
+④ 作業・コミットを行う
+         ↓
+⑤ PR を作成し、Issue を Closes #1 でリンクする
+         ↓
+⑥ main へマージ後、ブランチを削除する
+```
+
+---
+
+## 3. コミットメッセージ規則
+
+**すべてのコミットメッセージは Conventional Commits 形式で、日本語で書くこと。**
+
+### フォーマット
+
+```
+種別: 変更の要約 (日本語・50 文字以内)
+
+詳細説明 (任意・72 文字で折り返す)
+関連する背景・理由・注意点などを書く。
+
+Closes #(Issue番号)  ← 該当する場合のみ
+```
+
+### 種別一覧
+
+| 種別 | 用途 |
+|---|---|
+| `feat` | 新機能の追加 |
+| `fix` | バグの修正 |
+| `docs` | ドキュメントのみの変更 |
+| `style` | コードの動作に影響しない変更 (フォーマット等) |
+| `refactor` | バグ修正でも機能追加でもないコード変更 |
+| `test` | テストの追加・修正 |
+| `chore` | ビルドツールや補助ツールの変更 |
+
+---
+
+## 4. プルリクエスト (PR) 規則
+
+- **タイトルは日本語**
+- 必ず `.github/pull_request_template.md` のテンプレートを使用
+- 必ず関連 Issue を `Closes #番号` で本文にリンク
+- main ブランチへのマージは **Squash and merge**
+- PR タイトルはコミットメッセージと同形式: `種別: 説明`
+- PR 作成時は必ず `--label` を付与 (Issue ラベルは PR に自動継承されない)
+
+---
+
+## 5. ポート割当 (重要)
+
+trip-diary は recipe-board / sns-board と**同時起動可能**にするため、以下のポートを使う:
+
+| サービス | ポート |
+|---|---|
+| Rails API | 3010 |
+| Nuxt | 3011 |
+| MySQL (Docker) | 3316 |
+
+ポート競合があったら:
+1. `lsof -i :3010` で何が掴んでいるか特定
+2. recipe-board / sns-board のプロセスを停止
+3. **絶対に「他のポートで起動する」逃げ方をしない** — 設定ファイル / docs と齟齬が出るため
+
+---
+
+## 6. AI が単独で実行してはいけない操作
+
+人間承認が必須:
+
+- `terraform destroy` / `terraform apply -auto-approve`
+- `aws *delete*` / `aws *terminate*` 系
+- `rm -rf` / `git push --force` / `git reset --hard origin/*`
+- `DROP DATABASE` / `TRUNCATE`
+- DB の本番データに対する UPDATE/DELETE
+- `--no-verify` でフック迂回
+
+---
+
+## 7. 機密情報の取扱い
+
+- `.env`, `*.pem`, `*.key`, `config/master.key` は **絶対にコミットしない**
+- `.gitignore` で除外していることを確認
+- `git add` の前に `git status` で必ず内容を確認
+- 万一コミットしてしまった場合は、ローテーション + 履歴書き換えで対応
+
+---
+
+## 8. 環境セットアップ後の確認コマンド
+
+```bash
+# DB が立ち上がっているか
+docker compose ps
+# Rails API が応答するか
+curl -sS http://localhost:3010/api/v1/health
+# Nuxt が応答するか
+curl -sS -o /dev/null -w "%{http_code}\n" http://localhost:3011
+```
+
+---
+
+## 9. 「習う → 慣れる → マスター」の運用
+
+Claude Code として、ユーザーが今どの段階にいるかを意識して支援する:
+
+| 段階 | Claude の支援姿勢 |
+|---|---|
+| 習う | コード生成は最小限に。代わりに「なぜこう書くか」を簡潔に説明する |
+| 慣れる | 動くものを早く作る。完璧主義で止めない。一連の流れを通す |
+| マスター | 「他の選択肢は？」「どこに事故の芽が？」を一緒に深掘る |
+
+詳細: [docs/学習ロードマップ.md](docs/学習ロードマップ.md)
+
+---
+
+## 10. 姉妹プロジェクト
+
+| プロジェクト | 関係 |
+|---|---|
+| [recipe-board](https://github.com/80-cloud/recipe-board) | 技術スタック (Rails + Nuxt + MySQL + AWS) の流用元 |
+| sns-board | 設計書体系 (要件定義 / 機能一覧 / ER 図 / 認証方式) の参考 |
+| task-board | (過去作) 一番最初に作ったタスク管理アプリ |

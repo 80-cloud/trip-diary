@@ -1,0 +1,45 @@
+# macOS
+.DS_Store
+Untitled
+*.swp
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+*.pem
+*.key
+
+# Logs
+*.log
+log/
+backend/log/
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+frontend/.nuxt/
+frontend/.output/
+frontend/.data/
+frontend/dist/
+
+# Ruby / Rails
+backend/tmp/
+backend/storage/
+backend/.bundle/
+backend/vendor/bundle/
+backend/coverage/
+backend/.byebug_history
+
+# Docker
+db/data/
+db/mysql-data/
+
+# Editor
+.vscode/
+.idea/
+*.iml
+
+# Build artifacts
+*.gem

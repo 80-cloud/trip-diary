@@ -5,6 +5,17 @@
 
 学習姿勢: **習う → 慣れる → マスター** ([docs/学習ロードマップ.md](docs/学習ロードマップ.md) 参照)
 
+## スクリーンショット
+
+### タイムライン (S-03)
+![タイムライン](docs/screenshots/01-timeline.png)
+
+### 旅行記録 詳細 (S-04)
+![詳細](docs/screenshots/03-trip-owner.png)
+
+### 新規作成 / 日別ネストフォーム (S-05)
+![新規作成](docs/screenshots/05-new-trip.png)
+
 ---
 
 ## 主要機能

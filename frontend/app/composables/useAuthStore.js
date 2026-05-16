@@ -37,8 +37,13 @@ export const useAuthStore = defineStore("auth", {
     },
     async logout() {
       const api = useApi()
-      await api.del("/logout")
-      this.user = null
+      try {
+        await api.del("/logout")
+      } catch (_e) {
+        // API 側が落ちていてもクライアント状態は強制的にログアウト扱いにする
+      } finally {
+        this.user = null
+      }
     }
   }
 })

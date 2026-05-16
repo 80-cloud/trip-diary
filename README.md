@@ -118,6 +118,31 @@ PORT=3011 npm run dev
 
 ブラウザで http://localhost:3011 を開く。
 
+### API 疎通確認 (curl)
+
+```bash
+# ヘルスチェック
+curl -sS http://localhost:3010/api/v1/health
+
+# 一覧取得 (未ログイン = 公開のみ)
+curl -sS http://localhost:3010/api/v1/trips | head -c 200
+
+# ログイン (Cookie を /tmp/c.txt に保存)
+curl -sS -c /tmp/c.txt -X POST http://localhost:3010/api/v1/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"taro@example.com","password":"password"}'
+
+# ログイン状態確認
+curl -sS -b /tmp/c.txt http://localhost:3010/api/v1/me
+
+# いいね
+curl -sS -b /tmp/c.txt -X POST http://localhost:3010/api/v1/trips/2/like
+
+# コメント投稿
+curl -sS -b /tmp/c.txt -X POST http://localhost:3010/api/v1/trips/2/comments \
+  -H 'Content-Type: application/json' -d '{"body":"テストコメント"}'
+```
+
 ### シードユーザー (開発用)
 
 | email | password | 役割 |

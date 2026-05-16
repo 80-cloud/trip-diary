@@ -36,7 +36,8 @@
 ### 作業完了前の必須 3 ステップ (コードがある場合)
 
 1. **コードレビュー**: 自分のコードを他人として読み返す + 外部識別子の事実検証
-2. **ビルド**: `cd backend && bundle exec rails test` / `cd frontend && npm run build` がエラーなく完了
+2. **ビルド**: `cd backend && bin/rails zeitwerk:check` (オートロード健全性) / `cd frontend && npm run build` がエラーなく完了
+   ※ Phase 1 は `rails new --skip-test` で生成しているためテストフレームワーク未導入。Phase 2 で Minitest を有効化予定
 3. **動作確認**: localhost:3011 (Nuxt) と localhost:3010/api/v1/* が正常応答
 
 ---

@@ -2,13 +2,22 @@ export function useApi() {
   const config = useRuntimeConfig()
   const base = config.public.apiBase
 
-  async function request(path, options = {}) {
+  function buildOptions(method, options) {
     const opts = {
       baseURL: base,
       credentials: "include",
+      method,
       ...options
     }
-    return await $fetch(path, opts)
+    // body が plain object なら JSON で送る。FormData / File はそのまま渡し、Content-Type は fetch に任せる。
+    if (opts.body && !(opts.body instanceof FormData) && typeof opts.body === "object") {
+      opts.headers = { "Content-Type": "application/json", ...(opts.headers || {}) }
+    }
+    return opts
+  }
+
+  async function request(path, options = {}) {
+    return await $fetch(path, buildOptions(options.method || "GET", options))
   }
 
   return {

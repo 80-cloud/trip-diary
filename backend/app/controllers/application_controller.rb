@@ -10,7 +10,7 @@ class ApplicationController < ActionController::API
 
   def current_user
     return @current_user if defined?(@current_user)
-    token = cookies.encrypted[COOKIE_NAME] || token_from_header
+    token = cookies.encrypted[COOKIE_NAME]
     @current_user = nil
     return @current_user if token.blank?
 
@@ -36,12 +36,6 @@ class ApplicationController < ActionController::API
 
   def clear_jwt_cookie
     cookies.delete(COOKIE_NAME)
-  end
-
-  def token_from_header
-    auth = request.headers["Authorization"]
-    return nil unless auth&.start_with?("Bearer ")
-    auth.split(" ", 2).last
   end
 
   def render_not_found

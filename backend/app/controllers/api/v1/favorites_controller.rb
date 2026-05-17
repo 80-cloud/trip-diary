@@ -22,7 +22,7 @@ module Api
         render json: ordered.map { |t| trip_summary(t, liked_ids: liked_ids, favorited_ids: favorited_ids) }
       end
 
-      # PUT /api/v1/trips/:trip_id/favorite (冪等: 既存ならそのまま 200, なければ 201)
+      # POST /api/v1/trips/:trip_id/favorite (冪等: 既存ならそのまま 200, なければ 201)
       def create
         fav = current_user.favorites.find_or_initialize_by(trip_id: @trip.id)
         if fav.persisted?
@@ -32,9 +32,16 @@ module Api
             fav.save!
             render json: { favorited: true }, status: :created
           rescue ActiveRecord::RecordNotUnique
-            # 並行リクエスト race: validation 後に他リクエストが先に insert → unique 違反
-            # → すでに目的を達したのと同等なので 200 で返す (冪等性維持)
+            # 真の並行 race (validation 通過後 INSERT 衝突)
             render json: { favorited: true }, status: :ok
+          rescue ActiveRecord::RecordInvalid => e
+            # validation-level race (find_or_initialize → save の隙間で先行 INSERT)
+            # uniqueness 由来なら既に目的を達したと同等で 200、他のバリデーション失敗は raise
+            if e.record.errors.added?(:user_id, :taken)
+              render json: { favorited: true }, status: :ok
+            else
+              raise
+            end
           end
         end
       end

@@ -24,6 +24,10 @@ Rails.application.routes.draw do
         resources :tickets, only: [:create, :update, :destroy]
         # F-REVIEW-01: 旅行レビュー (1 trip 1 review / PUT upsert)
         resource :review, only: [:update, :destroy]
+        # F-BUDGET-01: 旅行予算 (1 trip 1 budget / PUT upsert)
+        resource :budget, only: [:update, :destroy]
+        # F-RECEIPT-01: レシート (本人のみ CRUD)
+        resources :receipts, only: [:create, :update, :destroy]
       end
 
       # 自分のお気に入り trip 一覧 (本人専用)

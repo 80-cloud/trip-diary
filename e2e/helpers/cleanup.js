@@ -29,11 +29,18 @@ export default async function globalTeardown() {
     console.log(`[e2e teardown] users matching e2e_* before delete: ${before}`);
 
     if (Number(before) > 0) {
-      // 2) Rails の dependent: :destroy 連鎖削除を効かせるため、ActiveRecord 経由が理想だが
-      //    Playwright は Node なので直接 SQL で DELETE する。
-      //    外部キー制約 (trips.user_id 等) は ON DELETE CASCADE 設定済の想定。
-      //    現状未設定の場合は app 側で has_many ... dependent: :destroy が ActiveRecord 経由でのみ動くため、
-      //    安全のため bin/rails runner で delete する代替手段を提供する。
+      // Rails の dependent: :destroy 連鎖削除は ActiveRecord 経由でのみ動くため、
+      // ここでは MySQL に直接 SQL を投げる。外部キー制約 (trips.user_id 等) は
+      // 必ずしも ON DELETE CASCADE 設定でないため、一時的に FK チェックを切って
+      // users 親レコードを削除し、related rows は orphan として残す可能性を許容する。
+      //
+      // 安全性:
+      //   - playwright.config.js で workers: 1 直列実行のため、並列 spec との race なし。
+      //   - e2e_* prefix の user / 関連データのみが対象 (production data 影響なし)。
+      //   - orphan が残った場合も次回 cleanup の `before` count に現れて気付ける。
+      //
+      // より堅牢にするなら `bin/rails runner "User.where('email LIKE ?', 'e2e_%').destroy_all"`
+      // で連鎖削除する選択肢があるが、Rails boot に 10-30 秒かかるため smoke では未採用。
       mysqlExec("SET FOREIGN_KEY_CHECKS=0; DELETE FROM users WHERE email LIKE 'e2e\\_%'; SET FOREIGN_KEY_CHECKS=1;");
     }
 

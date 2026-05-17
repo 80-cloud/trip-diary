@@ -3,8 +3,12 @@
 //
 // 認証: trip-diary は encrypted JWT を Cookie `trip_diary_token` に格納
 // (backend/app/controllers/application_controller.rb COOKIE_NAME)。
-// Cookie はサーバが暗号化しているのでクライアント側では opaque 値として保持し、
-// Playwright BrowserContext に注入する。
+// 同 ApiSession 内では signup 時の Cookie をそのまま後続 API に流用する
+// (Node fetch 上で Cookie ヘッダーに直接付与すれば Rails が decrypt 可能)。
+//
+// ブラウザ側の認証は別途 UI login で行う設計 (fixtures/auth-state.js 参照)。
+// Rails encrypted cookie 値を Playwright BrowserContext.addCookies に渡すと
+// format が一致せず壊れるため、ブラウザへの cookie 直接注入は採用しない。
 
 import { makeEmail, makeDisplayName, tagTripTitle, DEFAULT_PASSWORD } from './naming.js';
 
@@ -120,22 +124,3 @@ export class ApiSession {
   }
 }
 
-/**
- * Playwright BrowserContext に session の cookie を注入する。
- * trip_diary_token は encrypted JWT (Rails 側で復号)。HttpOnly / SameSite=Lax / path=/。
- */
-export async function injectSessionCookies(context, session) {
-  const cookies = [];
-  for (const [name, value] of session.cookies.entries()) {
-    cookies.push({
-      name,
-      value,
-      domain: 'localhost',
-      path: '/',
-      httpOnly: true,
-      sameSite: 'Lax',
-      secure: false,
-    });
-  }
-  await context.addCookies(cookies);
-}

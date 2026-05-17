@@ -25,11 +25,13 @@ export async function signupAndLogin(page, context, index) {
   const session = new ApiSession();
   const { email, display_name, password, user } = await session.signup(index);
 
-  // UI ログイン: Cookie はブラウザが自然に取得し、以降の API call で送信される
+  // UI ログイン: Cookie はブラウザが自然に取得し、以降の API call で送信される。
+  // 成功時は login.vue の submit ハンドラが route.query.redirect || "/" へ push するため、
+  // / (root) へ着くまで待つ。login 失敗時は /login に留まり 10s でタイムアウト → spec fail。
   const loginPage = new LoginPage(page);
   await loginPage.goto();
   await loginPage.login(email, password);
-  await page.waitForURL(/\/(?!login)/, { timeout: 10_000 });
+  await page.waitForURL((url) => new URL(url).pathname === '/', { timeout: 10_000 });
 
   return { email, display_name, password, user, session };
 }

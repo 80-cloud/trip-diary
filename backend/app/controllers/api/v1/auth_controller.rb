@@ -31,6 +31,11 @@ module Api
           Rails.logger.info("[signup][422] errors=#{masked_errors.inspect}")
           render json: { error: GENERIC_SIGNUP_ERROR }, status: :unprocessable_entity
         end
+      rescue ActiveRecord::RecordNotUnique
+        # E-L5: Rails-level uniqueness を通った後、DB unique で race を弾かれた場合
+        # 500 を出さず E-H1 と同じ汎用 422 で応答 (email 列挙防止も継続)
+        Rails.logger.info("[signup][422] db_unique_race")
+        render json: { error: GENERIC_SIGNUP_ERROR }, status: :unprocessable_entity
       end
 
       def login

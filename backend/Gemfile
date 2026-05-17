@@ -36,6 +36,9 @@ gem "image_processing", "~> 1.2"
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 gem "rack-cors"
 
+# E-M1: ブルートフォース対策。login / signup の IP throttle (5 req/min / 3 req/min)
+gem "rack-attack"
+
 # .env から環境変数を読み込む (development / test のみ)
 gem "dotenv-rails", groups: [ :development, :test ]
 

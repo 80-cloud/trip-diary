@@ -472,8 +472,8 @@ async function toggleFollow() {
 
       <!-- カバー画像 (フルブリード・タイトルオーバーレイ) -->
       <div :class="['relative aspect-[21/9] md:aspect-[3/1] bg-gradient-to-br', gradientOf(trip.category)]">
-        <img :src="coverImage(trip, 1200, 500)" :alt="trip.title" class="absolute inset-0 w-full h-full object-cover" loading="eager" />
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+        <img :src="coverImage(trip, 1200, 500)" :alt="trip.title" class="absolute inset-0 w-full h-full object-cover" loading="eager" >
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"/>
         <span v-if="trip.status === 'draft'" class="absolute top-3 right-3 text-xs px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-200 font-bold shadow">下書き</span>
         <div class="absolute bottom-0 left-0 right-0 p-5 md:p-6 text-white">
           <div class="flex items-center gap-2 text-sm opacity-90 mb-1">
@@ -493,13 +493,13 @@ async function toggleFollow() {
               <NuxtLink :to="`/users/${trip.user.id}`" class="hover:underline font-medium">@{{ trip.user.display_name }}</NuxtLink>
               <button
                 v-if="auth.user && auth.user.id !== trip.user.id"
-                @click="toggleFollow"
                 :class="[
                   'text-[10px] px-2 py-0.5 rounded border',
                   trip.user.followed_by_me
                     ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600'
                     : 'bg-brand-500 text-white border-brand-500'
                 ]"
+                @click="toggleFollow"
               >{{ trip.user.followed_by_me ? "フォロー中" : "+ フォロー" }}</button>
             </p>
             <div v-if="(trip.tags || []).length" class="mt-2 flex flex-wrap gap-1.5 items-center">
@@ -513,34 +513,34 @@ async function toggleFollow() {
           </div>
           <div v-if="isOwner()" class="flex gap-2 shrink-0">
             <NuxtLink :to="`/trips/${trip.id}/edit`" class="text-sm bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-100 px-3 py-1.5 rounded hover:bg-slate-300 dark:hover:bg-slate-600">編集</NuxtLink>
-            <button type="button" @click="deleteTrip" class="text-sm bg-rose-500 text-white px-3 py-1.5 rounded hover:bg-rose-600">削除</button>
+            <button type="button" class="text-sm bg-rose-500 text-white px-3 py-1.5 rounded hover:bg-rose-600" @click="deleteTrip">削除</button>
           </div>
         </div>
 
         <!-- ユーザーがアップした追加画像 (2 枚目以降) -->
         <div v-if="trip.image_urls && trip.image_urls.length > 1" class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4">
-          <img v-for="(url, idx) in trip.image_urls.slice(1)" :key="idx" :src="fullImageUrl(url)" class="w-full aspect-video object-cover rounded" />
+          <img v-for="(url, idx) in trip.image_urls.slice(1)" :key="idx" :src="fullImageUrl(url)" class="w-full aspect-video object-cover rounded" >
         </div>
 
         <p v-if="trip.body" class="mt-4 text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{{ trip.body }}</p>
 
         <div class="mt-6 flex flex-wrap items-center gap-2">
         <button
-          @click="toggleLike"
           :class="[
             'px-3 py-1.5 rounded text-sm flex items-center gap-1 border',
             trip.liked_by_me ? 'bg-rose-50 border-rose-300 text-rose-600 dark:bg-rose-950 dark:border-rose-700 dark:text-rose-200' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
           ]"
+          @click="toggleLike"
         >
           <span>{{ trip.liked_by_me ? "♥" : "♡" }}</span>
           <span>{{ trip.likes_count }} いいね</span>
         </button>
         <button
-          @click="toggleFavorite"
           :class="[
             'px-3 py-1.5 rounded text-sm flex items-center gap-1 border',
             trip.favorited_by_me ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-950 dark:border-amber-700 dark:text-amber-200' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
           ]"
+          @click="toggleFavorite"
         >
           <span>{{ trip.favorited_by_me ? "★" : "☆" }}</span>
           <span>{{ trip.favorited_by_me ? "お気に入り済" : "お気に入り" }}</span>
@@ -558,7 +558,7 @@ async function toggleFollow() {
         <span class="text-xs text-slate-500 dark:text-slate-400">{{ trip.planned_done_count }} / {{ trip.planned_count }} 件 ({{ planProgress }}%)</span>
       </div>
       <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded overflow-hidden">
-        <div class="h-full bg-brand-500 transition-all" :style="{ width: `${planProgress}%` }"></div>
+        <div class="h-full bg-brand-500 transition-all" :style="{ width: `${planProgress}%` }"/>
       </div>
     </section>
 
@@ -567,16 +567,17 @@ async function toggleFollow() {
       <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-3">計画スポット <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(自分にだけ見えます)</span></h2>
       <ul class="space-y-2 mb-3">
         <li v-for="spot in trip.planned_spots" :key="spot.id" class="flex items-center gap-2">
-          <input type="checkbox" :checked="spot.done" @change="toggleSpotDone(spot)" class="rounded" />
+          <input type="checkbox" :checked="spot.done" class="rounded" @change="toggleSpotDone(spot)" >
           <span :class="['flex-1 text-sm', spot.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200']">{{ spot.title }}</span>
           <span v-if="spot.day_entry_id" class="text-[10px] px-1.5 py-0.5 rounded bg-brand-100 dark:bg-brand-700 text-brand-700 dark:text-brand-50">記録に追加済</span>
-          <button type="button" @click="deleteSpot(spot)" class="text-xs text-rose-500 hover:underline">削除</button>
+          <button type="button" class="text-xs text-rose-500 hover:underline" @click="deleteSpot(spot)">削除</button>
         </li>
         <li v-if="trip.planned_spots.length === 0" class="text-xs text-slate-400 dark:text-slate-500">まだ計画はありません</li>
       </ul>
-      <form @submit.prevent="addSpot" class="flex gap-2">
-        <input v-model="newSpotTitle" maxlength="80" placeholder="新しい計画 (例: 金閣寺)"
-          class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm" />
+      <form class="flex gap-2" @submit.prevent="addSpot">
+        <input
+v-model="newSpotTitle" maxlength="80" placeholder="新しい計画 (例: 金閣寺)"
+          class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm" >
         <button type="submit" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600">追加</button>
       </form>
       <p v-if="planError" class="text-xs text-rose-600 mt-2">{{ planError }}</p>
@@ -588,15 +589,16 @@ async function toggleFollow() {
       <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-3">持ち物チェックリスト <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(自分にだけ見えます)</span></h2>
       <ul class="space-y-2 mb-3">
         <li v-for="item in trip.packing_items" :key="item.id" class="flex items-center gap-2">
-          <input type="checkbox" :checked="item.packed" @change="toggleItemPacked(item)" class="rounded" />
+          <input type="checkbox" :checked="item.packed" class="rounded" @change="toggleItemPacked(item)" >
           <span :class="['flex-1 text-sm', item.packed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200']">{{ item.body }}</span>
-          <button type="button" @click="deleteItem(item)" class="text-xs text-rose-500 hover:underline">削除</button>
+          <button type="button" class="text-xs text-rose-500 hover:underline" @click="deleteItem(item)">削除</button>
         </li>
         <li v-if="trip.packing_items.length === 0" class="text-xs text-slate-400 dark:text-slate-500">まだ持ち物はありません</li>
       </ul>
-      <form @submit.prevent="addItem" class="flex gap-2">
-        <input v-model="newItemBody" maxlength="80" placeholder="新しい持ち物 (例: 歯ブラシ)"
-          class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm" />
+      <form class="flex gap-2" @submit.prevent="addItem">
+        <input
+v-model="newItemBody" maxlength="80" placeholder="新しい持ち物 (例: 歯ブラシ)"
+          class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm" >
         <button type="submit" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600">追加</button>
       </form>
       <p v-if="packError" class="text-xs text-rose-600 mt-2">{{ packError }}</p>
@@ -614,24 +616,28 @@ async function toggleFollow() {
             <p v-if="t.notes" class="text-xs text-slate-500 dark:text-slate-400">{{ t.notes }}</p>
             <a v-if="t.file_url" :href="fileUrlFull(t.file_url)" target="_blank" rel="noopener" class="text-xs text-slate-500 dark:text-slate-400 underline">添付ファイル</a>
           </div>
-          <button type="button" @click="deleteTicket(t)" class="text-xs text-rose-500 hover:underline shrink-0">削除</button>
+          <button type="button" class="text-xs text-rose-500 hover:underline shrink-0" @click="deleteTicket(t)">削除</button>
         </li>
         <li v-if="trip.tickets.length === 0" class="text-xs text-slate-400 dark:text-slate-500">まだチケットはありません</li>
       </ul>
-      <form @submit.prevent="addTicket" class="space-y-2">
+      <form class="space-y-2" @submit.prevent="addTicket">
         <div class="flex gap-2">
           <select v-model="newTicket.kind" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm">
             <option v-for="(label, key) in KIND_LABELS" :key="key" :value="key">{{ label }}</option>
           </select>
-          <input v-model="newTicket.reservation_no" maxlength="80" placeholder="予約番号"
-            class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
+          <input
+v-model="newTicket.reservation_no" maxlength="80" placeholder="予約番号"
+            class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" >
         </div>
-        <input v-model="newTicket.url" maxlength="500" placeholder="URL (任意)"
-          class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
-        <input v-model="newTicket.notes" maxlength="500" placeholder="メモ (任意)"
-          class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
-        <input id="ticket-file-input" type="file" accept="image/*,application/pdf" @change="onTicketFileChange"
-          class="absolute w-0 h-0 opacity-0 pointer-events-none -z-10" />
+        <input
+v-model="newTicket.url" maxlength="500" placeholder="URL (任意)"
+          class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" >
+        <input
+v-model="newTicket.notes" maxlength="500" placeholder="メモ (任意)"
+          class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" >
+        <input
+id="ticket-file-input" type="file" accept="image/*,application/pdf" class="absolute w-0 h-0 opacity-0 pointer-events-none -z-10"
+          @change="onTicketFileChange" >
         <div class="flex items-center gap-3 flex-wrap">
           <label
             for="ticket-file-input"
@@ -658,16 +664,17 @@ async function toggleFollow() {
       <p v-else-if="!trip.review && !isOwner()" class="text-xs text-slate-400 dark:text-slate-500">まだレビューはありません</p>
 
       <!-- 編集 (本人のみ) -->
-      <form v-if="isOwner()" @submit.prevent="saveReview" class="space-y-2">
+      <form v-if="isOwner()" class="space-y-2" @submit.prevent="saveReview">
         <label class="block text-xs text-slate-600 dark:text-slate-400">5 段階評価</label>
         <select v-model.number="reviewDraft.rating" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm">
           <option v-for="r in [1, 2, 3, 4, 5]" :key="r" :value="r">{{ r }} {{ "★".repeat(r) }}</option>
         </select>
-        <textarea v-model="reviewDraft.body" rows="3" maxlength="2000" placeholder="振り返り (2000 字以内 / 任意)"
-          class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm"></textarea>
+        <textarea
+v-model="reviewDraft.body" rows="3" maxlength="2000" placeholder="振り返り (2000 字以内 / 任意)"
+          class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm"/>
         <div class="flex items-center gap-2">
           <button type="submit" :disabled="reviewSaving" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600 disabled:opacity-50">{{ reviewSaving ? "保存中…" : (trip.review ? "更新" : "保存") }}</button>
-          <button v-if="trip.review" type="button" @click="deleteReview" class="text-xs text-rose-500 hover:underline">レビューを削除</button>
+          <button v-if="trip.review" type="button" class="text-xs text-rose-500 hover:underline" @click="deleteReview">レビューを削除</button>
         </div>
         <p v-if="reviewError" class="text-xs text-rose-600">{{ reviewError }}</p>
       </form>
@@ -681,14 +688,14 @@ async function toggleFollow() {
       </h2>
 
       <!-- 予算 upsert form -->
-      <form @submit.prevent="saveBudget" class="space-y-2 mb-4">
+      <form class="space-y-2 mb-4" @submit.prevent="saveBudget">
         <div class="flex flex-wrap items-end gap-2">
           <label class="block text-xs text-slate-600 dark:text-slate-400">
             予算
             <input
               v-model.number="budgetDraft.planned_amount" type="number" min="0" step="1"
               class="block w-32 mt-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm"
-            />
+            >
           </label>
           <label class="block text-xs text-slate-600 dark:text-slate-400">
             通貨
@@ -696,11 +703,12 @@ async function toggleFollow() {
               <option v-for="c in CURRENCIES" :key="c" :value="c">{{ c }}</option>
             </select>
           </label>
-          <button type="submit" :disabled="budgetSaving"
+          <button
+type="submit" :disabled="budgetSaving"
             class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600 disabled:opacity-50">
             {{ budgetSaving ? "保存中…" : (trip.budget ? "予算を更新" : "予算を保存") }}
           </button>
-          <button v-if="trip.budget" type="button" @click="deleteBudget" class="text-xs text-rose-500 hover:underline">予算を削除</button>
+          <button v-if="trip.budget" type="button" class="text-xs text-rose-500 hover:underline" @click="deleteBudget">予算を削除</button>
         </div>
         <p v-if="budgetError" class="text-xs text-rose-600">{{ budgetError }}</p>
       </form>
@@ -712,8 +720,9 @@ async function toggleFollow() {
           <span :class="spendingPercent() >= 100 ? 'text-rose-500 font-bold' : ''">{{ spendingPercent() }}%</span>
         </div>
         <div class="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">
-          <div :class="['h-full', spendingPercent() >= 100 ? 'bg-rose-500' : 'bg-emerald-500']"
-            :style="{ width: spendingPercent() + '%' }"></div>
+          <div
+:class="['h-full', spendingPercent() >= 100 ? 'bg-rose-500' : 'bg-emerald-500']"
+            :style="{ width: spendingPercent() + '%' }"/>
         </div>
       </div>
 
@@ -723,43 +732,49 @@ async function toggleFollow() {
         <div v-for="c in RECEIPT_CATEGORIES" :key="c.value" class="flex items-center gap-2 text-xs">
           <span class="w-12 text-slate-600 dark:text-slate-300">{{ c.label }}</span>
           <div class="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">
-            <div :class="['h-full', CATEGORY_COLORS[c.value]]" :style="{ width: categoryPercent(c.value) + '%' }"></div>
+            <div :class="['h-full', CATEGORY_COLORS[c.value]]" :style="{ width: categoryPercent(c.value) + '%' }"/>
           </div>
           <span class="w-24 text-right tabular-nums text-slate-700 dark:text-slate-200">{{ trip.receipts_by_category?.[c.value] || "0.00" }}</span>
         </div>
       </div>
 
       <!-- レシート追加 form -->
-      <form @submit.prevent="addReceipt" class="space-y-2 border-t border-slate-200 dark:border-slate-700 pt-3">
+      <form class="space-y-2 border-t border-slate-200 dark:border-slate-700 pt-3" @submit.prevent="addReceipt">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-          <input v-model.number="newReceipt.amount" type="number" min="1" step="1" required placeholder="金額"
-            class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
-          <select v-model="newReceipt.category"
+          <input
+v-model.number="newReceipt.amount" type="number" min="1" step="1" required placeholder="金額"
+            class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" >
+          <select
+v-model="newReceipt.category"
             class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm">
             <option v-for="c in RECEIPT_CATEGORIES" :key="c.value" :value="c.value">{{ c.label }}</option>
           </select>
-          <input v-model="newReceipt.spent_on" type="date"
-            class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
-          <input v-model="newReceipt.description" type="text" maxlength="200" placeholder="メモ (任意)"
-            class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
+          <input
+v-model="newReceipt.spent_on" type="date"
+            class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" >
+          <input
+v-model="newReceipt.description" type="text" maxlength="200" placeholder="メモ (任意)"
+            class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" >
         </div>
-        <button type="submit"
+        <button
+type="submit"
           class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600">レシートを追加</button>
         <p v-if="receiptError" class="text-xs text-rose-600">{{ receiptError }}</p>
       </form>
 
       <!-- レシート一覧 -->
       <ul class="mt-3 space-y-1">
-        <li v-for="r in trip.receipts" :key="r.id"
+        <li
+v-for="r in trip.receipts" :key="r.id"
           class="flex items-center justify-between text-sm border-b border-slate-100 dark:border-slate-700 pb-1 last:border-0">
           <div class="flex items-center gap-2 min-w-0">
-            <span :class="['inline-block w-2 h-2 rounded-full shrink-0', CATEGORY_COLORS[r.category]]"></span>
+            <span :class="['inline-block w-2 h-2 rounded-full shrink-0', CATEGORY_COLORS[r.category]]"/>
             <span class="text-xs text-slate-500 dark:text-slate-400 w-12">{{ categoryLabel(r.category) }}</span>
             <span class="tabular-nums text-slate-800 dark:text-slate-100">{{ r.amount }}</span>
             <span v-if="r.spent_on" class="text-xs text-slate-500 dark:text-slate-400">{{ r.spent_on }}</span>
             <span v-if="r.description" class="text-xs text-slate-600 dark:text-slate-300 truncate">{{ r.description }}</span>
           </div>
-          <button type="button" @click="deleteReceipt(r)" class="text-xs text-rose-500 hover:underline shrink-0">削除</button>
+          <button type="button" class="text-xs text-rose-500 hover:underline shrink-0" @click="deleteReceipt(r)">削除</button>
         </li>
         <li v-if="!trip.receipts.length" class="text-xs text-slate-400 dark:text-slate-500">まだレシートはありません</li>
       </ul>
@@ -772,12 +787,12 @@ async function toggleFollow() {
         v-model="memoDraft" rows="3" maxlength="2000"
         placeholder="この旅行について自分用のメモ (2000 字以内)"
         class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm"
-      ></textarea>
+      />
       <div class="mt-2 flex items-center justify-between">
         <span v-if="memoMsg" class="text-xs text-slate-500 dark:text-slate-400">{{ memoMsg }}</span>
         <button
-          @click="saveMemo" :disabled="memoSaving"
-          class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm disabled:opacity-50 hover:bg-brand-600 ml-auto"
+          :disabled="memoSaving" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm disabled:opacity-50 hover:bg-brand-600 ml-auto"
+          @click="saveMemo"
         >{{ memoSaving ? "保存中…" : (memoDraft ? "メモを保存" : "メモを削除") }}</button>
       </div>
     </section>
@@ -801,17 +816,17 @@ async function toggleFollow() {
             <p class="text-sm font-medium text-slate-700 dark:text-slate-200">@{{ c.user.display_name }}</p>
             <p class="text-sm text-slate-600 dark:text-slate-300 mt-0.5 whitespace-pre-wrap">{{ c.body }}</p>
           </div>
-          <button type="button" v-if="auth.user && c.user.id === auth.user.id" @click="deleteComment(c.id)" class="text-xs text-rose-500 hover:underline shrink-0">削除</button>
+          <button v-if="auth.user && c.user.id === auth.user.id" type="button" class="text-xs text-rose-500 hover:underline shrink-0" @click="deleteComment(c.id)">削除</button>
         </li>
         <li v-if="!trip.comments.length" class="text-sm text-slate-400">まだコメントはありません。</li>
       </ul>
 
-      <form v-if="auth.user" @submit.prevent="submitComment" class="flex gap-2">
+      <form v-if="auth.user" class="flex gap-2" @submit.prevent="submitComment">
         <input
           v-model="newComment" type="text" maxlength="140" required
           placeholder="コメントを書く (140 文字以内)"
           class="flex-1 border border-slate-300 rounded px-3 py-2 text-sm"
-        />
+        >
         <button type="submit" :disabled="submitting" class="bg-brand-500 text-white px-4 py-2 rounded text-sm disabled:opacity-50">
           投稿
         </button>

@@ -29,20 +29,20 @@ async function submit() {
   <div class="max-w-md mx-auto bg-white dark:bg-slate-800 p-8 rounded-lg border border-slate-200 dark:border-slate-700 mt-12">
     <h1 class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6 text-center">ログイン</h1>
 
-    <form @submit.prevent="submit" class="space-y-4">
+    <form class="space-y-4" @submit.prevent="submit">
       <div>
         <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">メールアドレス</label>
         <input
           v-model="email" type="email" required
           class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-brand-200 dark:focus:ring-brand-900/60"
-        />
+        >
       </div>
       <div>
         <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">パスワード</label>
         <input
           v-model="password" type="password" required
           class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-brand-200 dark:focus:ring-brand-900/60"
-        />
+        >
       </div>
       <p v-if="error" class="text-sm text-rose-600">{{ error }}</p>
       <button

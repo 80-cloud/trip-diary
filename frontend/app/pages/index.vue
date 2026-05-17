@@ -164,19 +164,6 @@ function formatRange(s, e) {
 }
 </script>
 
-<style scoped>
-/* 画像の fade-in (load 完了で opacity 0 → 1) */
-.trip-img { opacity: 0; transition: opacity 350ms ease; }
-.trip-img.loaded { opacity: 1; }
-
-/* カードの初期描画 fade + 持ち上がり */
-@keyframes card-rise {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.trip-card { animation: card-rise 350ms ease both; }
-</style>
-
 <template>
   <div>
     <!-- 案 A+: Bento ヒーロー (Top 3) - 1 大 + 2 小 -->
@@ -184,8 +171,8 @@ function formatRange(s, e) {
       <!-- メインヒーロー (左 2/3) -->
       <NuxtLink :to="`/trips/${heroTrip.id}`" class="md:col-span-2 group relative overflow-hidden rounded-2xl shadow-lg block">
         <div :class="['relative aspect-[16/9] md:aspect-[2/1] bg-gradient-to-br', gradientOf(heroTrip.category)]">
-          <img :src="tripImage(heroTrip, 1200, 600)" :alt="heroTrip.title" class="trip-img absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="eager" @load="$event.target.classList.add('loaded')" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
+          <img :src="tripImage(heroTrip, 1200, 600)" :alt="heroTrip.title" class="trip-img absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="eager" @load="$event.target.classList.add('loaded')" >
+          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"/>
           <div class="absolute top-4 left-4 inline-flex items-center gap-1 px-2.5 py-1 bg-white/95 dark:bg-slate-900/85 rounded-full text-xs font-medium text-slate-700 dark:text-slate-200 backdrop-blur-sm">
             <span>✨</span><span>今週の 1 位</span>
           </div>
@@ -208,14 +195,14 @@ function formatRange(s, e) {
       <div class="grid grid-rows-2 gap-3">
         <NuxtLink
           v-for="(sub, idx) in [subHero1, subHero2]"
-          :key="sub?.id || idx"
           v-show="sub"
+          :key="sub?.id || idx"
           :to="sub ? `/trips/${sub.id}` : '#'"
           class="group relative overflow-hidden rounded-2xl shadow-md block"
         >
           <div v-if="sub" :class="['relative h-full min-h-[120px] bg-gradient-to-br', gradientOf(sub.category)]">
-            <img :src="tripImage(sub, 600, 400)" :alt="sub.title" class="trip-img absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="eager" @load="$event.target.classList.add('loaded')" />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+            <img :src="tripImage(sub, 600, 400)" :alt="sub.title" class="trip-img absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="eager" @load="$event.target.classList.add('loaded')" >
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"/>
             <div class="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 bg-white/90 dark:bg-slate-900/80 rounded-full text-[10px] font-medium text-slate-700 dark:text-slate-200">
               <span>{{ idx === 0 ? '🥈' : '🥉' }}</span><span>{{ idx === 0 ? '2 位' : '3 位' }}</span>
             </div>
@@ -235,18 +222,18 @@ function formatRange(s, e) {
     <!-- F-FOLLOW-04: タイムラインタブ -->
     <div class="flex gap-1 mb-4 border-b border-slate-200 dark:border-slate-700">
       <button
-        type="button" @click="feed = 'all'"
-        :class="[
+        type="button" :class="[
           'px-4 py-2 text-sm border-b-2 -mb-px',
           feed === 'all' ? 'border-brand-500 text-brand-600 dark:text-brand-50 font-bold' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
         ]"
+        @click="feed = 'all'"
       >すべて</button>
       <button
-        type="button" @click="feed = 'following'"
-        :class="[
+        type="button" :class="[
           'px-4 py-2 text-sm border-b-2 -mb-px',
           feed === 'following' ? 'border-brand-500 text-brand-600 dark:text-brand-50 font-bold' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
         ]"
+        @click="feed = 'following'"
       >フォロー中</button>
     </div>
 
@@ -257,7 +244,7 @@ function formatRange(s, e) {
         type="search" maxlength="80"
         placeholder="タイトル / 場所 / タグで検索"
         class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm"
-      />
+      >
       <select v-model="sort" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm">
         <option value="recent">新着順</option>
         <option value="popular">人気順 (いいね数)</option>
@@ -269,29 +256,29 @@ function formatRange(s, e) {
     <div class="flex flex-wrap gap-2 mb-4">
       <button
         type="button"
-        @click="category = ''"
         :class="[
           'text-xs px-3 py-1.5 rounded-full border',
           category === '' ? 'bg-brand-500 text-white border-brand-500' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
         ]"
+        @click="category = ''"
       >すべて</button>
       <button
         v-for="opt in CATEGORY_OPTIONS"
         :key="opt.value"
         type="button"
-        @click="selectCategory(opt.value)"
         :class="[
           'text-xs px-3 py-1.5 rounded-full border inline-flex items-center gap-1.5',
           category === opt.value ? 'bg-brand-500 text-white border-brand-500' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
         ]"
+        @click="selectCategory(opt.value)"
       ><span>{{ opt.icon }}</span><span>{{ opt.label }}</span></button>
     </div>
 
     <!-- 装飾見出し: 人気タグ -->
     <div v-if="popularTags && popularTags.length" class="flex items-center gap-3 mb-3 mt-2">
-      <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
+      <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
       <span class="text-xs tracking-[0.3em] text-slate-400 dark:text-slate-500 inline-flex items-center gap-1.5"><span>🏷️</span><span>POPULAR TAGS</span></span>
-      <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
+      <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
     </div>
     <section v-if="popularTags && popularTags.length" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 mb-6">
       <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -308,9 +295,9 @@ function formatRange(s, e) {
     <!-- 装飾見出し: ⚡ 人気の旅 (sectionedView 時のみ) -->
     <template v-if="sectionedView && popularBatch.length">
       <div class="flex items-center gap-3 mb-4 mt-2">
-        <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
+        <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
         <span class="text-xs tracking-[0.3em] text-slate-400 dark:text-slate-500 inline-flex items-center gap-1.5"><span>⚡</span><span>POPULAR TRIPS</span></span>
-        <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
+        <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <NuxtLink
@@ -323,9 +310,9 @@ function formatRange(s, e) {
             {{ labelOf(trip.category) }}
           </div>
           <div :class="['aspect-video relative overflow-hidden bg-gradient-to-br', gradientOf(trip.category)]">
-            <img :src="tripImage(trip, 600, 400)" class="trip-img absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" :alt="trip.title" loading="lazy" @load="$event.target.classList.add('loaded')" />
+            <img :src="tripImage(trip, 600, 400)" class="trip-img absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" :alt="trip.title" loading="lazy" @load="$event.target.classList.add('loaded')" >
             <!-- 下部から立ち上がる暗グラデで「行き先」を確実に読ませる -->
-            <div class="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+            <div class="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 via-black/20 to-transparent"/>
             <span class="absolute bottom-2 right-3 text-white text-xs font-bold drop-shadow-lg z-10">📍 {{ trip.destination }}</span>
           </div>
           <div class="p-4 flex-1 flex flex-col">
@@ -346,12 +333,12 @@ function formatRange(s, e) {
 
     <!-- 装飾見出し: 🕘 最近の旅 (or 検索/絞り込み時は TRAVEL LOGS) -->
     <div class="flex items-center gap-3 mb-4 mt-2">
-      <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
+      <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
       <span class="text-xs tracking-[0.3em] text-slate-400 dark:text-slate-500 inline-flex items-center gap-1.5">
         <span>{{ sectionedView ? '🕘' : '📖' }}</span>
         <span>{{ sectionedView ? 'RECENT TRIPS' : 'TRAVEL LOGS' }}</span>
       </span>
-      <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
+      <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
     </div>
 
     <div v-if="pending" class="text-center py-12 text-slate-500 dark:text-slate-400">読み込み中…</div>
@@ -373,9 +360,9 @@ function formatRange(s, e) {
             {{ labelOf(trip.category) }}
           </div>
           <div :class="['aspect-video relative overflow-hidden bg-gradient-to-br', gradientOf(trip.category)]">
-            <img :src="tripImage(trip, 600, 400)" class="trip-img absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" :alt="trip.title" loading="lazy" @load="$event.target.classList.add('loaded')" />
+            <img :src="tripImage(trip, 600, 400)" class="trip-img absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" :alt="trip.title" loading="lazy" @load="$event.target.classList.add('loaded')" >
             <!-- 下部から立ち上がる暗グラデで「行き先」を確実に読ませる -->
-            <div class="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+            <div class="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 via-black/20 to-transparent"/>
             <span class="absolute bottom-2 right-3 text-white text-xs font-bold drop-shadow-lg z-10">📍 {{ trip.destination }}</span>
           </div>
           <div class="p-4 flex-1 flex flex-col">
@@ -401,3 +388,16 @@ function formatRange(s, e) {
     </template>
   </div>
 </template>
+
+<style scoped>
+/* 画像の fade-in (load 完了で opacity 0 → 1) */
+.trip-img { opacity: 0; transition: opacity 350ms ease; }
+.trip-img.loaded { opacity: 1; }
+
+/* カードの初期描画 fade + 持ち上がり */
+@keyframes card-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.trip-card { animation: card-rise 350ms ease both; }
+</style>

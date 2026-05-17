@@ -104,12 +104,12 @@ function formatTime(iso) {
       >
         <button
           type="button"
-          @click="handleClick(n)"
           :class="[
             'w-full text-left px-3 py-2 border-b border-slate-100 dark:border-slate-700 last:border-0 flex items-start gap-2',
             active ? 'bg-slate-50 dark:bg-slate-700' : '',
             n.read_at == null ? 'bg-blue-50/40 dark:bg-blue-900/20' : ''
           ]"
+          @click="handleClick(n)"
         >
           <span v-if="n.read_at == null" class="mt-1.5 w-2 h-2 rounded-full bg-blue-500 shrink-0" aria-label="未読" />
           <span v-else class="mt-1.5 w-2 h-2 shrink-0" aria-hidden="true" />

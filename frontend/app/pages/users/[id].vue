@@ -119,7 +119,7 @@ async function saveProfile() {
             :src="fullImageUrl(profileAvatar)"
             :alt="profileName"
             class="w-20 h-20 rounded-full object-cover bg-slate-100 dark:bg-slate-700"
-          />
+          >
           <div v-else class="w-20 h-20 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-2xl text-slate-500 dark:text-slate-400">
             👤
           </div>
@@ -129,8 +129,8 @@ async function saveProfile() {
             <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 truncate">@{{ profileName }}</h1>
             <button
               v-if="isSelf && !editing"
-              @click="openEdit"
               class="shrink-0 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-600"
+              @click="openEdit"
             >プロフィールを編集</button>
           </div>
           <p v-if="profileBio" class="text-sm text-slate-600 dark:text-slate-300 mt-2 whitespace-pre-wrap">{{ profileBio }}</p>
@@ -139,28 +139,28 @@ async function saveProfile() {
       </div>
 
       <!-- 編集フォーム (本人のみ) -->
-      <form v-if="isSelf && editing" @submit.prevent="saveProfile" class="mt-4 space-y-3 border-t border-slate-200 dark:border-slate-700 pt-4">
+      <form v-if="isSelf && editing" class="mt-4 space-y-3 border-t border-slate-200 dark:border-slate-700 pt-4" @submit.prevent="saveProfile">
         <div>
           <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">表示名 *</label>
           <input
             v-model="editDisplayName" required maxlength="30"
             class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded px-3 py-2"
-          />
+          >
         </div>
         <div>
           <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">自己紹介 (500 字以内)</label>
           <textarea
             v-model="editBio" rows="3" maxlength="500"
             class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded px-3 py-2"
-          ></textarea>
+          />
         </div>
         <div>
           <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">アバター (JPEG / PNG / GIF / WebP / 2MB 以下)</label>
           <input
             id="user-avatar-input"
-            type="file" accept="image/*" @change="onAvatarChange"
-            class="absolute w-0 h-0 opacity-0 pointer-events-none -z-10"
-          />
+            type="file" accept="image/*" class="absolute w-0 h-0 opacity-0 pointer-events-none -z-10"
+            @change="onAvatarChange"
+          >
           <div class="flex items-center gap-3 flex-wrap">
             <label
               for="user-avatar-input"
@@ -171,8 +171,9 @@ async function saveProfile() {
         </div>
         <p v-if="editError" class="text-sm text-rose-600">{{ editError }}</p>
         <div class="flex items-center gap-2 justify-end">
-          <button type="button" @click="editing = false" class="text-sm text-slate-500 dark:text-slate-400 hover:underline">キャンセル</button>
-          <button type="submit" :disabled="editSaving"
+          <button type="button" class="text-sm text-slate-500 dark:text-slate-400 hover:underline" @click="editing = false">キャンセル</button>
+          <button
+type="submit" :disabled="editSaving"
             class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600 disabled:opacity-50">
             {{ editSaving ? "保存中…" : "保存" }}
           </button>
@@ -183,18 +184,18 @@ async function saveProfile() {
     <!-- フォロー/フォロワータブ -->
     <div class="flex gap-1 mb-4 border-b border-slate-200 dark:border-slate-700">
       <button
-        type="button" @click="tab = 'following'"
-        :class="[
+        type="button" :class="[
           'px-4 py-2 text-sm border-b-2 -mb-px',
           tab === 'following' ? 'border-brand-500 text-brand-600 dark:text-brand-50 font-bold' : 'border-transparent text-slate-500 dark:text-slate-400'
         ]"
+        @click="tab = 'following'"
       >フォロー中</button>
       <button
-        type="button" @click="tab = 'followers'"
-        :class="[
+        type="button" :class="[
           'px-4 py-2 text-sm border-b-2 -mb-px',
           tab === 'followers' ? 'border-brand-500 text-brand-600 dark:text-brand-50 font-bold' : 'border-transparent text-slate-500 dark:text-slate-400'
         ]"
+        @click="tab = 'followers'"
       >フォロワー</button>
     </div>
 
@@ -210,9 +211,9 @@ async function saveProfile() {
 
     <!-- 装飾見出し: 投稿した旅行記録 (投稿が 1 件以上ある時のみ) -->
     <div v-if="trips.length > 0" class="flex items-center gap-3 mb-4 mt-2">
-      <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
+      <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
       <span class="text-xs tracking-[0.3em] text-slate-400 dark:text-slate-500 inline-flex items-center gap-1.5"><span>✈️</span><span>TRAVEL LOGS</span></span>
-      <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
+      <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
     </div>
 
     <div v-if="trips.length === 0" class="text-sm text-slate-500 dark:text-slate-400 text-center py-8">公開された旅行記録はありません</div>
@@ -225,9 +226,9 @@ async function saveProfile() {
           {{ labelOf(t.category) }}
         </div>
         <div :class="['aspect-video relative overflow-hidden bg-gradient-to-br', gradientOf(t.category)]">
-          <img :src="tripImage(t, 600, 400)" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" :alt="t.title" loading="lazy" />
+          <img :src="tripImage(t, 600, 400)" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" :alt="t.title" loading="lazy" >
           <!-- 下部から立ち上がる暗グラデで「行き先」を確実に読ませる -->
-          <div class="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+          <div class="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 via-black/20 to-transparent"/>
           <span class="absolute bottom-2 right-3 text-white text-xs font-bold drop-shadow-lg z-10">📍 {{ t.destination }}</span>
         </div>
         <div class="p-4 flex-1">

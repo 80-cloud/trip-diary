@@ -12,7 +12,7 @@ export const useAuthStore = defineStore("auth", {
       try {
         const data = await api.get("/me")
         this.user = data.user
-      } catch (e) {
+      } catch (_e) {
         this.user = null
       } finally {
         this.fetched = true

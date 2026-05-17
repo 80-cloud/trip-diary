@@ -15,6 +15,14 @@ const { data: trip, refresh, pending, error } = await useAsyncData(`trip-${id}`,
 const newComment = ref("")
 const submitting = ref(false)
 const actionError = ref(null)
+const memoDraft = ref("")
+const memoSaving = ref(false)
+const memoMsg = ref(null)
+
+// trip ロード後にメモ入力欄を同期 (server truth → form state)
+watch(trip, (t) => {
+  if (t) memoDraft.value = t.my_memo || ""
+}, { immediate: true })
 
 function isOwner() {
   return auth.user && trip.value && trip.value.user.id === auth.user.id
@@ -25,6 +33,40 @@ function fullImageUrl(path) {
   if (path.startsWith("http")) return path
   const base = config.public.apiBase.replace(/\/api\/v1$/, "")
   return base + path
+}
+
+async function toggleFavorite() {
+  if (!auth.user) {
+    router.push({ path: "/login", query: { redirect: route.fullPath } })
+    return
+  }
+  actionError.value = null
+  try {
+    if (trip.value.favorited_by_me) {
+      await api.del(`/trips/${id}/favorite`)
+      trip.value.favorited_by_me = false
+    } else {
+      await api.post(`/trips/${id}/favorite`)
+      trip.value.favorited_by_me = true
+    }
+  } catch (e) {
+    actionError.value = e.data?.error || "お気に入り操作に失敗しました"
+  }
+}
+
+async function saveMemo() {
+  if (!auth.user) return
+  memoSaving.value = true
+  memoMsg.value = null
+  try {
+    const res = await api.put(`/trips/${id}/memo`, { body: { body: memoDraft.value } })
+    trip.value.my_memo = res.memo
+    memoMsg.value = res.memo ? "メモを保存しました" : "メモを削除しました"
+  } catch (e) {
+    memoMsg.value = e.data?.errors?.join(", ") || "メモ保存に失敗しました"
+  } finally {
+    memoSaving.value = false
+  }
 }
 
 async function toggleLike() {
@@ -118,23 +160,50 @@ async function deleteTrip() {
 
       <p v-if="trip.body" class="mt-4 text-slate-700 whitespace-pre-wrap">{{ trip.body }}</p>
 
-      <div class="mt-6 flex items-center gap-4">
+      <div class="mt-6 flex flex-wrap items-center gap-2">
         <button
           @click="toggleLike"
           :class="[
             'px-3 py-1.5 rounded text-sm flex items-center gap-1 border',
-            trip.liked_by_me ? 'bg-rose-50 border-rose-300 text-rose-600' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+            trip.liked_by_me ? 'bg-rose-50 border-rose-300 text-rose-600 dark:bg-rose-950 dark:border-rose-700 dark:text-rose-200' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
           ]"
         >
           <span>{{ trip.liked_by_me ? "♥" : "♡" }}</span>
           <span>{{ trip.likes_count }} いいね</span>
         </button>
-        <span class="text-sm text-slate-500">💬 {{ trip.comments_count }} コメント</span>
+        <button
+          @click="toggleFavorite"
+          :class="[
+            'px-3 py-1.5 rounded text-sm flex items-center gap-1 border',
+            trip.favorited_by_me ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-950 dark:border-amber-700 dark:text-amber-200' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
+          ]"
+        >
+          <span>{{ trip.favorited_by_me ? "★" : "☆" }}</span>
+          <span>{{ trip.favorited_by_me ? "お気に入り済" : "お気に入り" }}</span>
+        </button>
+        <span class="text-sm text-slate-500 dark:text-slate-400">💬 {{ trip.comments_count }} コメント</span>
       </div>
       <p v-if="actionError" class="mt-2 text-sm text-rose-600">{{ actionError }}</p>
     </header>
 
-    <section v-if="trip.day_entries && trip.day_entries.length" class="bg-white p-6 rounded-lg border border-slate-200">
+    <!-- F-MEMO-01: 個人メモ (本人のみ表示・本人のみ参照可) -->
+    <section v-if="auth.user" class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">
+      <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-2">個人メモ <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(自分にだけ見えます)</span></h2>
+      <textarea
+        v-model="memoDraft" rows="3" maxlength="2000"
+        placeholder="この旅行について自分用のメモ (2000 字以内)"
+        class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm"
+      ></textarea>
+      <div class="mt-2 flex items-center justify-between">
+        <span v-if="memoMsg" class="text-xs text-slate-500 dark:text-slate-400">{{ memoMsg }}</span>
+        <button
+          @click="saveMemo" :disabled="memoSaving"
+          class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm disabled:opacity-50 hover:bg-brand-600 ml-auto"
+        >{{ memoSaving ? "保存中…" : (memoDraft ? "メモを保存" : "メモを削除") }}</button>
+      </div>
+    </section>
+
+    <section v-if="trip.day_entries && trip.day_entries.length" class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">
       <h2 class="font-bold text-slate-800 mb-3">日別の出来事</h2>
       <ol class="space-y-3">
         <li v-for="d in trip.day_entries" :key="d.id" class="border-l-4 border-brand-500 pl-4">

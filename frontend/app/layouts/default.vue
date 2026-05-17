@@ -38,6 +38,7 @@ async function logout() {
               class="bg-brand-500 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-brand-600"
             >+ 新しい旅行記録</NuxtLink>
             <NuxtLink to="/trips/drafts" class="text-sm text-slate-600 dark:text-slate-300 hover:underline">下書き</NuxtLink>
+            <NuxtLink to="/favorites" class="text-sm text-slate-600 dark:text-slate-300 hover:underline">★</NuxtLink>
             <span class="text-sm text-slate-600 dark:text-slate-300">@{{ auth.user.display_name }}</span>
             <button
               @click="logout"

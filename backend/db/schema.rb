@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_17_020000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_17_030001) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -63,6 +63,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_020000) do
     t.index ["trip_id"], name: "index_day_entries_on_trip_id"
   end
 
+  create_table "favorites", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["trip_id"], name: "index_favorites_on_trip_id"
+    t.index ["user_id", "created_at"], name: "index_favorites_on_user_id_and_created_at"
+    t.index ["user_id", "trip_id"], name: "index_favorites_on_user_id_and_trip_id", unique: true
+    t.index ["user_id"], name: "index_favorites_on_user_id"
+  end
+
   create_table "likes", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "trip_id", null: false
@@ -71,6 +82,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_020000) do
     t.index ["trip_id", "user_id"], name: "index_likes_on_trip_id_and_user_id", unique: true
     t.index ["trip_id"], name: "index_likes_on_trip_id"
     t.index ["user_id"], name: "index_likes_on_user_id"
+  end
+
+  create_table "memos", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.bigint "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["trip_id"], name: "index_memos_on_trip_id"
+    t.index ["user_id", "trip_id"], name: "index_memos_on_user_id_and_trip_id", unique: true
+    t.index ["user_id"], name: "index_memos_on_user_id"
   end
 
   create_table "tags", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -128,8 +150,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_020000) do
   add_foreign_key "comments", "trips", on_delete: :cascade
   add_foreign_key "comments", "users"
   add_foreign_key "day_entries", "trips", on_delete: :cascade
+  add_foreign_key "favorites", "trips"
+  add_foreign_key "favorites", "users"
   add_foreign_key "likes", "trips", on_delete: :cascade
   add_foreign_key "likes", "users"
+  add_foreign_key "memos", "trips"
+  add_foreign_key "memos", "users"
   add_foreign_key "trip_tags", "tags"
   add_foreign_key "trip_tags", "trips"
   add_foreign_key "trips", "users"

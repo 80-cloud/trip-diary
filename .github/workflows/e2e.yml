@@ -1,0 +1,165 @@
+name: E2E
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: 実行する scenario (smoke / full)
+        type: choice
+        options: [smoke, full]
+        default: smoke
+
+# 同一 PR で連続 push したとき、古い run を自動 cancel
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # ci.yml と同様、actions/* の Node 20 廃止対応 (2026-06-02)
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  e2e:
+    name: e2e (playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      # E2E は dev 環境想定。e2e_ prefix の test user を作って destroy_all で連鎖削除する。
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: trip_diary_dev
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -ppassword"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      RAILS_ENV: development
+      DB_HOST: 127.0.0.1
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: trip_diary_dev
+      # ci.yml backend job と同じ理由で SECRET_KEY_BASE を直接渡す
+      # (credentials.yml.enc の復号を回避)
+      SECRET_KEY_BASE: ci_dummy_secret_key_base_at_least_30_chars_long_for_safety_padding_padding
+      # E2E から Rails への接続先 (e2e/fixtures は process.env.E2E_API_BASE を見ない可能性あり)
+      NUXT_PUBLIC_API_BASE: http://localhost:3010/api/v1
+      # PR トリガなら smoke、push (main) または workflow_dispatch なら指定 scenario or full
+      E2E_SCENARIO: ${{ github.event_name == 'pull_request' && 'smoke' || (inputs.scenario || 'full') }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4.9
+          bundler-cache: true
+          working-directory: backend
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: |
+            frontend/package-lock.json
+            e2e/package-lock.json
+
+      - name: Wait for MySQL ready
+        run: |
+          for i in {1..30}; do
+            mysqladmin ping -h 127.0.0.1 -P 3306 -uroot -ppassword --silent && break
+            sleep 1
+          done
+
+      - name: Prepare DB (create + migrate)
+        working-directory: backend
+        run: |
+          bin/rails db:create
+          bin/rails db:migrate
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install e2e deps
+        working-directory: e2e
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: e2e
+        # PR は smoke (Chromium のみ) なので browser install を最小化、main push は full で全 browser
+        run: |
+          if [ "${E2E_SCENARIO}" = "full" ]; then
+            npx playwright install --with-deps chromium webkit
+          else
+            npx playwright install --with-deps chromium
+          fi
+
+      - name: Start Rails (background)
+        working-directory: backend
+        # perf.yml と同じ起動パターン。nohup + 0.0.0.0 bind で Playwright Chromium から
+        # 確実に到達できるようにする。
+        run: |
+          nohup bin/rails s -p 3010 -b 0.0.0.0 > /tmp/rails.log 2>&1 &
+          echo $! > /tmp/rails.pid
+          for i in {1..30}; do
+            if curl -sf http://localhost:3010/api/v1/health >/dev/null; then
+              echo "Rails ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Rails failed to start"
+          tail -100 /tmp/rails.log
+          exit 1
+
+      - name: Run E2E (${{ env.E2E_SCENARIO }})
+        working-directory: e2e
+        # Issue #68 (Playwright Chromium hydrate timing) が open のうちは
+        # continue-on-error: true で blocking 回避。解決後に削除して blocking 化する。
+        continue-on-error: true
+        run: |
+          if [ "${E2E_SCENARIO}" = "full" ]; then
+            npm run e2e:full
+          else
+            npm run e2e:smoke
+          fi
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: e2e/playwright-report/
+          retention-days: 7
+
+      - name: Upload Playwright traces (on failure)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-${{ github.run_id }}
+          path: e2e/test-results/
+          retention-days: 7
+
+      - name: Stop Rails
+        if: always()
+        run: |
+          if [ -f /tmp/rails.pid ]; then
+            kill "$(cat /tmp/rails.pid)" || true
+          fi

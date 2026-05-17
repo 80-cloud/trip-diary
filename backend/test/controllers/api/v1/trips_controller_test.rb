@@ -284,4 +284,48 @@ class Api::V1::TripsControllerTest < ActionDispatch::IntegrationTest
     # sort=popular では cursor を使わないため全件返る → next_cursor は nil
     assert_nil body["next_cursor"]
   end
+
+  # --- F-LEAK-01: 計画達成度 count の権限漏洩防止 (Issue #45) ---
+  # 隠したい配列 (planned_spots) は所有者ガード済だが、派生フィールド
+  # (planned_count / planned_done_count) のガードが欠落していた。
+  # 配列が空でも件数が漏れれば情報漏洩 → 同じ is_owner 条件で全て隠す。
+
+  test "GET /api/v1/trips/:id 他人視点では planned_count / planned_done_count が nil" do
+    trip = trips(:alice_kyoto)
+    trip.planned_spots.create!(title: "金閣寺", position: 1, done: false)
+    trip.planned_spots.create!(title: "清水寺", position: 2, done: true)
+
+    login_via_api(users(:bob))
+    get "/api/v1/trips/#{trip.id}"
+    assert_response :ok
+    body = JSON.parse(response.body)
+    assert_nil body["planned_count"], "他人視点では planned_count が漏れないこと"
+    assert_nil body["planned_done_count"], "他人視点では planned_done_count が漏れないこと"
+    assert_equal [], body["planned_spots"], "planned_spots 本体は従来通り空配列"
+  end
+
+  test "GET /api/v1/trips/:id 所有者視点では planned_count / planned_done_count が返る (回帰防止)" do
+    trip = trips(:alice_kyoto)
+    trip.planned_spots.create!(title: "金閣寺", position: 1, done: false)
+    trip.planned_spots.create!(title: "清水寺", position: 2, done: true)
+
+    login_via_api(users(:alice))
+    get "/api/v1/trips/#{trip.id}"
+    assert_response :ok
+    body = JSON.parse(response.body)
+    assert_equal 2, body["planned_count"]
+    assert_equal 1, body["planned_done_count"]
+    assert_equal 2, body["planned_spots"].size
+  end
+
+  test "GET /api/v1/trips/:id 未ログインでは planned_count が漏れない" do
+    trip = trips(:alice_kyoto)
+    trip.planned_spots.create!(title: "金閣寺", position: 1, done: false)
+
+    get "/api/v1/trips/#{trip.id}"
+    assert_response :ok
+    body = JSON.parse(response.body)
+    assert_nil body["planned_count"]
+    assert_nil body["planned_done_count"]
+  end
 end

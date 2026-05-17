@@ -24,20 +24,20 @@ class TagTest < ActiveSupport::TestCase
   # F-TAG-01 受け入れ条件: 「京都, 紅葉, 寺」入力で 3 件作成 / 重複は再利用
   test ".find_or_create_by_names は重複タグ名を再利用する" do
     Tag.create!(name: "京都")
-    tags = Tag.find_or_create_by_names(["京都", "紅葉", "寺"])
+    tags = Tag.find_or_create_by_names([ "京都", "紅葉", "寺" ])
     assert_equal 3, tags.size
     assert_equal 3, Tag.count, "既存タグは新規作成されない"
     assert_includes tags.map(&:name), "京都"
   end
 
   test ".find_or_create_by_names は前後空白を strip し空文字を除外する" do
-    tags = Tag.find_or_create_by_names(["  京都  ", "", "  ", "紅葉"])
+    tags = Tag.find_or_create_by_names([ "  京都  ", "", "  ", "紅葉" ])
     assert_equal 2, tags.size
     assert_equal %w[京都 紅葉].sort, tags.map(&:name).sort
   end
 
   test ".find_or_create_by_names は同名重複入力をユニーク化する" do
-    tags = Tag.find_or_create_by_names(["京都", "京都", "紅葉"])
+    tags = Tag.find_or_create_by_names([ "京都", "京都", "紅葉" ])
     assert_equal 2, tags.size
   end
 end

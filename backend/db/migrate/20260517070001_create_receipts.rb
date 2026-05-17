@@ -9,7 +9,7 @@ class CreateReceipts < ActiveRecord::Migration[8.1]
 
       t.timestamps
     end
-    add_index :receipts, [:trip_id, :spent_on]
-    add_index :receipts, [:trip_id, :category]
+    add_index :receipts, [ :trip_id, :spent_on ]
+    add_index :receipts, [ :trip_id, :category ]
   end
 end

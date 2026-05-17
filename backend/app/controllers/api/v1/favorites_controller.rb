@@ -3,7 +3,7 @@ module Api
     class FavoritesController < BaseController
       before_action :authenticate_user!
       # set_trip は :create / :destroy のみ。:index は trip に依存しないため
-      before_action :set_trip, only: [:create, :destroy]
+      before_action :set_trip, only: [ :create, :destroy ]
 
       # GET /api/v1/favorites
       # F-FAV-01: 自分のお気に入り trip 一覧 (新しい順)

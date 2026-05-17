@@ -51,8 +51,8 @@ class FollowTest < ActiveSupport::TestCase
   test "User#followings / followers の through 関連" do
     Follow.create!(follower: @alice, followed: @bob)
     Follow.create!(follower: @alice, followed: users(:carol))
-    assert_equal [@bob, users(:carol)].sort_by(&:id), @alice.followings.order(:id).to_a
-    assert_equal [@alice], @bob.followers.to_a
+    assert_equal [ @bob, users(:carol) ].sort_by(&:id), @alice.followings.order(:id).to_a
+    assert_equal [ @alice ], @bob.followers.to_a
   end
 
   # F-NOTIF-01: フォロー作成で followed 宛通知が作成される

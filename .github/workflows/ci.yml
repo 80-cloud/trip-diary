@@ -83,6 +83,11 @@ jobs:
       - name: Zeitwerk autoload check
         run: bin/rails zeitwerk:check
 
+      # rubocop-rails-omakase 準拠の静的解析。--format github で行レベル annotation。
+      # 規約逸脱 (Layout/Lint/Style 等) を PR 上でブロック。
+      - name: Run Rubocop
+        run: bundle exec rubocop --parallel --format github
+
       # 失敗時もカバレッジ artifact を残し、PR レビュー時に詳細を確認できるようにする
       - name: Upload coverage artifact
         if: always()

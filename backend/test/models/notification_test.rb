@@ -54,7 +54,7 @@ class NotificationTest < ActiveSupport::TestCase
     # uniqueness scope = [actor, verb, target] なので verb を変えて 2 行作成
     older = Notification.create!(recipient: @alice, actor: @bob, target: @comment, verb: "commented", created_at: 2.hours.ago)
     newer = Notification.create!(recipient: @alice, actor: @bob, target: @comment, verb: "liked",     created_at: 1.minute.ago)
-    assert_equal [newer, older], Notification.recent.to_a
+    assert_equal [ newer, older ], Notification.recent.to_a
   end
 
   # ----- read! -----

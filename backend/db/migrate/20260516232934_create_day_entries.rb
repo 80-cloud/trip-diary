@@ -10,6 +10,6 @@ class CreateDayEntries < ActiveRecord::Migration[8.1]
 
       t.timestamps
     end
-    add_index :day_entries, [:trip_id, :position]
+    add_index :day_entries, [ :trip_id, :position ]
   end
 end

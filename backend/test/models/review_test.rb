@@ -6,10 +6,10 @@ class ReviewTest < ActiveSupport::TestCase
   end
 
   test "rating は 1〜5 のみ" do
-    [0, 6, -1, nil].each do |r|
+    [ 0, 6, -1, nil ].each do |r|
       refute Review.new(trip: @trip, rating: r).valid?, "rating=#{r.inspect} は invalid"
     end
-    [1, 2, 3, 4, 5].each do |r|
+    [ 1, 2, 3, 4, 5 ].each do |r|
       assert Review.new(trip: @trip, rating: r).valid?, "rating=#{r} は valid"
     end
   end

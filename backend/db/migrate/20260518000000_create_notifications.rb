@@ -20,10 +20,10 @@ class CreateNotifications < ActiveRecord::Migration[8.1]
     add_foreign_key :notifications, :users, column: :actor_id,     on_delete: :cascade
 
     # 未読絞り込み (ER 図 §5-3 準拠)
-    add_index :notifications, [:recipient_id, :read_at]
+    add_index :notifications, [ :recipient_id, :read_at ]
     # 一覧の時系列ソート
-    add_index :notifications, [:recipient_id, :created_at]
+    add_index :notifications, [ :recipient_id, :created_at ]
     # polymorphic 既定
-    add_index :notifications, [:target_type, :target_id]
+    add_index :notifications, [ :target_type, :target_id ]
   end
 end

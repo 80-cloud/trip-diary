@@ -34,7 +34,7 @@ class Api::V1::NotificationsControllerTest < ActionDispatch::IntegrationTest
     login_via_api(@alice)
     get "/api/v1/notifications"
     body = JSON.parse(response.body)
-    assert_equal [newer.id, older.id], body["notifications"].map { |n| n["id"] }
+    assert_equal [ newer.id, older.id ], body["notifications"].map { |n| n["id"] }
   end
 
   test "GET /notifications は最新 50 件まで" do

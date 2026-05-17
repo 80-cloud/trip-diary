@@ -50,7 +50,7 @@ module Api
         if existing&.update(body: body_param)
           render json: { memo: existing.body }
         else
-          render json: { errors: existing&.errors&.full_messages || ["保存に失敗しました"] },
+          render json: { errors: existing&.errors&.full_messages || [ "保存に失敗しました" ] },
                  status: :unprocessable_entity
         end
       end

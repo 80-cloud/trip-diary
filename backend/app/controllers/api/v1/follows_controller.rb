@@ -1,14 +1,14 @@
 module Api
   module V1
     class FollowsController < BaseController
-      before_action :authenticate_user!, only: [:create, :destroy]
+      before_action :authenticate_user!, only: [ :create, :destroy ]
       before_action :set_target_user
 
       # POST /api/v1/users/:user_id/follow
       # F-FOLLOW-01: 冪等 (既存→200 / 新規→201)。自己フォローは 422。
       def create
         if @target.id == current_user.id
-          return render(json: { errors: ["自分自身をフォローできません"] }, status: :unprocessable_entity)
+          return render(json: { errors: [ "自分自身をフォローできません" ] }, status: :unprocessable_entity)
         end
 
         follow = current_user.active_follows.find_or_initialize_by(followed_id: @target.id)

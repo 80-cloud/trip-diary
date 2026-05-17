@@ -1,9 +1,33 @@
 # 旅行記録アプリ (trip-diary)
 
-> 自分の旅行を時系列で記録し、複数ユーザー同士でコメント・いいねを通じて反応し合える Web アプリです。
+[![CI](https://github.com/80-cloud/trip-diary/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/80-cloud/trip-diary/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Ruby](https://img.shields.io/badge/Ruby-3.4.9-CC342D)](https://www.ruby-lang.org)
+[![Rails](https://img.shields.io/badge/Rails-8.1-CC0000)](https://rubyonrails.org)
+[![Node](https://img.shields.io/badge/Node-22-339933)](https://nodejs.org)
+[![Nuxt](https://img.shields.io/badge/Nuxt-4-00DC82)](https://nuxt.com)
+
+> 自分の旅行を時系列で記録し、複数ユーザー同士でコメント・いいね・お気に入り・フォロー・レビューを通じて反応し合える Web アプリです。
 > スクール提出物として、**Ruby on Rails 8.1** + **Nuxt 4 (純 JS)** + **MySQL 8** で構築しています。
 
 学習姿勢: **習う → 慣れる → マスター** ([docs/学習ロードマップ.md](docs/学習ロードマップ.md) 参照)
+
+---
+
+## 📦 講師提出物 (Deliverables)
+
+| 提出物 | 場所 |
+|---|---|
+| **GitHub リポジトリ** | https://github.com/80-cloud/trip-diary |
+| **README (本ファイル)** | [README.md](README.md) — 機能/技術/起動手順/テスト/カバレッジ/curl 疎通/シードユーザー |
+| **設計書一式** (10 種) | [docs/](docs/) — 要件定義 / 機能一覧 / 画面設計 / ER 図 / 技術スタック / インフラ構成 / ログ・監視・障害対応 / テスト計画 / セキュリティ自己監査 / 学習ロードマップ |
+| **CLAUDE.md** | [CLAUDE.md](CLAUDE.md) — Claude Code 行動規範 (Issue ファースト / Conventional Commits / テスト運用ルール) |
+| **CI 実行履歴** | [Actions タブ](https://github.com/80-cloud/trip-diary/actions) — 全 PR で backend (Rails Minitest + zeitwerk) + frontend (Vitest + Nuxt build) が緑であること |
+| **PR 一覧** | [Pulls (closed)](https://github.com/80-cloud/trip-diary/pulls?q=is%3Apr+is%3Aclosed) — 全機能を Issue → ブランチ → PR → セルフレビュー → CI 緑 → マージで進めた履歴 |
+
+> **採点用シードユーザー**: `taro@example.com` / `password` (詳細は本 README 下部 「シードユーザー」参照)
+
+---
 
 ## スクリーンショット
 
@@ -20,7 +44,7 @@
 
 ## 主要機能
 
-### Phase 1 (MVP) ✅ 本セッションで実装
+### Phase 1 (MVP) ✅ — [PR #2](https://github.com/80-cloud/trip-diary/pull/2)
 
 - ユーザー認証 (サインアップ / ログイン / ログアウト) — JWT in HttpOnly Cookie
 - 旅行記録の **CRUD** (タイトル / 行き先 / 期間 / 本文 / 公開範囲)
@@ -28,24 +52,28 @@
 - 画像アップロード (ActiveStorage / 最大 5 枚)
 - **コメント** (140 文字以内 / 自分のもののみ削除)
 - **いいね** (1 ユーザー 1 記録 1 回 / counter_cache)
-- プロフィール閲覧 (自分 / 他人の旅行記録一覧)
 
-### Phase 2 (発展機能)
+### Phase 2 (発展機能) ✅ — 6 機能群 + CI 実装済
 
-- 公開範囲 (`public` / `friends` / `private`)
-- フォロー / フォロワー / フォロー中タイムライン
-- タグ・カテゴリ
-- 検索・ソート (タイトル / 行き先 / タグ)
-- プロフィール編集 (表示名・自己紹介・アバター)
+| Phase | 機能群 | PR |
+|---|---|---|
+| 2-1 | **タグ / カテゴリ / 検索高度化** (多対多関連 / scope / 複合 AND 検索 / LIKE エスケープ) | [#16](https://github.com/80-cloud/trip-diary/pull/16) |
+| CI | **GitHub Actions CI** (backend Rails Minitest + frontend Vitest + build を全 PR で自動実行) | [#18](https://github.com/80-cloud/trip-diary/pull/18) |
+| 2-2 | **下書き / ダークモード / 無限スクロール** (enum 状態管理 / `darkMode: class` + localStorage / IntersectionObserver + cursor pagination) | [#20](https://github.com/80-cloud/trip-diary/pull/20) |
+| 2-3 | **お気に入り / 個人メモ** (uniqueness 二段防衛 / upsert race rescue / 本人専用リソースの認可境界) | [#22](https://github.com/80-cloud/trip-diary/pull/22) |
+| 2-4 | **フォロー / フォロー中タイムライン** (自己参照関連 / `friends`=相互フォロー可視性 / N+1 防止 pre-fetch + Set) | [#24](https://github.com/80-cloud/trip-diary/pull/24) |
+| 2-5a | **計画モード / 荷物チェックリスト** (trip-owned 子リソースの CRUD / done → DayEntry 自動昇格 / 進捗集計) | [#26](https://github.com/80-cloud/trip-diary/pull/26) |
+| 2-5b | **チケット管理 / 旅行レビュー** (ActiveStorage 単体添付 + MIME/size 制限 / 1 trip 1 review upsert) | [#28](https://github.com/80-cloud/trip-diary/pull/28) |
 
-### Phase 3 (本番デプロイ)
+### Phase 3 (本番デプロイ) 🚧 計画中
 
+- 通知センター (コメント / いいね / フォロー受信)
 - 地図表示 (Leaflet / MapLibre)
-- 通知センター (コメント / いいね受信)
+- 統計ダッシュボード (都道府県制覇率 / 月別集計)
 - S3 への画像移行
 - **AWS デプロイ** (EC2 + RDS + Nginx / Terraform)
 
-### Phase 4 (発展余地)
+### Phase 4 (発展余地) 📅 検討中
 
 - リアルタイム反映 (ActionCable)
 - PWA (オフライン閲覧)
@@ -53,6 +81,13 @@
 - PDF 出力
 
 詳細は [docs/機能一覧.md](docs/機能一覧.md) を参照。
+
+### テスト規模 (2026-05-17 時点)
+
+| 種別 | 件数 | カバレッジ |
+|---|---|---|
+| Backend (Minitest) | 183 件 / 521 assertions GREEN | Line 89.51% / Branch 70.14% |
+| Frontend (Vitest) | 12 件 GREEN | (V2 で計測予定) |
 
 ---
 

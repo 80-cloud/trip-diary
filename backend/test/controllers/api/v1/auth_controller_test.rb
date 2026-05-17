@@ -1,0 +1,83 @@
+require "test_helper"
+
+class Api::V1::AuthControllerTest < ActionDispatch::IntegrationTest
+  # E-H1 回帰 (docs/セキュリティ自己監査.md §3): signup 失敗のレスポンスボディが
+  # 失敗原因 (email 重複 / password 短すぎ) で異なってはいけない。
+  test "signup error body is identical for email duplication and password too short" do
+    # 既存ユーザー (fixture: alice) の email で signup → email 重複エラー
+    post "/api/v1/signup",
+      params: { email: users(:alice).email, password: "password123", display_name: "Dup" },
+      as: :json
+    body_dup = response.body
+    status_dup = response.status
+
+    # 新規 email + 短すぎる password (5 文字) → password length エラー
+    post "/api/v1/signup",
+      params: { email: "brand-new@example.com", password: "x", display_name: "Short" },
+      as: :json
+    body_short = response.body
+    status_short = response.status
+
+    assert_equal status_dup, status_short,
+      "signup error status must not differ between failure reasons"
+    assert_equal body_dup, body_short,
+      "signup error body must not differ between duplicate-email and short-password (E-H1)"
+    refute_match(/Email/i, body_dup, "field name 'Email' must not leak in error body (E-H1)")
+    refute_match(/Password/i, body_dup, "field name 'Password' must not leak in error body (E-H1)")
+  end
+
+  # E-H2 回帰 (docs/セキュリティ自己監査.md §3): 不在 email と存在 email (誤 password) の
+  # ログイン応答時間差が小さいこと。
+  # 注意点:
+  #   - 初回 bcrypt 呼び出しはコールドスタートで遅いため warm-up を入れる
+  #   - 順序効果を打ち消すため unknown / known を **交互に測定** (interleave)
+  test "login response time does not differ significantly for unknown vs known email" do
+    samples = 8
+
+    # warm-up: bcrypt / autoloader / DB プールの初回コストを除外
+    2.times do
+      post "/api/v1/login",
+        params: { email: "warmup-#{rand(10_000)}@example.com", password: "x" },
+        as: :json
+      post "/api/v1/login",
+        params: { email: users(:alice).email, password: "warmup-wrong" },
+        as: :json
+    end
+
+    unknown_times = []
+    known_times = []
+    samples.times do
+      # interleave (順序効果打ち消し)
+      t = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      post "/api/v1/login",
+        params: { email: "no-such-user-#{rand(10_000)}@example.com", password: "whatever" },
+        as: :json
+      unknown_times << (Process.clock_gettime(Process::CLOCK_MONOTONIC) - t)
+
+      t = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      post "/api/v1/login",
+        params: { email: users(:alice).email, password: "wrong-password" },
+        as: :json
+      known_times << (Process.clock_gettime(Process::CLOCK_MONOTONIC) - t)
+    end
+
+    avg_unknown = unknown_times.sum / samples
+    avg_known = known_times.sum / samples
+    diff = (avg_unknown - avg_known).abs
+
+    # 許容差 100ms (test 環境 BCrypt cost: 4 では 1 回 bcrypt = 数 ms オーダー)
+    assert diff < 0.1,
+      "login timing diff too large: unknown=#{avg_unknown.round(4)}s known=#{avg_known.round(4)}s diff=#{diff.round(4)}s (E-H2)"
+  end
+
+  test "login with correct credentials returns 200 and sets cookie" do
+    post "/api/v1/login",
+      params: { email: users(:alice).email, password: "password123" },
+      as: :json
+    assert_response :ok
+    json = JSON.parse(response.body)
+    assert_equal users(:alice).email, json.dig("user", "email")
+    assert cookies[ApplicationController::COOKIE_NAME.to_s].present?,
+      "JWT cookie must be set on successful login"
+  end
+end

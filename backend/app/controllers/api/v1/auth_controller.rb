@@ -1,19 +1,46 @@
 module Api
   module V1
     class AuthController < BaseController
+      # E-H2 対策 (docs/セキュリティ自己監査.md §3): email 不在時にもダミー bcrypt を
+      # 実行し、応答時間差から email 存在性が漏れることを防ぐ。
+      # cost は **fixture (test) と production の user password_digest と一致** させる必要
+      # がある (一致しないと不在 email と存在 email で bcrypt 計算量が変わり、本対策の
+      # 意味がなくなる)。
+      #   - production: BCrypt::Engine.cost (デフォルト 12)
+      #   - test: fixtures/users.yml と同じ MIN_COST (4)
+      DUMMY_DIGEST_COST = Rails.env.test? ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
+      DUMMY_DIGEST = BCrypt::Password.create("dummy", cost: DUMMY_DIGEST_COST).to_s.freeze
+
+      # E-H1 対策 (docs/セキュリティ自己監査.md §3): signup 失敗時はフィールド名を
+      # 漏らさない汎用メッセージで統一する (email 列挙防止)。
+      GENERIC_SIGNUP_ERROR = "入力内容に誤りがあります。各項目をご確認ください".freeze
+
       def signup
         user = User.new(signup_params)
         if user.save
           issue_jwt_cookie(user)
           render json: { user: user_payload(user) }, status: :created
         else
-          render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
+          # フィールド別の詳細はサーバ内部ログにのみ残す (運用調査用)
+          Rails.logger.info("[signup][422] errors=#{user.errors.details.inspect}")
+          render json: { error: GENERIC_SIGNUP_ERROR }, status: :unprocessable_entity
         end
       end
 
       def login
-        user = User.find_by(email: params[:email].to_s.downcase.strip)
-        if user&.authenticate(params[:password])
+        email = params[:email].to_s.downcase.strip
+        password = params[:password].to_s
+        user = User.find_by(email: email)
+        authenticated =
+          if user
+            user.authenticate(password)
+          else
+            # E-H2: ダミー bcrypt を必ず実行してレイテンシを揃える (戻り値は破棄)
+            BCrypt::Password.new(DUMMY_DIGEST).is_password?(password)
+            false
+          end
+
+        if authenticated
           issue_jwt_cookie(user)
           render json: { user: user_payload(user) }
         else

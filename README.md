@@ -195,8 +195,18 @@ curl -sS -b /tmp/c.txt -X POST http://localhost:3010/api/v1/trips/2/comments \
 | [docs/ER図.md](docs/ER図.md) | テーブル定義 / インデックス設計 |
 | [docs/技術スタック.md](docs/技術スタック.md) | 採用技術と理由 |
 | [docs/インフラ構成.md](docs/インフラ構成.md) | ローカル + AWS 構成 |
+| [docs/ログ・監視・障害対応設計書.md](docs/ログ・監視・障害対応設計書.md) | 観測可能性 / SLI・SLO / Runbook |
+| [docs/テスト計画書.md](docs/テスト計画書.md) | テストレベル / 技法 / カバレッジ目標 / 手動チェックリスト |
+| [docs/セキュリティ自己監査.md](docs/セキュリティ自己監査.md) | sns-board 10 教訓の Rails 転用 + 監査結果 |
 | [docs/学習ロードマップ.md](docs/学習ロードマップ.md) | 習う → 慣れる → マスター |
 | [CLAUDE.md](CLAUDE.md) | Claude Code 行動規範 (Issue ファースト / Conventional Commits 等) |
+
+### 本番デプロイ前チェックリスト (Phase 3 で実施)
+
+- [ ] `.env` の `RAILS_ENV` を必ず `production` に変更 (development のままだと `seeds.rb` が本番 DB を汚染する — 詳細は [docs/セキュリティ自己監査.md §3 E-H3](docs/セキュリティ自己監査.md))
+- [ ] `SECRET_KEY_BASE` / `JWT_SECRET` を本番用の値に差し替え (`.env.example` の値は使わない)
+- [ ] `bin/rails db:seed` を本番デプロイ手順から **除外** (CI/CD パイプラインからも削除)
+- [ ] `CORS_ORIGINS` を本番ドメインに限定 (`http://localhost:3011` 混入チェック)
 
 ---
 

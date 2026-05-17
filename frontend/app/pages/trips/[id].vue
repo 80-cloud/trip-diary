@@ -729,23 +729,23 @@ async function toggleFollow() {
     </section>
 
     <section v-if="trip.day_entries && trip.day_entries.length" class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">
-      <h2 class="font-bold text-slate-800 mb-3">日別の出来事</h2>
+      <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-3">日別の出来事</h2>
       <ol class="space-y-3">
         <li v-for="d in trip.day_entries" :key="d.id" class="border-l-4 border-brand-500 pl-4">
-          <p class="text-xs text-slate-500">Day {{ d.day_number }} {{ d.happened_on ? `· ${d.happened_on}` : "" }}</p>
-          <h3 class="font-medium text-slate-800">{{ d.title }}</h3>
-          <p v-if="d.body" class="text-sm text-slate-600 mt-1 whitespace-pre-wrap">{{ d.body }}</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Day {{ d.day_number }} {{ d.happened_on ? `· ${d.happened_on}` : "" }}</p>
+          <h3 class="font-medium text-slate-800 dark:text-slate-100">{{ d.title }}</h3>
+          <p v-if="d.body" class="text-sm text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-wrap">{{ d.body }}</p>
         </li>
       </ol>
     </section>
 
-    <section class="bg-white p-6 rounded-lg border border-slate-200">
-      <h2 class="font-bold text-slate-800 mb-3">コメント ({{ trip.comments_count }})</h2>
+    <section class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">
+      <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-3">コメント ({{ trip.comments_count }})</h2>
       <ul class="space-y-3 mb-4">
-        <li v-for="c in trip.comments" :key="c.id" class="border-b border-slate-100 pb-3 last:border-0 flex items-start justify-between gap-3">
+        <li v-for="c in trip.comments" :key="c.id" class="border-b border-slate-100 dark:border-slate-700 pb-3 last:border-0 flex items-start justify-between gap-3">
           <div>
-            <p class="text-sm font-medium text-slate-700">@{{ c.user.display_name }}</p>
-            <p class="text-sm text-slate-600 mt-0.5 whitespace-pre-wrap">{{ c.body }}</p>
+            <p class="text-sm font-medium text-slate-700 dark:text-slate-200">@{{ c.user.display_name }}</p>
+            <p class="text-sm text-slate-600 dark:text-slate-300 mt-0.5 whitespace-pre-wrap">{{ c.body }}</p>
           </div>
           <button v-if="auth.user && c.user.id === auth.user.id" @click="deleteComment(c.id)" class="text-xs text-rose-500 hover:underline shrink-0">削除</button>
         </li>

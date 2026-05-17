@@ -24,7 +24,7 @@ async function submit(formData) {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-slate-800 mb-6">旅行記録を編集</h1>
+    <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6">旅行記録を編集</h1>
     <TripForm v-if="trip" :initial="trip" @submit="submit" :errors="errors" />
   </div>
 </template>

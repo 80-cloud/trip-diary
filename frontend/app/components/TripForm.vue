@@ -161,13 +161,23 @@ function submit(statusOverride) {
       <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
         画像 (任意・最大 {{ MAX_IMAGES }} 枚・各 {{ MAX_SIZE_MB }}MB 以下)
       </label>
+      <!-- ネイティブ file input は Safari でブラウザ既定の白いボタンが出るため非表示にし、
+           カスタムボタンで包む。label の for / input id ペアでクリックを伝搬。 -->
       <input
+        id="trip-images-input"
+        ref="imagesInputRef"
         type="file" accept="image/*" multiple @change="onFilesChange"
-        class="block w-full text-sm text-slate-600 dark:text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-brand-50 file:text-brand-700 dark:file:bg-brand-900/40 dark:file:text-brand-50 hover:file:bg-brand-100 dark:hover:file:bg-brand-900/60"
+        class="sr-only"
       />
-      <p v-if="selectedFiles.length" class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-        選択中: {{ selectedFiles.map((f) => f.name).join(", ") }}
-      </p>
+      <div class="flex items-center gap-3">
+        <label
+          for="trip-images-input"
+          class="inline-block cursor-pointer bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-50 px-3 py-1.5 rounded text-sm font-medium hover:bg-brand-100 dark:hover:bg-brand-900/60"
+        >ファイルを選択</label>
+        <span class="text-xs text-slate-500 dark:text-slate-400 truncate">
+          {{ selectedFiles.length ? selectedFiles.map((f) => f.name).join(", ") : "ファイル未選択" }}
+        </span>
+      </div>
       <p v-if="localError" class="text-xs text-rose-600 mt-1">{{ localError }}</p>
       <p v-if="props.initial?.image_urls?.length" class="text-xs text-slate-400 dark:text-slate-500 mt-1">
         ※ 既存の画像は新しく選択した画像で置き換わります

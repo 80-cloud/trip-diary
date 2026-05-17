@@ -1,5 +1,4 @@
 <script setup>
-import { SunIcon, MoonIcon } from "@heroicons/vue/24/outline"
 import { useAuthStore } from "~/composables/useAuthStore.js"
 import { useDarkMode } from "~/composables/useDarkMode.js"
 
@@ -38,12 +37,9 @@ function fullImageUrl(path) {
             @click="toggleDark"
             type="button"
             :aria-label="isDark ? 'ライトモードに切替' : 'ダークモードに切替'"
-            :title="isDark ? 'ライトモードに切替' : 'ダークモードに切替'"
-            class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-100"
-          >
-            <SunIcon v-if="isDark" class="w-5 h-5" />
-            <MoonIcon v-else class="w-5 h-5" />
-          </button>
+            :title="isDark ? 'ライトモードに切替 (屋外の光が強い時に推奨)' : 'ダークモードに切替'"
+            class="text-lg p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700"
+          >{{ isDark ? "☀️" : "🌙" }}</button>
           <template v-if="auth.user">
             <NuxtLink
               to="/trips/new"

@@ -6,12 +6,14 @@
 #   (1) 依存チェック (aws / npm / terraform) + AWS 認証確認
 #   (2) terraform output から frontend bucket name / CloudFront distribution ID を取得
 #       (環境変数 FRONTEND_BUCKET / CLOUDFRONT_DISTRIBUTION_ID で上書き可)
-#   (3) frontend を npm run build (Nuxt SPA mode で .output/public/ に SSG 出力)
-#       ssr:false 設定で実質 SPA、出力は静的 HTML + _nuxt/* assets
+#   (3) frontend を **npm run generate** で SSG ビルド (.output/public/ に静的 HTML 出力)
+#       npm run build は Nitro server を含む node-server 構成で index.html を出さない
+#       (S3 静的配信不可)。ssr:false + generate で SPA + プリレンダ済 index.html を得る
 #   (4) .output/public/_nuxt/ を S3 sync (Cache-Control: max-age=31536000, immutable)
 #   (5) .output/public/index.html を S3 cp (Cache-Control: no-cache, must-revalidate)
-#   (6) .output/public/ のその他ファイル (favicon.ico 等) を S3 sync (Cache-Control: no-cache)
-#   (7) CloudFront に /index.html だけ invalidation (assets は immutable cache のため不要)
+#   (6) .output/public/ のその他ファイル (favicon.ico / 200.html / 404.html / 各 route 用
+#       index.html 等) を S3 sync (Cache-Control: no-cache)
+#   (7) CloudFront に /index.html / / だけ invalidation (assets は immutable cache のため不要)
 #
 # 引数:
 #   --dry-run    実 AWS API を叩かずコマンドを表示するのみ
@@ -81,18 +83,24 @@ log "  FRONTEND_BUCKET            = $FRONTEND_BUCKET"
 log "  CLOUDFRONT_DISTRIBUTION_ID = $CLOUDFRONT_DISTRIBUTION_ID"
 log "  CF_DOMAIN                  = ${CF_DOMAIN:-(unknown)}"
 
-# ===== (3) Nuxt SPA build =====
-log "(3) Nuxt SPA build (npm run build / ssr:false 設定で SPA 出力)"
+# ===== (3) Nuxt SSG build =====
+log "(3) Nuxt SSG build (npm run generate / ssr:false + プリレンダ済 index.html を出力)"
 # NUXT_PUBLIC_API_BASE を CloudFront 経由の /api/v1 に設定して同一オリジン化
 if [[ -n "$CF_DOMAIN" ]]; then
   export NUXT_PUBLIC_API_BASE="https://${CF_DOMAIN}/api/v1"
   log "  NUXT_PUBLIC_API_BASE = $NUXT_PUBLIC_API_BASE"
 fi
-run bash -c "cd '$FRONTEND_DIR' && npm run build"
+# npm run build (node-server 構成) は index.html を出さず S3 配信不可。
+# npm run generate (SSG) で .output/public/ にプリレンダ済 HTML + _nuxt/* assets を生成。
+run bash -c "cd '$FRONTEND_DIR' && npm run generate"
 
 NUXT_DIST="$FRONTEND_DIR/.output/public"
 if [[ ! -d "$NUXT_DIST" ]]; then
-  err "$NUXT_DIST が存在しません (npm run build 失敗?)"
+  err "$NUXT_DIST が存在しません (npm run generate 失敗?)"
+  exit 1
+fi
+if [[ ! -f "$NUXT_DIST/index.html" ]]; then
+  err "$NUXT_DIST/index.html がありません (Nuxt が SPA HTML をプリレンダしていない / nuxt.config.ts の ssr 設定を確認)"
   exit 1
 fi
 
@@ -118,10 +126,10 @@ run aws s3 sync "$NUXT_DIST/" "s3://$FRONTEND_BUCKET/" \
   --cache-control "no-cache"
 
 # ===== (7) CloudFront invalidation =====
-log "(7) CloudFront invalidation /index.html (assets は immutable のため不要)"
+log "(7) CloudFront invalidation / + /index.html + /200.html + /404.html (assets は immutable のため不要)"
 run aws cloudfront create-invalidation \
   --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
-  --paths "/index.html" \
+  --paths "/" "/index.html" "/200.html" "/404.html" \
   >/dev/null
 
 log "✅ frontend デプロイ完了: https://${CF_DOMAIN}/"

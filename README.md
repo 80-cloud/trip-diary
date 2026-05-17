@@ -29,6 +29,22 @@
 
 ---
 
+## 差別化ポイント (他の旅行 SNS / 一般 SNS との違い)
+
+| 項目 | Instagram / 一般 SNS | trip-diary |
+|---|---|---|
+| 投稿単位 | 写真 1 枚〜数枚に紐づくキャプション | **「1 つの旅行」が単位**。複数日の出来事 (DayEntry) を 1 つの旅行記録にネスト |
+| 計画と記録 | 別アプリ (旅のしおりは別) | **同一画面で計画 → 実記録に昇格** (F-PLAN-02) |
+| 持ち物管理 | なし (備忘録は別アプリ) | **trip 単位の持ち物チェックリスト** (F-PACK-01) |
+| 公開範囲 | public / private の 2 値 | **public / friends (相互フォロー限定) / private** の 3 値 + draft 状態 |
+| インプレッション競争 | 表示回数を煽る | **不採用** (いいね数のみ。再シェア機能なし → 炎上拡散抑制) |
+| 拡散機能 | リポスト / リツイート | **なし** (個人の旅行記憶を残すことが目的) |
+| お気に入り | 「保存」相当 | **いいね (公開反応) と お気に入り (私的ブックマーク) を分離** |
+| 個人メモ | なし | **他人の trip にも自分専用メモを残せる** (公開されない) |
+| レビュー | コメント欄に混在 | **trip 単位の 5★ + 振り返り本文** を独立して扱う |
+
+---
+
 ## スクリーンショット
 
 ### タイムライン (S-03)
@@ -236,6 +252,76 @@ curl -sS -b /tmp/c.txt -X POST http://localhost:3010/api/v1/trips/2/comments \
 | [docs/学習ロードマップ.md](docs/学習ロードマップ.md) | 習う → 慣れる → マスター |
 | [CLAUDE.md](CLAUDE.md) | Claude Code 行動規範 (Issue ファースト / Conventional Commits 等) |
 
+---
+
+## 開発ワークフロー
+
+### Issue ファースト (直接 main push 禁止)
+
+```
+① GitHub で Issue を作成 (テンプレート使用)
+       ↓
+② Issue 番号を確認 (例: #25)
+       ↓
+③ ブランチ作成: git switch -c feature/#25-plan-packing
+       ↓
+④ 受け入れ条件をテストに 1:1 写経 → 実装 → ローカル GREEN
+       ↓
+⑤ PR を作成 (--label 必須) / Closes #25 で Issue リンク
+       ↓
+⑥ CI 緑 (GitHub Actions) + セルフレビュー反映 → Squash and merge
+       ↓
+⑦ ローカル main を git pull で同期
+```
+
+詳細ルールは [CLAUDE.md](CLAUDE.md) 参照 (ブランチ命名 / コミット形式 / PR テンプレ / 認可ルール)。
+
+### ブランチ命名規則
+
+| 種別 | 命名パターン | 例 |
+|---|---|---|
+| 新機能 | `feature/#番号-説明` | `feature/#25-plan-packing` |
+| バグ修正 | `fix/#番号-説明` | `fix/#15-trip-save-bug` |
+| ドキュメント | `docs/#番号-説明` | `docs/#29-readme-for-submission` |
+| 雑務・設定 | `chore/#番号-説明` | `chore/#17-github-actions-ci` |
+
+### コミットメッセージ規則
+
+Conventional Commits 形式・**日本語**・50 字以内:
+
+```
+feat: 計画モード + 荷物チェックリスト (Phase 2-5a)
+
+- PlannedSpot モデル / done=true で DayEntry 自動昇格
+- PackingItem モデル / trip 単位のチェックリスト
+- Minitest 125 → 153 件
+
+Closes #25
+
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+```
+
+種別: `feat` / `fix` / `docs` / `style` / `refactor` / `test` / `chore`
+
+### 全 PR で適用したセルフレビュー文化
+
+Phase 1 〜 Phase 2 の全 PR (12 件) で「初回 push → セルフレビュー反映 → 再 push → CI 緑 → マージ」を実施。
+PR ごとに **隠れバグ 1〜3 件を発見・修正** している (race condition / N+1 / silent failure / 認可境界の漏れ など)。
+
+---
+
+## AI 利用方針 (提出物としての透明性)
+
+- スクール提出物のため、**AI (Claude Code) の利用は許可されているが、透明性を最重視**
+- 全コミットに `Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>` を付与
+- 重要な設計判断は **コミットメッセージ / PR 本文で人間が承認した旨を明示**
+  - 例: 「マージしたのでプル」「次を実行」など人間の指示を起点に作業を進める
+  - 例: PR セルフレビューで「これは別 Issue 候補」など人間判断を残す
+- AI が独断で進めた範囲と人間判断は区別 (PR 本文の「セルフレビューで発見・修正したバグ」セクション参照)
+- AI 行動規範は [CLAUDE.md](CLAUDE.md) で明文化し、毎セッション読み込ませている
+
+---
+
 ### 本番デプロイ前チェックリスト (Phase 3 で実施)
 
 - [ ] `.env` の `RAILS_ENV` を必ず `production` に変更 (development のままだと `seeds.rb` が本番 DB を汚染する — 詳細は [docs/セキュリティ自己監査.md §3 E-H3](docs/セキュリティ自己監査.md))
@@ -258,6 +344,17 @@ trip-diary/
 ├── infra/            # (Phase3) Terraform
 └── .github/          # PR / Issue テンプレ
 ```
+
+---
+
+## 改訂履歴 (README)
+
+各設計書 (`docs/*.md`) の改訂履歴は当該ドキュメント先頭を参照。
+
+| 日付 | 内容 |
+|---|---|
+| 2026-05-17 | Phase 1 MVP 完成に伴う初版 (機能/技術/起動手順/curl/シードユーザー) |
+| 2026-05-17 | Phase 2 全 6 PR + CI 完了に伴う全面改訂。提出物 (Deliverables) 表 / CI バッジ / LICENSE / 差別化ポイント / 開発ワークフロー / AI 利用方針 を追加 (PR #30) |
 
 ---
 

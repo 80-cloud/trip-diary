@@ -30,6 +30,9 @@ frontend/.nuxt/
 frontend/.output/
 frontend/.data/
 frontend/dist/
+frontend/dist
+# ↑ Nuxt SSG (npm run generate) は dist/ symlink (→ .output/public/) を作るため
+#   ディレクトリ ('frontend/dist/') と symlink ('frontend/dist') の両方を除外
 frontend/coverage/
 
 # Ruby / Rails

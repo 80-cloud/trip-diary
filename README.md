@@ -394,6 +394,122 @@ PR ごとに **隠れバグ 1〜3 件を発見・修正** している (race con
 
 ---
 
+## 運用 Runbook (Phase 3 / ECS Fargate)
+
+学習用 + 講師レビュー想定のため、**使う時だけ apply / 終わったら撤収** のサイクルで運用しコストを最小化する。
+
+### 利用パターンと月額目安
+
+| パターン | 月稼働時間 | 月額 | 用途 |
+|---|---|---|---|
+| 24h 常時稼働 | 720h | ~$30 | 講師レビュー期間中 (継続公開) |
+| 1日3h | 90h | ~$4 | デモ準備 + 公開 |
+| 30h/月 (1日1h or 月数回半日) | 30h | ~$1.2 | レビュー前のリハーサル |
+| 0h (撤収状態) | 0h | $0.5 未満 | tfstate bucket / Budget メールのみ残る |
+
+→ 講師レビュー期間が決まっているなら、レビュー前日 apply → 終了後 teardown が最安。
+
+### A. 初回 apply (デプロイ)
+
+```bash
+# 0a. 事前準備 (一度だけ): tfstate 用 S3 bucket を手動作成 (versions.tf 参照)
+#     既に存在する場合は skip (aws s3api head-bucket --bucket trip-diary-tfstate)
+aws s3api create-bucket --bucket trip-diary-tfstate --region ap-northeast-1 \
+  --create-bucket-configuration LocationConstraint=ap-northeast-1
+aws s3api put-bucket-versioning --bucket trip-diary-tfstate \
+  --versioning-configuration Status=Enabled
+aws s3api put-public-access-block --bucket trip-diary-tfstate \
+  --public-access-block-configuration 'BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true'
+aws s3api put-bucket-encryption --bucket trip-diary-tfstate \
+  --server-side-encryption-configuration '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
+
+# 1. tfvars 準備 (機密鍵類を生成)
+cp infra/terraform.tfvars.example infra/terraform.tfvars
+# → 全 REPLACE_WITH_* を実値に置換 (db_password / rails_master_key / secret_key_base / jwt_secret / s3_bucket_name / budget_notification_email)
+# 機密ファイルなので owner-only に絞る
+chmod 600 infra/terraform.tfvars
+
+# 2. terraform 初期化 + 計画確認 + 適用
+cd infra
+terraform init
+terraform plan          # 63 リソース作成予定を目視確認
+terraform apply         # y/n プロンプトに yes (-auto-approve は使わない / CLAUDE.md §6)
+# 所要 15-20 分 (CloudFront 単体で ~10 分)
+
+# 3. backend image push + ECS rolling
+cd ..
+./scripts/deploy-backend.sh
+
+# 4. frontend (Nuxt SSG) を S3 + CloudFront に配信
+./scripts/deploy-frontend.sh
+
+# 5. 動作確認
+terraform -chdir=infra output cloudfront_domain_name
+# → ブラウザで https://<domain>/ を開く
+# 注: CloudFront のエッジ伝播に追加で 5-15 分かかる場合あり (初回 deploy 後 5xx が出たら待つ)
+
+# 6. AWS Budgets 確認メール対応 (初回 apply 後 5-30 分で届く)
+# → budget_notification_email 宛 "AWS Notification - Subscription Confirmation"
+#   のリンクをクリックして confirm (未 confirm だと月次通知が届かない)
+```
+
+### B. 緊急停止 (Fargate 課金のみ止める / 構成は残す)
+
+```bash
+# desired_count=0 で ECS task を 0 にする (ALB / RDS / CloudFront は維持)
+aws ecs update-service \
+  --cluster trip-diary-cluster \
+  --service trip-diary-backend \
+  --desired-count 0 \
+  --region ap-northeast-1
+# → 復旧時は --desired-count 1 で戻す (rolling 起動 ~3 min)
+# 削減幅: ~$3-9/月 (Fargate Spot 分のみ / ALB $18 と RDS は引き続き課金)
+```
+
+### C. 撤収 (全リソース取り壊し)
+
+```bash
+# 安全装置付きの teardown スクリプトを使用 (2 段階確認 + 残存検証)
+./scripts/teardown.sh --dry-run    # まず確認 (terraform plan -destroy 相当)
+./scripts/teardown.sh              # 本実行 (プロジェクト名 + yes の 2 段階入力)
+
+# 撤収後の確認 (script 内で自動実行されるが手動でも)
+aws ecs list-services --cluster trip-diary-cluster
+aws elbv2 describe-load-balancers --query "LoadBalancers[?starts_with(LoadBalancerName,'trip-diary')]"
+aws rds describe-db-instances --query "DBInstances[?starts_with(DBInstanceIdentifier,'trip-diary')]"
+aws cloudfront list-distributions --query "DistributionList.Items[?contains(Comment,'trip-diary')]"
+```
+
+⚠ **撤収で消えるもの**: 投稿された trip / 画像 / ユーザーアカウント全て (RDS + S3 uploads が中身ごと撤収される)。デモデータが必要なら apply 後に再 seed が必要。
+
+### D. 撤収後も残るもの (要手動確認)
+
+| 残るリソース | 対処 |
+|---|---|
+| `trip-diary-tfstate` S3 bucket | 次回 apply で再利用するので残置推奨。完全削除は AWS Console で手動 |
+| AWS Budgets (月次 $30 通知) | 通知メール宛先が残る。不要なら AWS Console > Budgets で削除 |
+| SNS Subscription (Budgets 通知) | 上記と同様 |
+| Route53 hosted zone | 本構成では未作成 / カスタムドメイン採用時のみ |
+| CloudWatch log groups | retention 7 日で自然消滅 |
+
+### E. 鍵類のローテーション / 保護
+
+**運用中の必須対策**:
+```bash
+# tfvars は全シークレット (DB password / Rails master key / JWT secret 等) を含むため
+# owner-only に絞る (group / other からの読取り禁止)
+chmod 600 infra/terraform.tfvars
+ls -la infra/terraform.tfvars   # -rw------- であること
+```
+
+**講師レビュー終了 + 撤収後**は以下を破棄推奨:
+- `infra/terraform.tfvars` の `db_password` / `secret_key_base` / `jwt_secret` / `rails_master_key` を破棄 (再 apply するなら再生成)
+- SSM Parameter Store の SecureString も上記 terraform 撤収で削除済
+
+再現性のため `infra/terraform.tfvars` を保管したい場合は、機密値を 1Password 等のパスワードマネージャに退避 + ローカルの tfvars は安全削除 (`shred -u infra/terraform.tfvars` or macOS なら `srm` / 単純な rm でも可)。
+
+---
+
 ## ディレクトリ構成
 
 ```

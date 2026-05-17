@@ -14,6 +14,10 @@ class Trip < ApplicationRecord
     business: "business"
   }
 
+  # 下書き / 公開済の 2 値。default: :published で省略時に Trip.new が
+  # NOT NULL 違反にならないようにする (DB 側 default は enum バリデーション発火のため敢えて持たない)。
+  enum :status, { draft: "draft", published: "published" }, default: :published
+
   belongs_to :user
   has_many :day_entries, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :trip
   has_many :comments, dependent: :destroy
@@ -37,12 +41,26 @@ class Trip < ApplicationRecord
   validate :tag_list_within_limits
 
   scope :recent, -> { order(created_at: :desc) }
+
+  # visibility (公開範囲) と status (公開状態) を組み合わせた可視性。
+  # 他人には「public かつ published」のみ見える。本人には自分の全 trip (draft 含む) が見える。
   scope :visible_to, ->(user) {
     if user
-      where("visibility = ? OR user_id = ?", "public", user.id)
+      where(
+        "(visibility = ? AND status = ?) OR user_id = ?",
+        "public", "published", user.id
+      )
     else
-      where(visibility: "public")
+      where(visibility: "public", status: "published")
     end
+  }
+
+  # F-UX-INF-SCROLL: id 降順の cursor pagination。
+  # cursor (= 前ページ末尾の id) より小さい id を返す。
+  # `sorted(:recent)` の `created_at DESC, id DESC` と整合 (autoincrement で id と created_at は単調増加)。
+  # popular/title sort では cursor を使わない (offset でも実装可だが本 PR の範囲外)。
+  scope :before_cursor, ->(cursor) {
+    cursor.present? ? where("trips.id < ?", cursor.to_i) : all
   }
 
   scope :by_tag, ->(name) {

@@ -3,6 +3,8 @@ export default {
     "./app/**/*.{vue,js}",
     "./app.vue"
   ],
+  // F-UI-DARK: useDarkMode composable で html に dark クラスを付け外しする方式
+  darkMode: "class",
   theme: {
     extend: {
       colors: {

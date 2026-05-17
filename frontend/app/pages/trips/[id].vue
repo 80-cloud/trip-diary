@@ -90,16 +90,19 @@ async function deleteTrip() {
     <header class="bg-white p-6 rounded-lg border border-slate-200">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-bold text-slate-800">{{ trip.title }}</h1>
-          <p class="text-sm text-slate-500 mt-1">{{ trip.started_on }} 〜 {{ trip.ended_on }} / {{ trip.destination }}</p>
-          <p class="text-sm text-slate-600 mt-1">@{{ trip.user.display_name }}</p>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span v-if="trip.status === 'draft'" class="text-xs px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-200 font-bold">下書き</span>
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ trip.title }}</h1>
+          </div>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">{{ trip.started_on }} 〜 {{ trip.ended_on }} / {{ trip.destination }}</p>
+          <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">@{{ trip.user.display_name }}</p>
           <div class="mt-2 flex flex-wrap gap-1.5 items-center">
-            <span class="text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-700">{{ labelOf(trip.category) }}</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-brand-100 dark:bg-brand-700 text-brand-700 dark:text-brand-50">{{ labelOf(trip.category) }}</span>
             <NuxtLink
               v-for="name in (trip.tags || [])"
               :key="name"
               :to="`/tags/${encodeURIComponent(name)}`"
-              class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200"
+              class="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600"
             >#{{ name }}</NuxtLink>
           </div>
         </div>

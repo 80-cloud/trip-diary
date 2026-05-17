@@ -81,20 +81,20 @@
 | 2-5a | **計画モード / 荷物チェックリスト** (trip-owned 子リソースの CRUD / done → DayEntry 自動昇格 / 進捗集計) | [#26](https://github.com/80-cloud/trip-diary/pull/26) |
 | 2-5b | **チケット管理 / 旅行レビュー** (ActiveStorage 単体添付 + MIME/size 制限 / 1 trip 1 review upsert) | [#28](https://github.com/80-cloud/trip-diary/pull/28) |
 
-### Phase 3 (本番デプロイ) 🚧 計画中
+### Phase 3 (講師提出スコープ) 🚧 進行中
 
-- 通知センター (コメント / いいね / フォロー受信)
-- 地図表示 (Leaflet / MapLibre)
-- 統計ダッシュボード (都道府県制覇率 / 月別集計)
-- S3 への画像移行
-- **AWS デプロイ** (EC2 + RDS + Nginx / Terraform)
+| 機能 | 状態 |
+|---|---|
+| **S3 画像保存** (F-S3-01) | ✅ [PR #56](https://github.com/80-cloud/trip-diary/pull/56) でマージ済 |
+| **AWS 本番デプロイ** (F-DEPLOY-01 / ECS Fargate + RDS + ALB + CloudFront) | 🚧 [PR #58](https://github.com/80-cloud/trip-diary/pull/58) で infra 完成 → 撤収済 → 再デプロイ予定 |
+| **E2E 基盤** (F-E2E-01 / Playwright + smoke spec) | 🚧 [PR #64](https://github.com/80-cloud/trip-diary/pull/64) 提出 / smoke GREEN 確認待ち |
+| **性能テスト基盤** (F-PERF-01 / k6 + Lighthouse) | 📅 計画中 |
+| **通知センター** (F-NOTIF-01 / コメント・いいね・フォロー受信通知) | 📅 計画中 (v0.4.1 で Phase 4 → 3 に引き戻し) |
+| **通知既読管理** (F-NOTIF-02 / 個別/一括既読 + 未読バッジ) | 📅 計画中 (F-NOTIF-01 と同 PR で実装予定) |
 
-### Phase 4 (発展余地) 📅 検討中
+### Phase 4 ⏸ (講師提出後の発展枠)
 
-- リアルタイム反映 (ActionCable)
-- PWA (オフライン閲覧)
-- 多言語 (i18n)
-- PDF 出力
+地図 (F-MAP-*) / PDF (F-EXPORT-*) / 統計 (F-STATS-*) / アルバム / PWA / リアルタイム / DM / 多言語 など 25+ 機能。詳細とスライド経緯は [docs/機能一覧.md §Phase 3 スコープ確定経緯](docs/機能一覧.md) を参照。
 
 詳細は [docs/機能一覧.md](docs/機能一覧.md) を参照。
 

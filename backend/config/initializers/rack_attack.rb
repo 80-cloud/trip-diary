@@ -17,7 +17,7 @@ class Rack::Attack
   end
 
   # 429 レスポンス整形 (フィールド名 / 残り時間など機密を漏らさない一般メッセージ)
-  self.throttled_responder = lambda do |request|
+  self.throttled_responder = lambda do |_request|
     [
       429,
       { "Content-Type" => "application/json" },

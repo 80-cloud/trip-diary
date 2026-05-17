@@ -87,6 +87,8 @@ class Api::V1::AuthControllerTest < ActionDispatch::IntegrationTest
     # 一時的に User#save を RecordNotUnique を上げるように差し替えて controller の
     # rescue 経路を強制的に通す。HTTP 経由で同時 2 リクエストの race を再現するのは
     # 困難なため alias_method による in-place stub を採用。
+    # NOTE: test_helper の parallelize(workers: 1) 前提。worker を増やす場合は
+    # この差し替えがプロセス間で衝突するため、別ファイルに隔離 or Mocha 導入が必要。
     User.class_eval do
       alias_method :_real_save, :save
       define_method(:save) { raise ActiveRecord::RecordNotUnique, "Duplicate entry" }
@@ -117,8 +119,8 @@ class Api::V1::AuthControllerTest < ActionDispatch::IntegrationTest
         post "/api/v1/login",
           params: { email: "rate-test@example.com", password: "x" },
           as: :json
-        assert_includes [401, 422], response.status,
-          "1〜5 回目はレート未超過 (#{response.status})"
+        # 未登録 email → controller は 401 を返す。throttle 未発火を確認
+        assert_response :unauthorized
       end
       post "/api/v1/login",
         params: { email: "rate-test@example.com", password: "x" },

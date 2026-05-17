@@ -51,4 +51,7 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # テストカバレッジ計測 (docs/ログ・監視・障害対応設計書.md §5 と連動)
+  gem "simplecov", "~> 0.22", require: false
 end

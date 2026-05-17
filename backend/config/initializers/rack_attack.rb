@@ -29,3 +29,10 @@ end
 # test 環境では既定で無効化 (E-H2 timing test など 1 test 内で多数 login を発行する
 # 既存テストを壊さないため)。レート制限テストは setup/teardown で個別有効化する。
 Rack::Attack.enabled = false if Rails.env.test?
+
+# 開発時の perf テスト (k6 VU 5-10 / 要件定義書 §4-1 SLO 検証) で signup/login を
+# 短時間に大量発行するため、opt-in env var で disable できるようにする。
+# 既定 (env 未設定 / "1" 以外) では throttle 有効を維持する (security default-safe)。
+# 使用例: RACK_ATTACK_DISABLED=1 bin/rails s -p 3010
+# 本番では絶対に設定しないこと (rack-attack は E-M1 ブルートフォース対策の中核)。
+Rack::Attack.enabled = false if ENV["RACK_ATTACK_DISABLED"] == "1"

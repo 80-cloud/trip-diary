@@ -6,6 +6,10 @@
   "scripts": {
     "perf:smoke":         "k6 run k6/scenarios/smoke.js",
     "perf:timeline":      "k6 run k6/scenarios/timeline.js",
+    "perf:trip_create":   "k6 run k6/scenarios/trip_create.js",
+    "perf:trip_detail":   "k6 run k6/scenarios/trip_detail.js",
+    "perf:like":          "k6 run k6/scenarios/like.js",
+    "perf:soak":          "k6 run k6/scenarios/soak.js",
     "perf:cleanup":       "bash scripts/cleanup-local.sh",
     "perf:verify-clean":  "bash scripts/verify-no-residue.sh"
   }

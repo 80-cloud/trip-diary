@@ -207,6 +207,90 @@ const planProgress = computed(() => {
   return Math.round((trip.value.planned_done_count / trip.value.planned_count) * 100)
 })
 
+// F-TICKET-01: チケット CRUD (本人のみ)
+const KIND_LABELS = { train: "新幹線/電車", hotel: "宿", flight: "航空券", ticket: "チケット", other: "その他" }
+const newTicket = ref({ kind: "train", reservation_no: "", url: "", notes: "" })
+const newTicketFile = ref(null)
+const ticketError = ref(null)
+
+async function addTicket() {
+  ticketError.value = null
+  try {
+    let body
+    if (newTicketFile.value) {
+      body = new FormData()
+      body.append("kind", newTicket.value.kind)
+      body.append("reservation_no", newTicket.value.reservation_no)
+      body.append("url", newTicket.value.url)
+      body.append("notes", newTicket.value.notes)
+      body.append("file", newTicketFile.value)
+    } else {
+      body = { ...newTicket.value }
+    }
+    const created = await api.post(`/trips/${id}/tickets`, { body })
+    trip.value.tickets.push(created)
+    newTicket.value = { kind: "train", reservation_no: "", url: "", notes: "" }
+    newTicketFile.value = null
+  } catch (e) {
+    ticketError.value = e.data?.errors?.join(", ") || "チケット追加に失敗しました"
+  }
+}
+
+async function deleteTicket(ticket) {
+  if (!confirm("このチケットを削除しますか？")) return
+  ticketError.value = null
+  try {
+    await api.del(`/trips/${id}/tickets/${ticket.id}`)
+    trip.value.tickets = trip.value.tickets.filter(t => t.id !== ticket.id)
+  } catch (e) {
+    ticketError.value = e.data?.error || "削除に失敗しました"
+  }
+}
+
+function onTicketFileChange(e) {
+  newTicketFile.value = e.target.files?.[0] || null
+}
+
+function fileUrlFull(path) {
+  return path ? fullImageUrl(path) : null
+}
+
+// F-REVIEW-01: 旅行レビュー (本人のみ upsert)
+const reviewDraft = ref({ rating: 5, body: "" })
+const reviewError = ref(null)
+const reviewSaving = ref(false)
+
+watch(trip, (t) => {
+  if (t?.review) {
+    reviewDraft.value = { rating: t.review.rating, body: t.review.body || "" }
+  }
+}, { immediate: true })
+
+async function saveReview() {
+  reviewError.value = null
+  reviewSaving.value = true
+  try {
+    const res = await api.put(`/trips/${id}/review`, { body: { ...reviewDraft.value } })
+    trip.value.review = res
+  } catch (e) {
+    reviewError.value = e.data?.errors?.join(", ") || "レビュー保存に失敗しました"
+  } finally {
+    reviewSaving.value = false
+  }
+}
+
+async function deleteReview() {
+  if (!confirm("レビューを削除しますか？")) return
+  reviewError.value = null
+  try {
+    await api.del(`/trips/${id}/review`)
+    trip.value.review = null
+    reviewDraft.value = { rating: 5, body: "" }
+  } catch (e) {
+    reviewError.value = e.data?.error || "削除に失敗しました"
+  }
+}
+
 // F-FOLLOW-01: 投稿者を follow/unfollow
 async function toggleFollow() {
   if (!auth.user) {
@@ -353,6 +437,70 @@ async function toggleFollow() {
         <button type="submit" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600">追加</button>
       </form>
       <p v-if="packError" class="text-xs text-rose-600 mt-2">{{ packError }}</p>
+    </section>
+
+    <!-- F-TICKET-01: チケット (本人のみ表示・編集) -->
+    <section v-if="isOwner()" class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">
+      <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-3">チケット <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(自分にだけ見えます)</span></h2>
+      <ul class="space-y-2 mb-3">
+        <li v-for="t in trip.tickets" :key="t.id" class="flex items-start gap-2 border-b border-slate-100 dark:border-slate-700 pb-2 last:border-0">
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-brand-100 dark:bg-brand-700 text-brand-700 dark:text-brand-50 shrink-0">{{ KIND_LABELS[t.kind] || t.kind }}</span>
+          <div class="flex-1 text-sm text-slate-700 dark:text-slate-200">
+            <p v-if="t.reservation_no" class="font-medium">予約番号: {{ t.reservation_no }}</p>
+            <a v-if="t.url" :href="t.url" target="_blank" rel="noopener" class="text-brand-600 dark:text-brand-50 hover:underline text-xs break-all">{{ t.url }}</a>
+            <p v-if="t.notes" class="text-xs text-slate-500 dark:text-slate-400">{{ t.notes }}</p>
+            <a v-if="t.file_url" :href="fileUrlFull(t.file_url)" target="_blank" rel="noopener" class="text-xs text-slate-500 dark:text-slate-400 underline">添付ファイル</a>
+          </div>
+          <button @click="deleteTicket(t)" class="text-xs text-rose-500 hover:underline shrink-0">削除</button>
+        </li>
+        <li v-if="trip.tickets.length === 0" class="text-xs text-slate-400 dark:text-slate-500">まだチケットはありません</li>
+      </ul>
+      <form @submit.prevent="addTicket" class="space-y-2">
+        <div class="flex gap-2">
+          <select v-model="newTicket.kind" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm">
+            <option v-for="(label, key) in KIND_LABELS" :key="key" :value="key">{{ label }}</option>
+          </select>
+          <input v-model="newTicket.reservation_no" maxlength="80" placeholder="予約番号"
+            class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
+        </div>
+        <input v-model="newTicket.url" maxlength="500" placeholder="URL (任意)"
+          class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
+        <input v-model="newTicket.notes" maxlength="500" placeholder="メモ (任意)"
+          class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
+        <input type="file" accept="image/*,application/pdf" @change="onTicketFileChange"
+          class="block w-full text-xs text-slate-600 dark:text-slate-300" />
+        <button type="submit" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600">追加</button>
+        <p v-if="ticketError" class="text-xs text-rose-600">{{ ticketError }}</p>
+      </form>
+    </section>
+
+    <!-- F-REVIEW-01: 旅行レビュー (全員に公開・本人のみ編集) -->
+    <section class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">
+      <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-3">
+        旅行の振り返り
+        <span v-if="isOwner()" class="text-xs font-normal text-slate-500 dark:text-slate-400">(他のユーザーにも公開されます)</span>
+      </h2>
+      <!-- 表示 (誰でも見える): review があれば表示 -->
+      <div v-if="trip.review && !isOwner()" class="text-sm">
+        <p class="text-amber-500 text-lg">{{ "★".repeat(trip.review.rating) }}<span class="text-slate-300 dark:text-slate-600">{{ "★".repeat(5 - trip.review.rating) }}</span></p>
+        <p v-if="trip.review.body" class="text-slate-700 dark:text-slate-200 mt-2 whitespace-pre-wrap">{{ trip.review.body }}</p>
+      </div>
+      <p v-else-if="!trip.review && !isOwner()" class="text-xs text-slate-400 dark:text-slate-500">まだレビューはありません</p>
+
+      <!-- 編集 (本人のみ) -->
+      <form v-if="isOwner()" @submit.prevent="saveReview" class="space-y-2">
+        <label class="block text-xs text-slate-600 dark:text-slate-400">5 段階評価</label>
+        <select v-model.number="reviewDraft.rating" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm">
+          <option v-for="r in [1, 2, 3, 4, 5]" :key="r" :value="r">{{ r }} {{ "★".repeat(r) }}</option>
+        </select>
+        <textarea v-model="reviewDraft.body" rows="3" maxlength="2000" placeholder="振り返り (2000 字以内 / 任意)"
+          class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm"></textarea>
+        <div class="flex items-center gap-2">
+          <button type="submit" :disabled="reviewSaving" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600 disabled:opacity-50">{{ reviewSaving ? "保存中…" : (trip.review ? "更新" : "保存") }}</button>
+          <button v-if="trip.review" type="button" @click="deleteReview" class="text-xs text-rose-500 hover:underline">レビューを削除</button>
+        </div>
+        <p v-if="reviewError" class="text-xs text-rose-600">{{ reviewError }}</p>
+      </form>
     </section>
 
     <!-- F-MEMO-01: 個人メモ (本人のみ表示・本人のみ参照可) -->

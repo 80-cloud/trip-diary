@@ -97,6 +97,8 @@ module Api
           :day_entries,
           :planned_spots,
           :packing_items,
+          :review,
+          { tickets: { file_attachment: :blob } },
           { comments: :user },
           images_attachments: :blob
         ).find(params[:id])
@@ -150,10 +152,11 @@ module Api
 
       def trip_detail(trip, liked_ids:, favorited_ids: Set.new, my_memo: nil, followed_user_ids: Set.new)
         is_owner = current_user && trip.user_id == current_user.id
-        # 計画/持ち物の中身は本人のみ閲覧 (他人には進捗バーの数値だけ見せる)
-        # trip.planned_spots / packing_items は has_many 側で order 済 → そのまま使う
+        # 計画/持ち物/チケットの中身は本人のみ閲覧 (進捗バー値や review は公開情報)
+        # has_many 側で order 済 → そのまま使う (N+1 防止)
         planned_spots = is_owner ? trip.planned_spots.map { |s| planned_spot_payload(s) } : []
         packing_items = is_owner ? trip.packing_items.map { |i| packing_item_payload(i) } : []
+        tickets       = is_owner ? trip.tickets.map       { |t| ticket_payload(t)        } : []
         trip_summary(trip, liked_ids: liked_ids, favorited_ids: favorited_ids, followed_user_ids: followed_user_ids).merge(
           body: trip.body,
           my_memo: my_memo,
@@ -163,7 +166,9 @@ module Api
           planned_count: trip.planned_spots.size,
           planned_done_count: trip.planned_spots.count { |s| s.done },
           planned_spots: planned_spots,
-          packing_items: packing_items
+          packing_items: packing_items,
+          tickets: tickets,
+          review: trip.review ? review_payload(trip.review) : nil
         )
       end
 
@@ -173,6 +178,18 @@ module Api
 
       def packing_item_payload(i)
         { id: i.id, body: i.body, packed: i.packed, position: i.position }
+      end
+
+      def ticket_payload(t)
+        {
+          id: t.id, kind: t.kind, reservation_no: t.reservation_no, url: t.url, notes: t.notes,
+          position: t.position,
+          file_url: t.file.attached? ? rails_blob_path(t.file, only_path: true) : nil
+        }
+      end
+
+      def review_payload(r)
+        { id: r.id, rating: r.rating, body: r.body, updated_at: r.updated_at }
       end
 
       def day_entry_payload(d)

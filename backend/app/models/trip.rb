@@ -32,6 +32,8 @@ class Trip < ApplicationRecord
   # (=N+1 防止)、Ruby の sort_by よりも DB index を活用できる。
   has_many :planned_spots, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :trip
   has_many :packing_items, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :trip
+  has_many :tickets, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :trip
+  has_one :review, dependent: :destroy
   has_many_attached :images
 
   accepts_nested_attributes_for :day_entries, allow_destroy: true, reject_if: :all_blank

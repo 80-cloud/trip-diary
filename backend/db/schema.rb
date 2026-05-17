@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_17_050001) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_17_060001) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -129,6 +129,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_050001) do
     t.index ["trip_id"], name: "index_planned_spots_on_trip_id"
   end
 
+  create_table "reviews", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.text "body"
+    t.datetime "created_at", null: false
+    t.integer "rating", null: false
+    t.bigint "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["trip_id"], name: "index_reviews_on_trip_id", unique: true
+  end
+
   create_table "tags", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", limit: 32, null: false
@@ -136,6 +145,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_050001) do
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_tags_on_name", unique: true
     t.index ["trips_count"], name: "index_tags_on_trips_count"
+  end
+
+  create_table "tickets", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "kind", limit: 16, null: false
+    t.string "notes", limit: 500
+    t.integer "position", default: 0, null: false
+    t.string "reservation_no", limit: 80
+    t.bigint "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.string "url", limit: 500
+    t.index ["trip_id", "position"], name: "index_tickets_on_trip_id_and_position"
+    t.index ["trip_id"], name: "index_tickets_on_trip_id"
   end
 
   create_table "trip_tags", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -195,6 +217,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_050001) do
   add_foreign_key "packing_items", "trips"
   add_foreign_key "planned_spots", "day_entries"
   add_foreign_key "planned_spots", "trips"
+  add_foreign_key "reviews", "trips"
+  add_foreign_key "tickets", "trips"
   add_foreign_key "trip_tags", "tags"
   add_foreign_key "trip_tags", "trips"
   add_foreign_key "trips", "users"

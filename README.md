@@ -361,12 +361,36 @@ PR ごとに **隠れバグ 1〜3 件を発見・修正** している (race con
 
 ---
 
-## 本番デプロイ前チェックリスト (Phase 3 で実施)
+## 本番デプロイ前チェックリスト (Phase 3 / ECS Fargate 構成)
 
-- [ ] `.env` の `RAILS_ENV` を必ず `production` に変更 (development のままだと `seeds.rb` が本番 DB を汚染する — 詳細は [docs/セキュリティ自己監査.md §3 E-H3](docs/セキュリティ自己監査.md))
-- [ ] `SECRET_KEY_BASE` / `JWT_SECRET` を本番用の値に差し替え (`.env.example` の値は使わない)
-- [ ] `bin/rails db:seed` を本番デプロイ手順から **除外** (CI/CD パイプラインからも削除)
-- [ ] `CORS_ORIGINS` を本番ドメインに限定 (`http://localhost:3011` 混入チェック)
+> **インフラ構成**: ECS Fargate + ALB + CloudFront + ECR + RDS MySQL + S3 + SSM Parameter Store (詳細: [docs/インフラ構成.md §2 v0.2](docs/インフラ構成.md))。姉妹 PJ sns-board の構成を踏襲。
+
+### 既存チェック (Phase 2 までで定義)
+
+- [ ] `RAILS_ENV=production` で起動 (development のままだと `seeds.rb` が本番 DB を汚染する — 詳細は [docs/セキュリティ自己監査.md §3 E-H3](docs/セキュリティ自己監査.md))
+- [ ] `SECRET_KEY_BASE` / `JWT_SECRET` を本番用の値に差し替え (`.env.example` の値は使わない / `rails secret` で生成)
+- [ ] `bin/rails db:seed` を本番デプロイ手順から **除外** (本 PR の deploy-backend.sh / Task Definition init container にも含めない)
+- [ ] `CORS_ORIGINS` を本番ドメインに限定 (`localhost:3011` 混入チェック)
+
+### ECS 構成での追加チェック (Issue #55 で確定)
+
+- [ ] **Active Storage**: `config.active_storage.service = :amazon` を確認 (本 PR #56 で対応 / 起動時は `S3_BUCKET` / `S3_REGION` 環境変数が SSM 経由で注入されている必要あり)
+- [ ] **シークレット**: SSM Parameter Store に SecureString で投入 (`RAILS_MASTER_KEY` / `DATABASE_URL` / `JWT_SECRET` / `SECRET_KEY_BASE` / `CORS_ORIGINS` / `S3_BUCKET` / `S3_REGION`)
+- [ ] **IAM Role**: ECS task_role に S3 uploads bucket スコープの `s3:PutObject/GetObject/DeleteObject` + SSM `GetParameters` + KMS `Decrypt` を付与
+- [ ] **Image Tag**: `latest` 禁止、git commit SHA を使用 (sns-board と同方針、E-H3 と同型の事故防止)
+- [ ] **Platform**: Apple Silicon Mac は `docker buildx --platform linux/amd64` で push (ECS Fargate は amd64 のみ)
+- [ ] **ACM 証明書**: ALB は ap-northeast-1 / CloudFront は us-east-1 で発行 (リージョン要件)
+- [ ] **terraform plan**: 人間目視で確認 (`-auto-approve` 禁止 / CLAUDE.md §6)
+- [ ] **DB migration**: `bin/rails db:migrate RAILS_ENV=production` を本番 RDS に対して実行 (seed は実行しない)
+
+### Phase B 据え置き (本セッションスコープ外 / Issue #55 で確定)
+
+- [ ] Picsum フォールバック → Active Storage stock 画像 attach runner (Phase B)
+- [ ] E2E (Playwright) シナリオ 5-7 件 + CI 統合 (Phase B / テスト計画書 §1 §2 §7 改訂)
+- [ ] CSRF X-CSRF-Token 方式 (Phase B / [docs/セキュリティ自己監査.md](docs/セキュリティ自己監査.md) E-CSRF)
+- [ ] E-L5 signup race / E-PWReset (Phase B / 公開後の運用判断)
+- [ ] CloudWatch アラーム (CPU > 80% / 5xx / RDS IOPS) (Phase B)
+- [ ] AWS Budgets 月次 $30 上限通知 (Phase B / sns-board の budgets.tf port)
 
 ---
 

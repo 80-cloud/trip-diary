@@ -18,8 +18,10 @@ Rails.application.configure do
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
 
-  # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = :local
+  # F-S3-01 / Issue #55: 本番は Active Storage を S3 に切替 (config/storage.yml :amazon)。
+  # :local だと ECS task の揮発ストレージに保存され deploy 毎に消失するため。
+  # IAM Role 経由で認証 (静的キー不要 / infra/iam.tf 参照)。
+  config.active_storage.service = :amazon
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   config.assume_ssl = true

@@ -21,8 +21,14 @@ module Api
           issue_jwt_cookie(user)
           render json: { user: user_payload(user) }, status: :created
         else
-          # フィールド別の詳細はサーバ内部ログにのみ残す (運用調査用)
-          Rails.logger.info("[signup][422] errors=#{user.errors.details.inspect}")
+          # フィールド別の詳細はサーバ内部ログにのみ残す (運用調査用)。
+          # `errors.details` をそのまま inspect すると :value キーに入力値 (email 平文) が
+          # 含まれ PII が漏れる ため、:value を除外して :error キー (種別) のみ記録する。
+          # (E-H1 fix の意図はサーバログを含む全経路で field-level 漏洩を防ぐこと)
+          masked_errors = user.errors.details.transform_values { |arr|
+            arr.map { |h| h.except(:value) }
+          }
+          Rails.logger.info("[signup][422] errors=#{masked_errors.inspect}")
           render json: { error: GENERIC_SIGNUP_ERROR }, status: :unprocessable_entity
         end
       end

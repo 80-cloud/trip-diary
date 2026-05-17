@@ -4,24 +4,25 @@
 
 このディレクトリは **任意タイミングで実行する** パフォーマンステスト基盤。`ci.yml` (毎 PR) には統合せず、別 workflow (`.github/workflows/perf.yml`) で `workflow_dispatch` (手動) + `schedule` (月次) で実行する。
 
-## 構成 (4 layer 想定 / 本 PR は Layer A 最小)
+## 構成 (4 layer 想定)
 
 | Layer | ツール | 対象 | 実装状態 |
 |---|---|---|---|
-| **A. API 負荷** | k6 (protocol) | Rails REST API | ✅ smoke + timeline 2 scenarios (本 PR) / 残り 4 scenarios + 30 分高負荷は PR-H |
+| **A. API 負荷** | k6 (protocol) | Rails REST API | ✅ smoke + timeline + **trip_create + trip_detail + like + soak** (PR-H 完了) / image_upload は別 Issue |
 | B. ブラウザ E2E | k6 browser (Chromium) | Nuxt UI 実操作 | 📅 PR-I (Web Vitals 計測) |
 | C. Frontend 単発 | Lighthouse CLI | 主要ページ Web Vitals | 📅 PR-J (4 page audit) |
 | D. N+1 回帰 | Bullet gem (development) | ActiveRecord クエリ | ✅ 既に組込済 (PR #32 / Rails dev mode で自動検出) |
 
 ## SLO (要件定義書 §4-1)
 
-| 操作 | 目標 |
-|---|---|
-| **タイムライン取得** (`GET /api/v1/trips`) | **p95 < 2.0 秒** |
-| **trip 詳細** (`GET /api/v1/trips/:id`) | **p95 < 1.0 秒** |
-| trip 作成 | p95 < 0.5 秒 (PR-H で検証) |
-| いいね追加/取消 | p95 < 0.3 秒 (PR-H で検証) |
-| 画像アップロード | p95 < 3.0 秒 (PR-H で検証) |
+| 操作 | 目標 | scenario | 状態 |
+|---|---|---|---|
+| **タイムライン取得** (`GET /api/v1/trips`) | **p95 < 2.0 秒** | `timeline.js` | ✅ PR #71 |
+| **trip 詳細** (`GET /api/v1/trips/:id`) | **p95 < 1.0 秒** | `trip_detail.js` | ✅ PR-H |
+| **trip 作成** (`POST /api/v1/trips`) | **p95 < 0.5 秒** | `trip_create.js` | ✅ PR-H |
+| **いいね追加/取消** (`POST/DEL /api/v1/trips/:id/like`) | **p95 < 0.3 秒** | `like.js` | ✅ PR-H |
+| **30 分 soak (mixed)** | failure < 1% / 各 SLO 維持 | `soak.js` | ✅ PR-H |
+| 画像アップロード | p95 < 3.0 秒 | (未実装 / 別 Issue) | 📅 ActiveStorage direct_uploads 設計検討 |
 
 ## 前提
 
@@ -30,6 +31,20 @@
 | k6 v0.50+ (本 PR は v2.0+ で動作確認) | `brew install k6` |
 | Docker Desktop (MySQL container 用) | `brew install --cask docker` |
 | Rails (port 3010) / MySQL (port 3316) 起動済 | `/start-servers` skill 推奨 |
+
+### VU > 3 で実行する場合の必須セットアップ
+
+rack-attack が signup を **3 req/分/IP** に制限している ([backend/config/initializers/rack_attack.rb](../backend/config/initializers/rack_attack.rb))。perf テストは複数 VU が短時間に signup するため、3 を超える VU では throttle で 429 が連発し測定不能になる。
+
+**回避策**: Rails 起動時に `RACK_ATTACK_DISABLED=1` を渡す (opt-in / 本番では絶対設定しないこと):
+
+```bash
+# Rails を停止して再起動
+cd backend
+RACK_ATTACK_DISABLED=1 bin/rails s -p 3010
+```
+
+perf テスト完了後は環境変数なしで再起動して既定の throttle を復旧させる。
 
 ## 実行
 
@@ -42,16 +57,28 @@ set -a && source ../.env && set +a
 # Layer A: API 負荷
 npm run perf:smoke              # 全 endpoint 200 確認 (最短)
 npm run perf:timeline           # GET /api/v1/trips SLO assert (p95 < 2.0s)
+npm run perf:trip_create        # POST /api/v1/trips SLO assert (p95 < 0.5s)
+npm run perf:trip_detail        # GET /api/v1/trips/:id SLO assert (p95 < 1.0s)
+npm run perf:like               # POST/DEL /api/v1/trips/:id/like SLO assert (p95 < 0.3s)
+npm run perf:soak               # 30 min mixed workload (VU=5 / Layer A 総仕上げ)
 
-# クリーンアップ
-npm run perf:cleanup            # MySQL から perf_* user を削除
+# クリーンアップ (各 scenario 完了後・soak 後は特に重要)
+npm run perf:cleanup            # MySQL から perf_* user を ActiveRecord 経由で削除
 npm run perf:verify-clean       # 残骸 0 件を確認
 ```
 
 SLO を意図的に違反させて fail することの確認:
 
 ```bash
-K6_THRESHOLDS_TIMELINE_MS=10 npm run perf:timeline
+K6_THRESHOLDS_TIMELINE_MS=10    npm run perf:timeline
+K6_THRESHOLDS_TRIP_CREATE_MS=10 npm run perf:trip_create
+K6_THRESHOLDS_LIKE_MS=10        npm run perf:like
+```
+
+soak を短時間で動作確認する場合 (デフォルト 30m → 30s):
+
+```bash
+K6_DURATION=30s npm run perf:soak
 ```
 
 ## クリーンアップの 3 段防御
@@ -78,6 +105,11 @@ K6_THRESHOLDS_TIMELINE_MS=10 npm run perf:timeline
 | `K6_DURATION` | scenario 依存 | 実行時間の上書き |
 | `K6_THRESHOLDS_TIMELINE_MS` | `2000` | timeline SLO ms |
 | `K6_THRESHOLDS_TRIP_DETAIL_MS` | `1000` | trip detail SLO ms |
+| `K6_THRESHOLDS_TRIP_CREATE_MS` | `500` | trip create SLO ms |
+| `K6_THRESHOLDS_LIKE_MS` | `300` | like add/remove SLO ms |
+| `K6_THRESHOLDS_IMAGE_UPLOAD_MS` | `3000` | image upload SLO ms (未実装) |
+| `K6_SOAK_CREATE_EVERY` | `50` | soak: N iter に 1 回 trip_create を実行 (DB 肥大化抑制) |
+| `K6_SOAK_SLEEP` | `1` | soak: iter 間 sleep 秒 (req/min 流量緩和 / 0 で無休) |
 | `DB_HOST` / `MYSQL_PORT` / `MYSQL_USER` / `MYSQL_PASSWORD` | (.env 経由) | cleanup-local.sh が呼び出す `bin/rails runner` の DB 接続情報 |
 
 ## 本番への負荷テストは禁止

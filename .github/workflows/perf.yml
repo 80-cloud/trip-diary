@@ -24,6 +24,10 @@ on:
         options:
           - smoke
           - timeline
+          - trip_create
+          - trip_detail
+          - like
+          - soak
   schedule:
     # 毎月 1 日 03:00 UTC (12:00 JST)
     - cron: '0 3 1 * *'

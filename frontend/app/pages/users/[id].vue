@@ -1,6 +1,7 @@
 <script setup>
 import { useAuthStore } from "~/composables/useAuthStore.js"
 import { useCategories } from "~/composables/useCategories.js"
+import { useTripImage } from "~/composables/useTripImage.js"
 import ImageCropperModal from "~/components/ImageCropperModal.vue"
 
 const route = useRoute()
@@ -8,6 +9,7 @@ const api = useApi()
 const config = useRuntimeConfig()
 const auth = useAuthStore()
 const { labelOf, gradientOf } = useCategories()
+const { tripImage } = useTripImage()
 
 const id = route.params.id
 const tab = ref(route.query.tab === "followers" ? "followers" : "following")
@@ -30,13 +32,6 @@ function fullImageUrl(path) {
   if (path.startsWith("http")) return path
   const base = config.public.apiBase.replace(/\/api\/v1$/, "")
   return base + path
-}
-
-// 画像未アップロード時のフォールバック (Picsum: trip.id をシードに deterministic)
-// 将来的に Active Storage 経由で実画像 attach する想定。詳しくは index.vue と統一
-function tripImage(trip, w = 600, h = 400) {
-  if (trip.image_url) return fullImageUrl(trip.image_url)
-  return `https://picsum.photos/seed/trip-${trip.id}/${w}/${h}`
 }
 
 // プロフィール表示用: 自分自身なら auth.user / 他人なら trip レスポンスから
@@ -213,8 +208,8 @@ async function saveProfile() {
       <p v-else class="text-sm text-slate-500 dark:text-slate-400">{{ tab === "following" ? "フォロー中のユーザーはいません" : "フォロワーはいません" }}</p>
     </section>
 
-    <!-- 装飾見出し: 投稿した旅行記録 -->
-    <div class="flex items-center gap-3 mb-4 mt-2">
+    <!-- 装飾見出し: 投稿した旅行記録 (投稿が 1 件以上ある時のみ) -->
+    <div v-if="trips.length > 0" class="flex items-center gap-3 mb-4 mt-2">
       <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
       <span class="text-xs tracking-[0.3em] text-slate-400 dark:text-slate-500 inline-flex items-center gap-1.5"><span>✈️</span><span>TRAVEL LOGS</span></span>
       <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>

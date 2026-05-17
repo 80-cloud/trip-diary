@@ -1,11 +1,12 @@
 <script setup>
 import { CATEGORY_OPTIONS, useCategories } from "~/composables/useCategories.js"
+import { useTripImage } from "~/composables/useTripImage.js"
 
 const api = useApi()
-const config = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
 const { labelOf, iconOf, gradientOf } = useCategories()
+const { tripImage } = useTripImage()
 
 // URL クエリと双方向同期 (リロード/共有可)
 const q        = ref(route.query.q || "")
@@ -157,20 +158,6 @@ const recentBatch = computed(() => {
   if (!sectionedView.value) return trips.value.filter(t => !heroIds.value.has(t.id))
   return trips.value.filter(t => !heroIds.value.has(t.id) && !popularBatchIds.value.has(t.id))
 })
-
-function fullImageUrl(path) {
-  if (!path) return null
-  if (path.startsWith("http")) return path
-  const base = config.public.apiBase.replace(/\/api\/v1$/, "")
-  return base + path
-}
-
-// 画像未アップロード時のフォールバック (Picsum: trip.id をシードに deterministic)
-// 将来的に Active Storage 経由で実画像 attach する想定だが、デモ用見栄え向上に
-function tripImage(trip, w = 800, h = 450) {
-  if (trip.image_url) return fullImageUrl(trip.image_url)
-  return `https://picsum.photos/seed/trip-${trip.id}/${w}/${h}`
-}
 
 function formatRange(s, e) {
   return `${s} 〜 ${e}`

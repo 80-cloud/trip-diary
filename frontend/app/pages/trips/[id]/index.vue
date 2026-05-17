@@ -1,6 +1,7 @@
 <script setup>
 import { useAuthStore } from "~/composables/useAuthStore.js"
 import { useCategories } from "~/composables/useCategories.js"
+import { useTripImage } from "~/composables/useTripImage.js"
 import ImageCropperModal from "~/components/ImageCropperModal.vue"
 
 const route = useRoute()
@@ -9,6 +10,7 @@ const api = useApi()
 const auth = useAuthStore()
 const config = useRuntimeConfig()
 const { labelOf, iconOf, gradientOf } = useCategories()
+const { coverImage } = useTripImage()
 const id = route.params.id
 
 // Nuxt 4 では useAsyncData の data はデフォルト shallowRef (Nuxt 4 から deep: false が既定)。
@@ -41,14 +43,6 @@ function fullImageUrl(path) {
   if (path.startsWith("http")) return path
   const base = config.public.apiBase.replace(/\/api\/v1$/, "")
   return base + path
-}
-
-// カバー画像: image_urls[0] (本人アップ) または Picsum フォールバック (trip.id seed)
-// index.vue / users/[id].vue と統一
-function coverImage(t, w = 1200, h = 600) {
-  const first = t.image_urls?.[0] || t.image_url
-  if (first) return fullImageUrl(first)
-  return `https://picsum.photos/seed/trip-${t.id}/${w}/${h}`
 }
 
 async function toggleFavorite() {

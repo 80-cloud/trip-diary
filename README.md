@@ -412,16 +412,29 @@ PR ごとに **隠れバグ 1〜3 件を発見・修正** している (race con
 ### A. 初回 apply (デプロイ)
 
 ```bash
-# 0. 事前準備 (一度だけ): tfstate 用 S3 bucket を手動作成済 (trip-diary-tfstate)
+# 0a. 事前準備 (一度だけ): tfstate 用 S3 bucket を手動作成 (versions.tf 参照)
+#     既に存在する場合は skip (aws s3api head-bucket --bucket trip-diary-tfstate)
+aws s3api create-bucket --bucket trip-diary-tfstate --region ap-northeast-1 \
+  --create-bucket-configuration LocationConstraint=ap-northeast-1
+aws s3api put-bucket-versioning --bucket trip-diary-tfstate \
+  --versioning-configuration Status=Enabled
+aws s3api put-public-access-block --bucket trip-diary-tfstate \
+  --public-access-block-configuration 'BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true'
+aws s3api put-bucket-encryption --bucket trip-diary-tfstate \
+  --server-side-encryption-configuration '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
+
 # 1. tfvars 準備 (機密鍵類を生成)
 cp infra/terraform.tfvars.example infra/terraform.tfvars
 # → 全 REPLACE_WITH_* を実値に置換 (db_password / rails_master_key / secret_key_base / jwt_secret / s3_bucket_name / budget_notification_email)
+# 機密ファイルなので owner-only に絞る
+chmod 600 infra/terraform.tfvars
 
 # 2. terraform 初期化 + 計画確認 + 適用
 cd infra
 terraform init
 terraform plan          # 63 リソース作成予定を目視確認
 terraform apply         # y/n プロンプトに yes (-auto-approve は使わない / CLAUDE.md §6)
+# 所要 15-20 分 (CloudFront 単体で ~10 分)
 
 # 3. backend image push + ECS rolling
 cd ..
@@ -433,6 +446,11 @@ cd ..
 # 5. 動作確認
 terraform -chdir=infra output cloudfront_domain_name
 # → ブラウザで https://<domain>/ を開く
+# 注: CloudFront のエッジ伝播に追加で 5-15 分かかる場合あり (初回 deploy 後 5xx が出たら待つ)
+
+# 6. AWS Budgets 確認メール対応 (初回 apply 後 5-30 分で届く)
+# → budget_notification_email 宛 "AWS Notification - Subscription Confirmation"
+#   のリンクをクリックして confirm (未 confirm だと月次通知が届かない)
 ```
 
 ### B. 緊急停止 (Fargate 課金のみ止める / 構成は残す)
@@ -474,13 +492,21 @@ aws cloudfront list-distributions --query "DistributionList.Items[?contains(Comm
 | Route53 hosted zone | 本構成では未作成 / カスタムドメイン採用時のみ |
 | CloudWatch log groups | retention 7 日で自然消滅 |
 
-### E. 鍵類のローテーション
+### E. 鍵類のローテーション / 保護
+
+**運用中の必須対策**:
+```bash
+# tfvars は全シークレット (DB password / Rails master key / JWT secret 等) を含むため
+# owner-only に絞る (group / other からの読取り禁止)
+chmod 600 infra/terraform.tfvars
+ls -la infra/terraform.tfvars   # -rw------- であること
+```
 
 **講師レビュー終了 + 撤収後**は以下を破棄推奨:
 - `infra/terraform.tfvars` の `db_password` / `secret_key_base` / `jwt_secret` / `rails_master_key` を破棄 (再 apply するなら再生成)
 - SSM Parameter Store の SecureString も上記 terraform 撤収で削除済
 
-再現性のため `infra/terraform.tfvars` を保管したい場合は、機密値を 1Password 等のパスワードマネージャに退避 + ローカルの tfvars は安全削除。
+再現性のため `infra/terraform.tfvars` を保管したい場合は、機密値を 1Password 等のパスワードマネージャに退避 + ローカルの tfvars は安全削除 (`shred -u infra/terraform.tfvars` or macOS なら `srm` / 単純な rm でも可)。
 
 ---
 

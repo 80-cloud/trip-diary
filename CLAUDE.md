@@ -17,7 +17,7 @@
 6. **AI 操作禁止**: `terraform destroy` / `terraform apply -auto-approve` / `aws *delete*` / `rm -rf` 等は人間承認必須
 7. **`.env` などの機密情報を絶対にコミットしない** (`git status` で必ず事前確認)
 8. **テストファースト**: Phase 2 以降は Issue の受け入れ条件 → テスト → 実装の順で書く (Phase 1 既存実装は smoke のみ後追い済 / 詳細 §11)
-9. **Vue/Nuxt 規約**: `ref(route.query.x)` はリバース同期 watch 必須 / ヘルパー 3+ ファイル重複は composable 抽出 / `<button>` は `type="button"` / `useAsyncData` は必要なら `{deep:true}` / 権限ガードは派生集計値にも適用 (詳細 §12)
+9. **Vue/Nuxt 規約**: `ref(route.query.x)` はリバース同期 watch 必須 / ヘルパー 3+ ファイル重複は composable 抽出 / submit でない `<button>` は `type="button"` 明示 / `useAsyncData` は必要なら `{deep:true}` / 権限ガードは派生集計値にも適用 (詳細 §12)
 
 ### Jidoka 発動条件 (作業中に頭をよぎったら止まる)
 
@@ -309,17 +309,25 @@ watch(() => route.query, (q) => {
 - grep で同名関数が **3 箇所以上** 見つかったら `frontend/app/composables/` に抽出
 - バックエンドは `app/models/concerns/` / module 化を検討
 
-### 12-3. `<button>` には必ず `type="button"` を付ける
+### 12-3. submit 用途以外の `<button>` には `type="button"` を明示する
 
 ```vue
 <!-- ❌ form 内では既定で type="submit" → 意図せぬフォーム送信が起きる -->
-<button @click="openModal">開く</button>
+<form @submit.prevent="search">
+  <input v-model="query" />
+  <button @click="openFilter">フィルタ</button>  <!-- ← 送信ボタン扱いになる -->
+  <button type="submit">検索</button>
+</form>
 
-<!-- ✅ submit 以外は明示する -->
-<button type="button" @click="openModal">開く</button>
+<!-- ✅ submit 以外は type="button" を明示 -->
+<form @submit.prevent="search">
+  <input v-model="query" />
+  <button type="button" @click="openFilter">フィルタ</button>
+  <button type="submit">検索</button>
+</form>
 ```
 
-**Why**: `<form>` の中の `<button>` は HTML 既定で `type="submit"`。意図しないフォーム送信や URL クエリ汚染の原因になる。
+**Why**: `<form>` の中の `<button>` は HTML 既定で `type="submit"`。クリックで意図しないフォーム送信が起きる。`<form>` の外でも将来 form でラップされた時に壊れないよう常に明示するのが安全。submit 用途のボタンは `type="submit"` (もしくは省略) で OK。
 
 ### 12-4. `useAsyncData` は mutation するなら `{ deep: true }`
 

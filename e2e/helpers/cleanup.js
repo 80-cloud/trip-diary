@@ -1,55 +1,41 @@
 // Playwright globalTeardown: テスト群終了時に e2e_* prefix のテストデータを完全削除。
-// sns-board は performance-tests/scripts/cleanup-local.sh を流用するが、trip-diary では
-// それ未整備のため、本ファイル内で `docker compose exec mysql` 経由で SQL を実行する。
 //
-// 削除ルール:
-//   - users.email LIKE 'e2e_%' の user を 1 件ずつ DELETE
-//   - 関連 trip / comment / like / favorite / planned_spot / packing_item / receipt /
-//     ticket / review / budget / memo / follow は dependent: :destroy で連鎖削除される。
-//   - 削除に失敗しても warn のみで続行 (CI を止めない)。
+// 削除戦略 (Issue #72 で改修):
+//   - 旧実装: `docker exec mysql DELETE FROM users WHERE email LIKE 'e2e\_%'`
+//     → FOREIGN_KEY_CHECKS=0 で users のみ削除し、trip / comment / like / 各 trip 子
+//        テーブルが orphan として残留する問題があった。
+//   - 新実装: host の `bin/rails runner script/cleanup_test_users.rb` を呼び、
+//     User.destroy_all 経由で `dependent: :destroy` 連鎖を全て効かせる。
+//     comments / likes / favorites / memos / planned_spots / packing_items /
+//     tickets / reviews / budgets / receipts / day_entries / trip_tags /
+//     notifications / follows まで完全に連鎖削除される (orphan 0 保証)。
+//
+// 前提:
+//   - host の backend/ 配下に bin/rails が存在する
+//   - .env が source 済 (DB_HOST / MYSQL_PORT / MYSQL_USER / MYSQL_PASSWORD)
+//   - Rails 起動コストは 10-30 秒。E2E 全体の teardown 1 回のみなので許容。
+//
+// 失敗しても warn のみで続行 (CI を止めない)。
 
-import { execSync } from 'node:child_process';
+import { execSync } from "node:child_process"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
 
-const DB_NAME = process.env.E2E_DB_NAME || process.env.MYSQL_DATABASE || 'trip_diary_dev';
-const DB_CONTAINER = process.env.E2E_DB_CONTAINER || 'trip-diary-mysql';
-const DB_USER = process.env.E2E_DB_USER || 'root';
-// docker-compose.yml の MYSQL_ROOT_PASSWORD と一致させる必要あり。.env から読む。
-const DB_PASS = process.env.MYSQL_ROOT_PASSWORD || process.env.E2E_DB_PASS || 'rootpass';
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const BACKEND_DIR = path.resolve(__dirname, "../../backend")
 
-function mysqlExec(sql) {
-  const cmd = `docker exec ${DB_CONTAINER} mysql -u${DB_USER} -p${DB_PASS} -N -B -e "${sql.replace(/"/g, '\\"')}" ${DB_NAME}`;
-  return execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-}
+// LIKE pattern の `_` は wildcard なので literal underscore は `\_` でエスケープ必須。
+const CLEANUP_PATTERN = process.env.E2E_CLEANUP_PATTERN || "e2e\\_%"
 
 export default async function globalTeardown() {
-  console.log('\n[e2e teardown] cleaning e2e_* test data via docker exec mysql...');
+  console.log(`\n[e2e teardown] cleaning ${CLEANUP_PATTERN} via bin/rails runner...`)
   try {
-    // 1) 削除前カウント
-    const before = mysqlExec("SELECT COUNT(*) FROM users WHERE email LIKE 'e2e\\_%'").trim();
-    console.log(`[e2e teardown] users matching e2e_* before delete: ${before}`);
-
-    if (Number(before) > 0) {
-      // Rails の dependent: :destroy 連鎖削除は ActiveRecord 経由でのみ動くため、
-      // ここでは MySQL に直接 SQL を投げる。外部キー制約 (trips.user_id 等) は
-      // 必ずしも ON DELETE CASCADE 設定でないため、一時的に FK チェックを切って
-      // users 親レコードを削除し、related rows は orphan として残す可能性を許容する。
-      //
-      // 安全性:
-      //   - playwright.config.js で workers: 1 直列実行のため、並列 spec との race なし。
-      //   - e2e_* prefix の user / 関連データのみが対象 (production data 影響なし)。
-      //   - orphan が残った場合も次回 cleanup の `before` count に現れて気付ける。
-      //
-      // より堅牢にするなら `bin/rails runner "User.where('email LIKE ?', 'e2e_%').destroy_all"`
-      // で連鎖削除する選択肢があるが、Rails boot に 10-30 秒かかるため smoke では未採用。
-      mysqlExec("SET FOREIGN_KEY_CHECKS=0; DELETE FROM users WHERE email LIKE 'e2e\\_%'; SET FOREIGN_KEY_CHECKS=1;");
-    }
-
-    const after = mysqlExec("SELECT COUNT(*) FROM users WHERE email LIKE 'e2e\\_%'").trim();
-    console.log(`[e2e teardown] users matching e2e_* after delete: ${after}`);
-    if (Number(after) > 0) {
-      console.warn(`[e2e teardown] WARNING: ${after} e2e_* users remain — investigate manually.`);
-    }
+    execSync("bin/rails runner script/cleanup_test_users.rb", {
+      cwd: BACKEND_DIR,
+      env: { ...process.env, CLEANUP_PATTERN },
+      stdio: "inherit"
+    })
   } catch (err) {
-    console.warn(`[e2e teardown] cleanup failure (continuing): ${err.message}`);
+    console.warn(`[e2e teardown] cleanup failure (continuing): ${err.message}`)
   }
 }

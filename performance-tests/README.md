@@ -59,6 +59,12 @@ K6_THRESHOLDS_TIMELINE_MS=10 npm run perf:timeline
 1. **命名規約**: 全テストデータに `perf_<RUN_ID>_` 接頭辞。RUN_ID = `YYYYMMDD_HHMMSS_<rand6>`
    - E2E は `e2e_` prefix で分離 (e2e/helpers/cleanup.js)
 2. **scenario 完了後の手動 cleanup**: `npm run perf:cleanup`
+   - 内部で `bin/rails runner script/cleanup_test_users.rb` を呼び出し
+     (Issue #72 で改修: SQL 直接 DELETE → ActiveRecord `dependent: :destroy` 連鎖)
+   - trip / comment / like / favorite / memo / planned_spot / packing_item / ticket /
+     review / budget / receipt / day_entry / trip_tag / notification / follow まで
+     完全に連鎖削除されて orphan 0 が保証される
+   - Rails 起動コスト 10-30 秒
 3. **削除後の verify**: `npm run perf:verify-clean` で `perf_%` 件数 = 0 を assert
 
 ## 環境変数
@@ -72,8 +78,7 @@ K6_THRESHOLDS_TIMELINE_MS=10 npm run perf:timeline
 | `K6_DURATION` | scenario 依存 | 実行時間の上書き |
 | `K6_THRESHOLDS_TIMELINE_MS` | `2000` | timeline SLO ms |
 | `K6_THRESHOLDS_TRIP_DETAIL_MS` | `1000` | trip detail SLO ms |
-| `MYSQL_DATABASE` | `trip_diary_dev` | cleanup-local.sh の DB 名 |
-| `MYSQL_ROOT_PASSWORD` | (.env 経由) | cleanup-local.sh の MySQL root password |
+| `DB_HOST` / `MYSQL_PORT` / `MYSQL_USER` / `MYSQL_PASSWORD` | (.env 経由) | cleanup-local.sh が呼び出す `bin/rails runner` の DB 接続情報 |
 
 ## 本番への負荷テストは禁止
 

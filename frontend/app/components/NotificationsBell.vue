@@ -11,9 +11,20 @@ onMounted(() => {
   store.fetchUnreadCount()
 })
 
-// ドロップダウンを開いたタイミングで一覧を再取得する
+// ドロップダウンを開いたタイミングで一覧を再取得する。
+// Headlessui MenuButton の @click は open/close 両方で発火するため、
+// loading 中なら新規 fetch を抑制 (連打/閉じ際の二重 fetch を緩和)。
 async function handleOpen() {
+  if (store.loading) return
   await store.fetchList()
+}
+
+async function handleMarkAllRead() {
+  try {
+    await store.markAllRead()
+  } catch (_e) {
+    // 失敗時は次回 fetch で server 側 state に同期する
+  }
 }
 
 // 通知行クリック: 既読化 + 該当ページ遷移
@@ -79,7 +90,7 @@ function formatTime(iso) {
           v-if="store.unreadCount > 0"
           type="button"
           class="text-xs text-brand-600 dark:text-brand-50 hover:underline"
-          @click="store.markAllRead()"
+          @click="handleMarkAllRead"
         >すべて既読</button>
       </div>
 

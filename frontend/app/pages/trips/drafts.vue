@@ -43,7 +43,7 @@ function fullImageUrl(path) {
         class="bg-white dark:bg-slate-800 rounded-lg border border-amber-300 dark:border-amber-700 overflow-hidden hover:shadow-md transition-shadow flex flex-col"
       >
         <div class="aspect-video bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-300 dark:text-slate-500">
-          <img v-if="trip.image_url" :src="fullImageUrl(trip.image_url)" class="w-full h-full object-cover" :alt="trip.title" />
+          <img v-if="trip.image_url" :src="fullImageUrl(trip.image_url)" class="w-full h-full object-cover" :alt="trip.title" >
           <span v-else class="text-4xl">📷</span>
         </div>
         <div class="p-4 flex-1 flex flex-col">

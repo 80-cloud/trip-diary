@@ -42,8 +42,8 @@ function confirm() {
       <header class="flex items-center justify-between px-4 py-3 text-white">
         <span class="text-sm">画像を切り抜き (ドラッグで範囲調整・自由比率)</span>
         <div class="flex items-center gap-2">
-          <button type="button" @click="emit('cancel')" class="text-sm px-3 py-1.5 rounded bg-slate-700 hover:bg-slate-600">キャンセル</button>
-          <button type="button" @click="confirm" class="text-sm px-3 py-1.5 rounded bg-brand-500 hover:bg-brand-600">適用</button>
+          <button type="button" class="text-sm px-3 py-1.5 rounded bg-slate-700 hover:bg-slate-600" @click="emit('cancel')">キャンセル</button>
+          <button type="button" class="text-sm px-3 py-1.5 rounded bg-brand-500 hover:bg-brand-600" @click="confirm">適用</button>
         </div>
       </header>
       <div class="flex-1 min-h-0 px-4 pb-4">

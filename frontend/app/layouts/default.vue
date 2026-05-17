@@ -48,11 +48,11 @@ function fullImageUrl(path) {
         </NuxtLink>
         <nav class="flex items-center gap-3">
           <button
-            @click="toggleDark"
             type="button"
             :aria-label="isDark ? 'ライトモードに切替' : 'ダークモードに切替'"
             :title="isDark ? 'ライトモードに切替 (屋外の光が強い時に推奨)' : 'ダークモードに切替'"
             class="w-10 h-10 flex items-center justify-center text-2xl rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
+            @click="toggleDark"
           >{{ isDark ? "☀️" : "🌙" }}</button>
           <template v-if="auth.user">
             <NotificationsBell />
@@ -73,15 +73,15 @@ function fullImageUrl(path) {
                 :src="fullImageUrl(auth.user.avatar_url)"
                 :alt="auth.user.display_name"
                 class="w-10 h-10 rounded-full object-cover"
-              />
+              >
               <span
                 v-else
                 class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-base"
               >👤</span>
             </NuxtLink>
             <button
-              @click="logout"
               class="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 underline"
+              @click="logout"
             >ログアウト</button>
           </template>
           <template v-else-if="auth.fetched">

@@ -32,6 +32,6 @@ async function submit(formData) {
   <div>
     <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6">旅行記録を編集</h1>
     <!-- :key にロード後の trip.id を渡し、データ到着前のからっぽマウントを防ぐ -->
-    <TripForm v-if="trip" :key="trip.id" :initial="trip" @submit="submit" :errors="errors" />
+    <TripForm v-if="trip" :key="trip.id" :initial="trip" :errors="errors" @submit="submit" />
   </div>
 </template>

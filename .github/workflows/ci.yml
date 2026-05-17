@@ -161,6 +161,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # 初回は continue-on-error: true で warning/error を可視化のみ。
+      # 別 PR で remaining errors を 0 化 → continue-on-error を削除して blocking 化する。
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: true
+
       - name: Run Vitest
         run: npm test -- --run
 

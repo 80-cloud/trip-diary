@@ -181,28 +181,28 @@ function submit(statusOverride) {
 
 <template>
   <!-- enter キーでの暴発を避けるため form 自体の submit はバインドしない -->
-  <form @submit.prevent class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700 space-y-4 max-w-3xl">
+  <form class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700 space-y-4 max-w-3xl" @submit.prevent>
     <div>
       <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">タイトル *</label>
-      <input v-model="title" required maxlength="80" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" />
+      <input v-model="title" required maxlength="80" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
     </div>
     <div>
       <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">行き先 *</label>
-      <input v-model="destination" required maxlength="80" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" />
+      <input v-model="destination" required maxlength="80" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
     </div>
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">開始日 *</label>
-        <input v-model="startedOn" type="date" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" />
+        <input v-model="startedOn" type="date" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
       </div>
       <div>
         <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">終了日 *</label>
-        <input v-model="endedOn" type="date" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" />
+        <input v-model="endedOn" type="date" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
       </div>
     </div>
     <div>
       <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">本文 (任意・5000 文字以内)</label>
-      <textarea v-model="body" rows="4" maxlength="5000" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2"></textarea>
+      <textarea v-model="body" rows="4" maxlength="5000" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2"/>
     </div>
     <div>
       <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
@@ -212,9 +212,9 @@ function submit(statusOverride) {
            白い箱が見えるため、絶対配置 + サイズ 0 で物理的に消す。label の for で連動。 -->
       <input
         id="trip-images-input"
-        type="file" accept="image/*" multiple @change="onFilesChange"
-        class="absolute w-0 h-0 opacity-0 pointer-events-none -z-10"
-      />
+        type="file" accept="image/*" multiple class="absolute w-0 h-0 opacity-0 pointer-events-none -z-10"
+        @change="onFilesChange"
+      >
       <div class="flex items-center gap-3 flex-wrap">
         <label
           for="trip-images-input"
@@ -252,7 +252,7 @@ function submit(statusOverride) {
       <input
         v-model="tagInput" maxlength="200" placeholder="例: 京都, 紅葉, 寺"
         class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2"
-      />
+      >
       <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">複数指定するときは「,」または「、」で区切ってください</p>
     </div>
 
@@ -261,17 +261,19 @@ function submit(statusOverride) {
       <div v-for="d in visibleDayEntries" :key="d.id || `new-${d._idx}`" class="bg-slate-50 dark:bg-slate-700/40 p-3 rounded mt-2 space-y-2">
         <div class="flex items-center justify-between">
           <span class="text-xs text-slate-500 dark:text-slate-400">Day {{ d._idx + 1 }}</span>
-          <button type="button" @click="removeDay(d._idx)" class="text-xs text-rose-500 hover:underline">削除</button>
+          <button type="button" class="text-xs text-rose-500 hover:underline" @click="removeDay(d._idx)">削除</button>
         </div>
-        <input v-model="dayEntries[d._idx].title" placeholder="タイトル *" required maxlength="80"
-          class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-2 py-1 text-sm" />
+        <input
+v-model="dayEntries[d._idx].title" placeholder="タイトル *" required maxlength="80"
+          class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-2 py-1 text-sm" >
         <div class="flex gap-2">
-          <input v-model="dayEntries[d._idx].happened_on" type="date" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
+          <input v-model="dayEntries[d._idx].happened_on" type="date" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" >
         </div>
-        <textarea v-model="dayEntries[d._idx].body" rows="2" placeholder="メモ (任意)"
-          class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-2 py-1 text-sm"></textarea>
+        <textarea
+v-model="dayEntries[d._idx].body" rows="2" placeholder="メモ (任意)"
+          class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-2 py-1 text-sm"/>
       </div>
-      <button type="button" @click="addDay" class="mt-3 text-sm text-brand-600 dark:text-brand-50 hover:underline">+ 出来事を追加</button>
+      <button type="button" class="mt-3 text-sm text-brand-600 dark:text-brand-50 hover:underline" @click="addDay">+ 出来事を追加</button>
     </fieldset>
 
     <ul v-if="errors.length" class="text-sm text-rose-600 list-disc list-inside">
@@ -281,12 +283,12 @@ function submit(statusOverride) {
     <div class="flex items-center justify-end gap-2 border-t border-slate-200 dark:border-slate-700 pt-4">
       <NuxtLink to="/" class="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:underline">キャンセル</NuxtLink>
       <button
-        type="button" @click="submit('draft')"
-        class="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-2 rounded font-medium hover:bg-slate-300 dark:hover:bg-slate-600"
+        type="button" class="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-2 rounded font-medium hover:bg-slate-300 dark:hover:bg-slate-600"
+        @click="submit('draft')"
       >下書きとして保存</button>
       <button
-        type="button" @click="submit('published')"
-        class="bg-brand-500 text-white px-6 py-2 rounded font-medium hover:bg-brand-600"
+        type="button" class="bg-brand-500 text-white px-6 py-2 rounded font-medium hover:bg-brand-600"
+        @click="submit('published')"
       >公開して保存</button>
     </div>
   </form>

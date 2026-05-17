@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# 同一 PR で連続 push したとき、古い run を自動 cancel して CI 待ち時間を短縮する
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# read-only で十分 (PR コメント等は別 workflow に分離する想定)
+permissions:
+  contents: read
+
+# 2026-06-02 に actions/* の Node.js 20 ランタイムが廃止される。
+# 強制 Node 24 オプトインで前倒し対応。
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  backend:
+    name: backend (rails test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      # 本番の MySQL 8 系と揃える (ローカル docker compose も mysql:8.0)
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: trip_diary_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -ppassword"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      RAILS_ENV: test
+      DB_HOST: 127.0.0.1
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+      # SECRET_KEY_BASE を直接渡して credentials.yml.enc の復号を回避する。
+      # Rails 8 は GlobalID railtie 起動時に secret_key_base を要求し、未設定だと
+      # ENV["RAILS_MASTER_KEY"] で credentials を復号しようとして InvalidMessage で boot 失敗する。
+      # CI では credentials の中身を使わないので、SECRET_KEY_BASE を直接固定すれば OK。
+      SECRET_KEY_BASE: ci_dummy_secret_key_base_at_least_30_chars_long_for_safety_padding_padding
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          # backend/Gemfile の ruby "3.4.9" + backend/.ruby-version と同期
+          ruby-version: 3.4.9
+          bundler-cache: true
+          working-directory: backend
+
+      - name: Wait for MySQL ready
+        run: |
+          for i in {1..30}; do
+            mysqladmin ping -h 127.0.0.1 -P 3306 -uroot -ppassword --silent && break
+            sleep 1
+          done
+
+      - name: Prepare test database
+        run: bin/rails db:test:prepare
+
+      - name: Run Minitest
+        run: bin/rails test
+
+      - name: Zeitwerk autoload check
+        run: bin/rails zeitwerk:check
+
+  frontend:
+    name: frontend (vitest + build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          # frontend/package.json engines >=22.12.0 と揃える
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Vitest
+        run: npm test -- --run
+
+      - name: Build (production)
+        # NUXT_PUBLIC_API_BASE は nuxt.config.ts 側で `|| "http://localhost:3010/api/v1"`
+        # のフォールバックを持つため、CI で env を渡す必要はない。
+        run: npm run build

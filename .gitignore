@@ -41,6 +41,10 @@ e2e/test-results/
 e2e/playwright-report/
 e2e/.auth/
 
+# Performance tests (k6)
+performance-tests/node_modules/
+performance-tests/k6/results/
+
 # Ruby / Rails
 backend/tmp/
 backend/storage/

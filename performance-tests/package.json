@@ -1,0 +1,12 @@
+{
+  "name": "trip-diary-performance-tests",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Performance tests for trip-diary (k6 / sns-board 構造踏襲)",
+  "scripts": {
+    "perf:smoke":         "k6 run k6/scenarios/smoke.js",
+    "perf:timeline":      "k6 run k6/scenarios/timeline.js",
+    "perf:cleanup":       "bash scripts/cleanup-local.sh",
+    "perf:verify-clean":  "bash scripts/verify-no-residue.sh"
+  }
+}

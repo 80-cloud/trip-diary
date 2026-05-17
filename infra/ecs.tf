@@ -63,17 +63,23 @@ resource "aws_ecs_task_definition" "backend" {
       image     = "${aws_ecr_repository.backend.repository_url}:${var.backend_image_tag}"
       essential = true
 
-      # Rails Dockerfile は Thruster 経由で port 80 を expose
+      # Rails Dockerfile は USER 1000:1000 (non-root) のため、Thruster デフォルトの
+      # port 80 (privileged port) には bind 不可。non-privileged port 3000 に変更。
+      # Thruster 内部の puma は TARGET_PORT=3001 に分離 (HTTP_PORT と衝突回避)。
+      # Issue #61 / fix: ECS container 起動失敗 (bind: permission denied) 解消。
       portMappings = [
         {
-          containerPort = 80
+          containerPort = 3000
           protocol      = "tcp"
         }
       ]
 
       # environment: SSM に置けない / static な値はここで直接渡す。
-      # 現状なし (Rails は SSM の env で全て賄える)。
-      environment = []
+      # Thruster ポート設定 (Issue #61): non-root container では port 80 不可
+      environment = [
+        { name = "HTTP_PORT", value = "3000" },
+        { name = "TARGET_PORT", value = "3001" }
+      ]
 
       # 全 SSM パラメータ (String + SecureString) を valueFrom 参照で注入。
       # execution_role が SSM:GetParameters + KMS Decrypt 権限を持つ (iam.tf)。
@@ -131,7 +137,7 @@ resource "aws_ecs_service" "backend" {
   load_balancer {
     target_group_arn = aws_lb_target_group.app.arn
     container_name   = "backend"
-    container_port   = 80
+    container_port   = 3000 # Issue #61: non-root container では port 80 不可
   }
 
   # ALB target が healthy 認定されるまで猶予。Fargate 256 CPU での Rails + bootsnap 起動

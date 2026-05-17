@@ -45,8 +45,11 @@ jobs:
       MYSQL_PORT: 3306
       MYSQL_USER: root
       MYSQL_PASSWORD: password
-      # Rails 8 credentials の master key — CI では暗号化値を使わないためダミーで OK
-      RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY || '00000000000000000000000000000000' }}
+      # SECRET_KEY_BASE を直接渡して credentials.yml.enc の復号を回避する。
+      # Rails 8 は GlobalID railtie 起動時に secret_key_base を要求し、未設定だと
+      # ENV["RAILS_MASTER_KEY"] で credentials を復号しようとして InvalidMessage で boot 失敗する。
+      # CI では credentials の中身を使わないので、SECRET_KEY_BASE を直接固定すれば OK。
+      SECRET_KEY_BASE: ci_dummy_secret_key_base_at_least_30_chars_long_for_safety_padding_padding
 
     steps:
       - uses: actions/checkout@v4

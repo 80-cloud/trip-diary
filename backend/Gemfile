@@ -42,6 +42,12 @@ gem "rack-attack"
 # .env から環境変数を読み込む (development / test のみ)
 gem "dotenv-rails", groups: [ :development, :test ]
 
+group :production do
+  # F-S3-01 / Issue #55: Active Storage の本番サービスを S3 に切替 (storage.yml :amazon)。
+  # 認証は ECS task role 経由 (静的キー不要 / sns-board と同方針)。
+  gem "aws-sdk-s3", require: false
+end
+
 group :development do
   # N+1 クエリ自動検出 (引き継ぎ書 §5-1 #A・全 PR でセルフレビュー時に N+1 が発覚した運用課題への対処)
   gem "bullet"

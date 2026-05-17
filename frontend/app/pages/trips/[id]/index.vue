@@ -551,8 +551,8 @@ async function toggleFollow() {
       </div>
     </header>
 
-    <!-- F-PLAN-03: 進捗バー (誰でも見える / 件数のみ) -->
-    <section v-if="trip.planned_count > 0" class="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+    <!-- F-PLAN-03: 進捗バー (本人のみ / F-LEAK-01 fix: count は本人にしか返らない) -->
+    <section v-if="isOwner() && trip.planned_count > 0" class="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
       <div class="flex items-center justify-between mb-2">
         <h2 class="text-sm font-bold text-slate-700 dark:text-slate-200">計画達成度</h2>
         <span class="text-xs text-slate-500 dark:text-slate-400">{{ trip.planned_done_count }} / {{ trip.planned_count }} 件 ({{ planProgress }}%)</span>

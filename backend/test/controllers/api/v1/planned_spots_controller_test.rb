@@ -79,14 +79,16 @@ class Api::V1::PlannedSpotsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, body["planned_done_count"]
   end
 
-  test "trip 詳細 (他人) も planned_count / planned_done_count は見える" do
+  # F-LEAK-01 fix (Issue #45): 旧仕様では他人にも count が返っていたが、
+  # 配列が空でも件数が漏れれば情報漏洩のため is_owner ガード対象に変更。
+  test "trip 詳細 (他人) は planned_count / planned_done_count を返さない (F-LEAK-01)" do
     @trip.planned_spots.create!(title: "a")
     @trip.planned_spots.create!(title: "b", done: true)
     login_via_api(users(:bob))
     get "/api/v1/trips/#{@trip.id}"
     body = JSON.parse(response.body)
-    assert_equal 2, body["planned_count"]
-    assert_equal 1, body["planned_done_count"]
+    assert_nil body["planned_count"]
+    assert_nil body["planned_done_count"]
   end
 
   test "trip 詳細 (他人) は planned_spots の中身を返さない" do

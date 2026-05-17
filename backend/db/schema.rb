@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_17_040000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_17_050001) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -105,6 +105,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_040000) do
     t.index ["user_id"], name: "index_memos_on_user_id"
   end
 
+  create_table "packing_items", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.string "body", limit: 80, null: false
+    t.datetime "created_at", null: false
+    t.boolean "packed", default: false, null: false
+    t.integer "position", default: 0, null: false
+    t.bigint "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["trip_id", "position"], name: "index_packing_items_on_trip_id_and_position"
+    t.index ["trip_id"], name: "index_packing_items_on_trip_id"
+  end
+
+  create_table "planned_spots", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "day_entry_id"
+    t.boolean "done", default: false, null: false
+    t.integer "position", default: 0, null: false
+    t.string "title", limit: 80, null: false
+    t.bigint "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["day_entry_id"], name: "index_planned_spots_on_day_entry_id"
+    t.index ["trip_id", "position"], name: "index_planned_spots_on_trip_id_and_position"
+    t.index ["trip_id"], name: "index_planned_spots_on_trip_id"
+  end
+
   create_table "tags", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", limit: 32, null: false
@@ -168,6 +192,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_040000) do
   add_foreign_key "likes", "users"
   add_foreign_key "memos", "trips"
   add_foreign_key "memos", "users"
+  add_foreign_key "packing_items", "trips"
+  add_foreign_key "planned_spots", "day_entries"
+  add_foreign_key "planned_spots", "trips"
   add_foreign_key "trip_tags", "tags"
   add_foreign_key "trip_tags", "trips"
   add_foreign_key "trips", "users"

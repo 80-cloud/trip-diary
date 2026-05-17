@@ -27,6 +27,8 @@ class Trip < ApplicationRecord
   has_many :tags, through: :trip_tags
   has_many :favorites, dependent: :destroy
   has_many :memos,     dependent: :destroy
+  has_many :planned_spots, dependent: :destroy
+  has_many :packing_items, dependent: :destroy
   has_many_attached :images
 
   accepts_nested_attributes_for :day_entries, allow_destroy: true, reject_if: :all_blank

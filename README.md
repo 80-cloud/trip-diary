@@ -187,14 +187,14 @@ npm run test:watch          # 監視モード
 cd e2e
 npm install                                 # 初回のみ
 npx playwright install chromium             # 初回のみ (ブラウザ install)
-set -a && source ../.env && set +a          # MYSQL_ROOT_PASSWORD を teardown 用に export
+set -a && source ../.env && set +a          # DB_HOST / MYSQL_* を teardown (bin/rails runner) 用に export
 npm run e2e:smoke                           # smoke: signup → trip → コメント → いいね → ログアウト
 npm run e2e:report                          # HTML レポート確認 (playwright-report/)
 
 # 性能テスト (k6 / Phase 3 ・ sns-board 構造踏襲 / 要件定義書 §4-1 の SLO 検証)
 # 前提: docker compose up -d / bin/rails s -p 3010 起動済 + brew install k6
 cd performance-tests
-set -a && source ../.env && set +a          # MYSQL_ROOT_PASSWORD を cleanup 用に export
+set -a && source ../.env && set +a          # DB_HOST / MYSQL_* を cleanup (bin/rails runner) 用に export
 npm run perf:smoke                          # 1 VU で全 endpoint 200 確認 (1 分以内)
 npm run perf:timeline                       # 10 VU で GET /api/v1/trips / 30s / p95 < 2000ms 検証
 npm run perf:cleanup && npm run perf:verify-clean   # perf_* テストデータ削除 + 残骸 0 確認

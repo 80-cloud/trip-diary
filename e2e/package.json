@@ -1,0 +1,28 @@
+{
+  "name": "trip-diary-e2e",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "End-to-end tests for trip-diary (Playwright POM / sns-board 構造踏襲)",
+  "scripts": {
+    "install:browsers": "playwright install --with-deps chromium webkit",
+    "e2e:smoke": "playwright test --project=chromium-desktop --grep @smoke",
+    "e2e:full": "playwright test",
+    "e2e:chromium": "playwright test --project=chromium-desktop",
+    "e2e:webkit": "playwright test --project=webkit-desktop",
+    "e2e:mobile": "playwright test --project=mobile-safari",
+    "e2e:a11y": "playwright test --grep @a11y",
+    "e2e:perf": "playwright test --grep @perf",
+    "e2e:visual": "playwright test --grep @visual",
+    "e2e:visual:update": "playwright test --grep @visual --update-snapshots",
+    "e2e:ui": "playwright test --ui",
+    "e2e:report": "playwright show-report",
+    "e2e:cleanup": "PERF_PREFIX=e2e bash scripts/cleanup-local.sh",
+    "e2e:verify-clean": "PERF_PREFIX=e2e bash scripts/verify-no-residue.sh"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0",
+    "@axe-core/playwright": "^4.10.0",
+    "web-vitals": "^4.2.4"
+  }
+}

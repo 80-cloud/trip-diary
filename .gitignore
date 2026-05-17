@@ -35,6 +35,12 @@ frontend/dist
 #   ディレクトリ ('frontend/dist/') と symlink ('frontend/dist') の両方を除外
 frontend/coverage/
 
+# E2E (Playwright)
+e2e/node_modules/
+e2e/test-results/
+e2e/playwright-report/
+e2e/.auth/
+
 # Ruby / Rails
 backend/tmp/
 backend/storage/

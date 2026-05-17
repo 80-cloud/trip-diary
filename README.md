@@ -181,6 +181,15 @@ bin/rails test              # 全テスト実行
 cd frontend
 npm test                    # ワンショット実行
 npm run test:watch          # 監視モード
+
+# E2E (Playwright / Phase 3 ・ sns-board 構造踏襲)
+# 前提: docker compose up -d / bin/rails s -p 3010 / npm run dev (3011) が起動済
+cd e2e
+npm install                                 # 初回のみ
+npx playwright install chromium             # 初回のみ (ブラウザ install)
+set -a && source ../.env && set +a          # MYSQL_ROOT_PASSWORD を teardown 用に export
+npm run e2e:smoke                           # smoke: signup → trip → コメント → いいね → ログアウト
+npm run e2e:report                          # HTML レポート確認 (playwright-report/)
 ```
 
 テスト方針の全体像は [docs/テスト計画書.md](docs/テスト計画書.md) を参照。

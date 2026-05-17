@@ -1,11 +1,13 @@
 <script setup>
 import { useAuthStore } from "~/composables/useAuthStore.js"
+import { useCategories } from "~/composables/useCategories.js"
 import ImageCropperModal from "~/components/ImageCropperModal.vue"
 
 const route = useRoute()
 const api = useApi()
 const config = useRuntimeConfig()
 const auth = useAuthStore()
+const { labelOf, gradientOf } = useCategories()
 
 const id = route.params.id
 const tab = ref(route.query.tab === "followers" ? "followers" : "following")
@@ -28,6 +30,13 @@ function fullImageUrl(path) {
   if (path.startsWith("http")) return path
   const base = config.public.apiBase.replace(/\/api\/v1$/, "")
   return base + path
+}
+
+// 画像未アップロード時のフォールバック (Picsum: trip.id をシードに deterministic)
+// 将来的に Active Storage 経由で実画像 attach する想定。詳しくは index.vue と統一
+function tripImage(trip, w = 600, h = 400) {
+  if (trip.image_url) return fullImageUrl(trip.image_url)
+  return `https://picsum.photos/seed/trip-${trip.id}/${w}/${h}`
 }
 
 // プロフィール表示用: 自分自身なら auth.user / 他人なら trip レスポンスから
@@ -204,16 +213,27 @@ async function saveProfile() {
       <p v-else class="text-sm text-slate-500 dark:text-slate-400">{{ tab === "following" ? "フォロー中のユーザーはいません" : "フォロワーはいません" }}</p>
     </section>
 
-    <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-3">投稿した旅行記録</h2>
-    <div v-if="trips.length === 0" class="text-sm text-slate-500 dark:text-slate-400">公開された旅行記録はありません</div>
+    <!-- 装飾見出し: 投稿した旅行記録 -->
+    <div class="flex items-center gap-3 mb-4 mt-2">
+      <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
+      <span class="text-xs tracking-[0.3em] text-slate-400 dark:text-slate-500 inline-flex items-center gap-1.5"><span>✈️</span><span>TRAVEL LOGS</span></span>
+      <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>
+    </div>
+
+    <div v-if="trips.length === 0" class="text-sm text-slate-500 dark:text-slate-400 text-center py-8">公開された旅行記録はありません</div>
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <NuxtLink
         v-for="t in trips" :key="t.id" :to="`/trips/${t.id}`"
-        class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-md flex flex-col"
+        class="group bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 flex flex-col relative"
       >
-        <div class="aspect-video bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-300 dark:text-slate-500">
-          <img v-if="t.image_url" :src="fullImageUrl(t.image_url)" class="w-full h-full object-cover" :alt="t.title" />
-          <span v-else class="text-4xl">📷</span>
+        <div :class="['absolute top-3 -left-8 z-10 px-9 py-1 -rotate-45 text-[10px] tracking-widest font-bold text-white shadow-lg ring-1 ring-white/40 bg-gradient-to-r', gradientOf(t.category)]">
+          {{ labelOf(t.category) }}
+        </div>
+        <div :class="['aspect-video relative overflow-hidden bg-gradient-to-br', gradientOf(t.category)]">
+          <img :src="tripImage(t, 600, 400)" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" :alt="t.title" loading="lazy" />
+          <!-- 下部から立ち上がる暗グラデで「行き先」を確実に読ませる -->
+          <div class="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+          <span class="absolute bottom-2 right-3 text-white text-xs font-bold drop-shadow-lg z-10">📍 {{ t.destination }}</span>
         </div>
         <div class="p-4 flex-1">
           <h3 class="font-bold text-slate-800 dark:text-slate-100 line-clamp-1">{{ t.title }}</h3>

@@ -8,7 +8,7 @@ const router = useRouter()
 const api = useApi()
 const auth = useAuthStore()
 const config = useRuntimeConfig()
-const { labelOf } = useCategories()
+const { labelOf, iconOf, gradientOf } = useCategories()
 const id = route.params.id
 
 // Nuxt 4 では useAsyncData の data はデフォルト shallowRef (Nuxt 4 から deep: false が既定)。
@@ -41,6 +41,14 @@ function fullImageUrl(path) {
   if (path.startsWith("http")) return path
   const base = config.public.apiBase.replace(/\/api\/v1$/, "")
   return base + path
+}
+
+// カバー画像: image_urls[0] (本人アップ) または Picsum フォールバック (trip.id seed)
+// index.vue / users/[id].vue と統一
+function coverImage(t, w = 1200, h = 600) {
+  const first = t.image_urls?.[0] || t.image_url
+  if (first) return fullImageUrl(first)
+  return `https://picsum.photos/seed/trip-${t.id}/${w}/${h}`
 }
 
 async function toggleFavorite() {
@@ -462,50 +470,67 @@ async function toggleFollow() {
   <article v-else-if="trip" class="space-y-6">
     <NuxtLink to="/" class="text-sm text-brand-600 dark:text-brand-50 hover:underline">← 一覧に戻る</NuxtLink>
 
-    <header class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <div class="flex items-center gap-2 flex-wrap">
-            <span v-if="trip.status === 'draft'" class="text-xs px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-200 font-bold">下書き</span>
-            <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ trip.title }}</h1>
+    <header class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden relative">
+      <!-- カテゴリリボン (左上斜め) -->
+      <div :class="['absolute top-3 -left-8 z-10 px-9 py-1 -rotate-45 text-[10px] tracking-widest font-bold text-white shadow-lg ring-1 ring-white/40 bg-gradient-to-r', gradientOf(trip.category)]">
+        {{ labelOf(trip.category) }}
+      </div>
+
+      <!-- カバー画像 (フルブリード・タイトルオーバーレイ) -->
+      <div :class="['relative aspect-[21/9] md:aspect-[3/1] bg-gradient-to-br', gradientOf(trip.category)]">
+        <img :src="coverImage(trip, 1200, 500)" :alt="trip.title" class="absolute inset-0 w-full h-full object-cover" loading="eager" />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+        <span v-if="trip.status === 'draft'" class="absolute top-3 right-3 text-xs px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-200 font-bold shadow">下書き</span>
+        <div class="absolute bottom-0 left-0 right-0 p-5 md:p-6 text-white">
+          <div class="flex items-center gap-2 text-sm opacity-90 mb-1">
+            <span>{{ iconOf(trip.category) }}</span><span>{{ labelOf(trip.category) }}</span>
+            <span>·</span><span>📍 {{ trip.destination }}</span>
           </div>
-          <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">{{ trip.started_on }} 〜 {{ trip.ended_on }} / {{ trip.destination }}</p>
-          <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 flex items-center gap-2">
-            <NuxtLink :to="`/users/${trip.user.id}`" class="hover:underline">@{{ trip.user.display_name }}</NuxtLink>
-            <button
-              v-if="auth.user && auth.user.id !== trip.user.id"
-              @click="toggleFollow"
-              :class="[
-                'text-[10px] px-2 py-0.5 rounded border',
-                trip.user.followed_by_me
-                  ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600'
-                  : 'bg-brand-500 text-white border-brand-500'
-              ]"
-            >{{ trip.user.followed_by_me ? "フォロー中" : "+ フォロー" }}</button>
-          </p>
-          <div class="mt-2 flex flex-wrap gap-1.5 items-center">
-            <span class="text-xs px-2 py-0.5 rounded-full bg-brand-100 dark:bg-brand-700 text-brand-700 dark:text-brand-50">{{ labelOf(trip.category) }}</span>
-            <NuxtLink
-              v-for="name in (trip.tags || [])"
-              :key="name"
-              :to="`/tags/${encodeURIComponent(name)}`"
-              class="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600"
-            >#{{ name }}</NuxtLink>
-          </div>
-        </div>
-        <div v-if="isOwner()" class="flex gap-2 shrink-0">
-          <NuxtLink :to="`/trips/${trip.id}/edit`" class="text-sm bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-100 px-3 py-1.5 rounded hover:bg-slate-300 dark:hover:bg-slate-600">編集</NuxtLink>
-          <button type="button" @click="deleteTrip" class="text-sm bg-rose-500 text-white px-3 py-1.5 rounded hover:bg-rose-600">削除</button>
+          <h1 class="text-2xl md:text-3xl font-bold leading-tight drop-shadow">{{ trip.title }}</h1>
+          <p class="mt-1 text-sm opacity-90">{{ trip.started_on }} 〜 {{ trip.ended_on }}</p>
         </div>
       </div>
 
-      <div v-if="trip.image_urls && trip.image_urls.length" class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4">
-        <img v-for="(url, idx) in trip.image_urls" :key="idx" :src="fullImageUrl(url)" class="w-full aspect-video object-cover rounded" />
-      </div>
+      <!-- メタ情報 (著者 + タグ + 編集/削除) -->
+      <div class="p-6">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm text-slate-600 dark:text-slate-300 flex items-center gap-2">
+              <NuxtLink :to="`/users/${trip.user.id}`" class="hover:underline font-medium">@{{ trip.user.display_name }}</NuxtLink>
+              <button
+                v-if="auth.user && auth.user.id !== trip.user.id"
+                @click="toggleFollow"
+                :class="[
+                  'text-[10px] px-2 py-0.5 rounded border',
+                  trip.user.followed_by_me
+                    ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600'
+                    : 'bg-brand-500 text-white border-brand-500'
+                ]"
+              >{{ trip.user.followed_by_me ? "フォロー中" : "+ フォロー" }}</button>
+            </p>
+            <div v-if="(trip.tags || []).length" class="mt-2 flex flex-wrap gap-1.5 items-center">
+              <NuxtLink
+                v-for="name in (trip.tags || [])"
+                :key="name"
+                :to="`/tags/${encodeURIComponent(name)}`"
+                class="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600"
+              >#{{ name }}</NuxtLink>
+            </div>
+          </div>
+          <div v-if="isOwner()" class="flex gap-2 shrink-0">
+            <NuxtLink :to="`/trips/${trip.id}/edit`" class="text-sm bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-100 px-3 py-1.5 rounded hover:bg-slate-300 dark:hover:bg-slate-600">編集</NuxtLink>
+            <button type="button" @click="deleteTrip" class="text-sm bg-rose-500 text-white px-3 py-1.5 rounded hover:bg-rose-600">削除</button>
+          </div>
+        </div>
 
-      <p v-if="trip.body" class="mt-4 text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{{ trip.body }}</p>
+        <!-- ユーザーがアップした追加画像 (2 枚目以降) -->
+        <div v-if="trip.image_urls && trip.image_urls.length > 1" class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4">
+          <img v-for="(url, idx) in trip.image_urls.slice(1)" :key="idx" :src="fullImageUrl(url)" class="w-full aspect-video object-cover rounded" />
+        </div>
 
-      <div class="mt-6 flex flex-wrap items-center gap-2">
+        <p v-if="trip.body" class="mt-4 text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{{ trip.body }}</p>
+
+        <div class="mt-6 flex flex-wrap items-center gap-2">
         <button
           @click="toggleLike"
           :class="[
@@ -527,8 +552,9 @@ async function toggleFollow() {
           <span>{{ trip.favorited_by_me ? "お気に入り済" : "お気に入り" }}</span>
         </button>
         <span class="text-sm text-slate-500 dark:text-slate-400">💬 {{ trip.comments_count }} コメント</span>
+        </div>
+        <p v-if="actionError" class="mt-2 text-sm text-rose-600">{{ actionError }}</p>
       </div>
-      <p v-if="actionError" class="mt-2 text-sm text-rose-600">{{ actionError }}</p>
     </header>
 
     <!-- F-PLAN-03: 進捗バー (誰でも見える / 件数のみ) -->

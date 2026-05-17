@@ -93,6 +93,8 @@ jobs:
           retention-days: 7
 
   security:
+    # 静的解析 + 依存脆弱性スキャン専用 job (DB / Minitest / build は不要)。
+    # backend / frontend と並列に走るので CI 総時間は伸ばさない。
     name: security (brakeman + bundle-audit + npm audit)
     runs-on: ubuntu-latest
     timeout-minutes: 10

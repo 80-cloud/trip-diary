@@ -80,8 +80,8 @@ resource "aws_route_table_association" "public_c" {
 }
 
 # ===== Security Group =====
-# ECS task SG: ALB SG からの port 80 ingress のみ許可 (rule は循環参照回避のため
-#   aws_security_group_rule で別リソース化、alb.tf 参照)。
+# ECS task SG: ALB SG からの port 3000 ingress のみ許可 (Thruster non-privileged port
+#   / rule は循環参照回避のため aws_security_group_rule で別リソース化、alb.tf 参照)。
 #   egress は ECR (443) / SSM (443) / S3 (443) / RDS (3306) / CloudWatch Logs (443)
 #   への必要通信のため all 許可。
 resource "aws_security_group" "ecs_task" {

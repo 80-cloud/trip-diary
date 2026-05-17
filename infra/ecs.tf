@@ -63,17 +63,23 @@ resource "aws_ecs_task_definition" "backend" {
       image     = "${aws_ecr_repository.backend.repository_url}:${var.backend_image_tag}"
       essential = true
 
-      # Rails Dockerfile は Thruster 経由で port 80 を expose
+      # Rails Dockerfile は Thruster 経由で port 3000 を expose (Issue #61)。
+      # 旧 80 だと non-root container で privileged port bind 失敗 (permission denied)。
+      # Thruster (3000) → Rails puma (3001) の 2 段構成。
       portMappings = [
         {
-          containerPort = 80
+          containerPort = 3000
           protocol      = "tcp"
         }
       ]
 
       # environment: SSM に置けない / static な値はここで直接渡す。
-      # 現状なし (Rails は SSM の env で全て賄える)。
-      environment = []
+      # HTTP_PORT: Thruster がリッスンする public 側 port (非 privileged)。
+      # TARGET_PORT: Thruster が proxy 先の Rails puma が listen する内部 port。
+      environment = [
+        { name = "HTTP_PORT", value = "3000" },
+        { name = "TARGET_PORT", value = "3001" }
+      ]
 
       # 全 SSM パラメータ (String + SecureString) を valueFrom 参照で注入。
       # execution_role が SSM:GetParameters + KMS Decrypt 権限を持つ (iam.tf)。
@@ -131,7 +137,7 @@ resource "aws_ecs_service" "backend" {
   load_balancer {
     target_group_arn = aws_lb_target_group.app.arn
     container_name   = "backend"
-    container_port   = 80
+    container_port   = 3000
   }
 
   # ALB target が healthy 認定されるまで猶予。Fargate 256 CPU での Rails + bootsnap 起動
@@ -140,7 +146,7 @@ resource "aws_ecs_service" "backend" {
 
   # 暗黙参照 (task_definition / target_group / SG) に加え、以下を明示依存:
   # - IAM policy: Service 起動時の IAM 伝播待ちで CreateService が fail する罠を回避
-  # - SG rule (ALB→task の port 80 ingress): Service 起動 → ALB health check 開始時点で
+  # - SG rule (ALB→task の port 3000 ingress): Service 起動 → ALB health check 開始時点で
   #   rule が無いと最初の health check が連続失敗 → unhealthy で task 再起動ループ
   depends_on = [
     aws_iam_role_policy.ecs_task_execution_ssm,

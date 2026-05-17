@@ -69,6 +69,8 @@ COPY --chown=rails:rails --from=build /rails /rails
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Start server via Thruster by default, this can be overwritten at runtime
-EXPOSE 80
+# Start server via Thruster by default, this can be overwritten at runtime.
+# port 3000 (non-privileged) で listen させる (Issue #61): non-root container では
+# port 80 (privileged) bind 不可。runtime に HTTP_PORT=3000 / TARGET_PORT=3001 を渡す。
+EXPOSE 3000
 CMD ["./bin/thrust", "./bin/rails", "server"]

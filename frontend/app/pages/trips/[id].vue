@@ -476,7 +476,10 @@ async function toggleFollow() {
 
     <!-- F-REVIEW-01: 旅行レビュー (全員に公開・本人のみ編集) -->
     <section class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">
-      <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-3">旅行の振り返り</h2>
+      <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-3">
+        旅行の振り返り
+        <span v-if="isOwner()" class="text-xs font-normal text-slate-500 dark:text-slate-400">(他のユーザーにも公開されます)</span>
+      </h2>
       <!-- 表示 (誰でも見える): review があれば表示 -->
       <div v-if="trip.review && !isOwner()" class="text-sm">
         <p class="text-amber-500 text-lg">{{ "★".repeat(trip.review.rating) }}<span class="text-slate-300 dark:text-slate-600">{{ "★".repeat(5 - trip.review.rating) }}</span></p>

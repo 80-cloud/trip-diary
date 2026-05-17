@@ -1,0 +1,153 @@
+name: Performance (on-demand + monthly)
+
+# トリガ:
+#   - workflow_dispatch: GitHub Actions UI から手動実行 (target_env + scenario 選択)
+#   - schedule: 毎月 1 日 03:00 UTC (12:00 JST) に smoke を自動実行
+#     → 性能 regression を早期検知。月次なので Actions 無料枠を圧迫しない (smoke 1 分 × 月 1 = 12 分/年)
+#
+# 既存 ci.yml には統合しない (毎 PR で perf を走らせると遅い + flaky の余地)。
+on:
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: 対象環境 (local のみ / prod は無料枠保護のため未対応)
+        required: true
+        type: choice
+        default: local
+        options:
+          - local
+      scenario:
+        description: 実行シナリオ (k6/scenarios 配下のファイル名、拡張子なし)
+        required: true
+        type: choice
+        default: smoke
+        options:
+          - smoke
+          - timeline
+  schedule:
+    # 毎月 1 日 03:00 UTC (12:00 JST)
+    - cron: '0 3 1 * *'
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  perf:
+    name: ${{ inputs.scenario || 'smoke' }} @ ${{ inputs.target_env || 'local' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: trip_diary_dev
+        ports:
+          - 3316:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -ppassword"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      # k6 → Rails 通信用
+      K6_BASE_URL: http://localhost:3010
+      # cleanup-local.sh は container 名指定で docker exec するが、CI では
+      # services container 経由で直接 mysql クライアントを使う方が単純。
+      # 後続 PR で CI 対応の cleanup script を別途用意する場合は services container を参照すること。
+      RAILS_ENV: development
+      DB_HOST: 127.0.0.1
+      MYSQL_PORT: 3316
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: trip_diary_dev
+      SECRET_KEY_BASE: ci_dummy_secret_key_base_at_least_30_chars_long_for_safety_padding_padding
+      JWT_SECRET: ci_dummy_jwt_secret_at_least_32_bytes_long_xxxxxxxxxxxxxx
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4.9
+          bundler-cache: true
+          working-directory: backend
+
+      - name: Install k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: DB setup + Rails 起動 (background)
+        working-directory: backend
+        run: |
+          bin/rails db:create db:schema:load db:seed
+          nohup bin/rails s -p 3010 -b 0.0.0.0 > /tmp/rails.log 2>&1 &
+          echo $! > /tmp/rails.pid
+          # health 待ち (最大 60s)
+          for i in {1..30}; do
+            if curl -sf http://localhost:3010/api/v1/health >/dev/null; then
+              echo "Rails ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Rails failed to start"
+          tail -100 /tmp/rails.log
+          exit 1
+
+      - name: Run k6 scenario
+        working-directory: performance-tests
+        env:
+          # schedule トリガ時は inputs.scenario が未定義のため smoke 固定
+          SCENARIO: ${{ inputs.scenario || 'smoke' }}
+        run: |
+          k6 run "k6/scenarios/${SCENARIO}.js"
+
+      - name: Install mysql client
+        # ubuntu-latest は mysql client がデフォルトで入らないバージョンがあるため明示 install
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends mysql-client
+
+      - name: Cleanup test data
+        if: always()
+        working-directory: performance-tests
+        run: |
+          # cleanup-local.sh は docker exec 前提だが、CI では services container に
+          # mysql client で直接接続する方が単純なため inline で実行する。
+          # 注: 本 inline cleanup は users と trips のみ削除する最小実装。
+          # comments / likes / favorites / memos / planned_spots / packing_items /
+          # tickets / reviews / budgets / receipts / day_entries / follows / trip_tags
+          # は FOREIGN_KEY_CHECKS=0 によって orphan のまま残るが、scenario 完了直後の
+          # CI runner では後続影響なし (runner は ephemeral で次 run では新規 DB)。
+          # ローカルでの長期 cleanup は scripts/cleanup-local.sh + 別 Issue (improve cleanup)
+          # で対応予定。
+          mysql -h 127.0.0.1 -P 3316 -uroot -ppassword trip_diary_dev <<'SQL'
+          SET FOREIGN_KEY_CHECKS=0;
+          DELETE FROM trips WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'perf\_%');
+          DELETE FROM users WHERE email LIKE 'perf\_%';
+          SET FOREIGN_KEY_CHECKS=1;
+          SELECT COUNT(*) AS remaining FROM users WHERE email LIKE 'perf\_%';
+          SQL
+
+      - name: Stop Rails
+        if: always()
+        run: |
+          if [ -f /tmp/rails.pid ]; then
+            kill "$(cat /tmp/rails.pid)" || true
+          fi
+
+      - name: Upload k6 results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-results-${{ inputs.scenario || 'smoke' }}-${{ github.run_id }}
+          path: performance-tests/k6/results/*
+          retention-days: 14
+          if-no-files-found: warn

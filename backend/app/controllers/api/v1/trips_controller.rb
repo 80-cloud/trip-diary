@@ -14,6 +14,11 @@ module Api
         if params[:mine] == "drafts"
           return render(json: { trips: [], next_cursor: nil }) unless current_user
           base = current_user.trips.draft
+        elsif params[:mine] == "following"
+          # F-FOLLOW-04: 自分がフォローしているユーザーの公開 trip のみ
+          return render(json: { trips: [], next_cursor: nil }) unless current_user
+          following_ids = current_user.followings.pluck(:id)
+          base = Trip.visible_to(current_user).where(user_id: following_ids)
         else
           base = Trip.visible_to(current_user)
                      .by_tag(params[:tag])
@@ -154,7 +159,12 @@ module Api
       end
 
       def user_payload(user)
-        { id: user.id, display_name: user.display_name, email: user.email }
+        {
+          id: user.id,
+          display_name: user.display_name,
+          email: user.email,
+          followed_by_me: current_user ? current_user.following?(user) : false
+        }
       end
 
       def rails_blob_path(attachment, **opts)

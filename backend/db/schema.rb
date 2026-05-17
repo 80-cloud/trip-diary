@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_17_030001) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_17_040000) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -72,6 +72,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_030001) do
     t.index ["user_id", "created_at"], name: "index_favorites_on_user_id_and_created_at"
     t.index ["user_id", "trip_id"], name: "index_favorites_on_user_id_and_trip_id", unique: true
     t.index ["user_id"], name: "index_favorites_on_user_id"
+  end
+
+  create_table "follows", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "followed_id", null: false
+    t.bigint "follower_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["followed_id"], name: "index_follows_on_followed_id"
+    t.index ["follower_id", "followed_id"], name: "index_follows_on_follower_id_and_followed_id", unique: true
+    t.index ["follower_id"], name: "index_follows_on_follower_id"
   end
 
   create_table "likes", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -152,6 +162,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_030001) do
   add_foreign_key "day_entries", "trips", on_delete: :cascade
   add_foreign_key "favorites", "trips"
   add_foreign_key "favorites", "users"
+  add_foreign_key "follows", "users", column: "followed_id"
+  add_foreign_key "follows", "users", column: "follower_id"
   add_foreign_key "likes", "trips", on_delete: :cascade
   add_foreign_key "likes", "users"
   add_foreign_key "memos", "trips"

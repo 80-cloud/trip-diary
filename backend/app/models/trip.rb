@@ -45,12 +45,23 @@ class Trip < ApplicationRecord
   scope :recent, -> { order(created_at: :desc) }
 
   # visibility (公開範囲) と status (公開状態) を組み合わせた可視性。
-  # 他人には「public かつ published」のみ見える。本人には自分の全 trip (draft 含む) が見える。
+  # - 本人: 自分の全 trip (draft / private 含む)
+  # - 他人:
+  #   - public + published: 全ユーザー可視
+  #   - friends + published: trip 投稿者と「相互フォロー」しているユーザーのみ可視
+  #   - private: 不可視
+  # 未ログイン: public + published のみ
   scope :visible_to, ->(user) {
     if user
+      # 相互フォロー: 「自分がフォローしてる人」∩「自分をフォローしてる人」
+      mutual_ids = user.followings.pluck(:id) & user.followers.pluck(:id)
       where(
-        "(visibility = ? AND status = ?) OR user_id = ?",
-        "public", "published", user.id
+        "(visibility = ? AND status = ?) " \
+        "OR (visibility = ? AND status = ? AND user_id IN (?)) " \
+        "OR user_id = ?",
+        "public", "published",
+        "friends", "published", mutual_ids.presence || [-1],
+        user.id
       )
     else
       where(visibility: "public", status: "published")

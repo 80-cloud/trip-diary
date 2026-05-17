@@ -120,6 +120,26 @@ async function deleteTrip() {
   await api.del(`/trips/${id}`)
   router.push("/")
 }
+
+// F-FOLLOW-01: 投稿者を follow/unfollow
+async function toggleFollow() {
+  if (!auth.user) {
+    router.push({ path: "/login", query: { redirect: route.fullPath } })
+    return
+  }
+  const targetId = trip.value.user.id
+  try {
+    if (trip.value.user.followed_by_me) {
+      await api.del(`/users/${targetId}/follow`)
+      trip.value.user.followed_by_me = false
+    } else {
+      await api.post(`/users/${targetId}/follow`)
+      trip.value.user.followed_by_me = true
+    }
+  } catch (e) {
+    actionError.value = e.data?.errors?.join(", ") || "フォロー操作に失敗しました"
+  }
+}
 </script>
 
 <template>
@@ -137,7 +157,19 @@ async function deleteTrip() {
             <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">{{ trip.title }}</h1>
           </div>
           <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">{{ trip.started_on }} 〜 {{ trip.ended_on }} / {{ trip.destination }}</p>
-          <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">@{{ trip.user.display_name }}</p>
+          <p class="text-sm text-slate-600 dark:text-slate-300 mt-1 flex items-center gap-2">
+            <NuxtLink :to="`/users/${trip.user.id}`" class="hover:underline">@{{ trip.user.display_name }}</NuxtLink>
+            <button
+              v-if="auth.user && auth.user.id !== trip.user.id"
+              @click="toggleFollow"
+              :class="[
+                'text-[10px] px-2 py-0.5 rounded border',
+                trip.user.followed_by_me
+                  ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600'
+                  : 'bg-brand-500 text-white border-brand-500'
+              ]"
+            >{{ trip.user.followed_by_me ? "フォロー中" : "+ フォロー" }}</button>
+          </p>
           <div class="mt-2 flex flex-wrap gap-1.5 items-center">
             <span class="text-xs px-2 py-0.5 rounded-full bg-brand-100 dark:bg-brand-700 text-brand-700 dark:text-brand-50">{{ labelOf(trip.category) }}</span>
             <NuxtLink

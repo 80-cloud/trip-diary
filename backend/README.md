@@ -1,24 +1,5 @@
-# README
+# backend/
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
-
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+Rails 8.1 API モード。
+セットアップ手順 / テスト実行 / API 疎通確認 / ディレクトリ構成は、
+リポジトリ直下の **[README.md](../README.md)** に集約しています。

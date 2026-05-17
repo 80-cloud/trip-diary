@@ -1,9 +1,49 @@
 # 旅行記録アプリ (trip-diary)
 
-> 自分の旅行を時系列で記録し、複数ユーザー同士でコメント・いいねを通じて反応し合える Web アプリです。
+[![CI](https://github.com/80-cloud/trip-diary/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/80-cloud/trip-diary/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Ruby](https://img.shields.io/badge/Ruby-3.4.9-CC342D)](https://www.ruby-lang.org)
+[![Rails](https://img.shields.io/badge/Rails-8.1-CC0000)](https://rubyonrails.org)
+[![Node](https://img.shields.io/badge/Node-22-339933)](https://nodejs.org)
+[![Nuxt](https://img.shields.io/badge/Nuxt-4-00DC82)](https://nuxt.com)
+
+> 自分の旅行を時系列で記録し、複数ユーザー同士でコメント・いいね・お気に入り・フォロー・レビューを通じて反応し合える Web アプリです。
 > スクール提出物として、**Ruby on Rails 8.1** + **Nuxt 4 (純 JS)** + **MySQL 8** で構築しています。
 
 学習姿勢: **習う → 慣れる → マスター** ([docs/学習ロードマップ.md](docs/学習ロードマップ.md) 参照)
+
+---
+
+## 📦 講師提出物 (Deliverables)
+
+| 提出物 | 場所 |
+|---|---|
+| **GitHub リポジトリ** | https://github.com/80-cloud/trip-diary |
+| **README (本ファイル)** | [README.md](README.md) — 機能/技術/起動手順/テスト/カバレッジ/curl 疎通/シードユーザー |
+| **設計書一式** (10 種) | [docs/](docs/) — 要件定義 / 機能一覧 / 画面設計 / ER 図 / 技術スタック / インフラ構成 / ログ・監視・障害対応 / テスト計画 / セキュリティ自己監査 / 学習ロードマップ |
+| **CLAUDE.md** | [CLAUDE.md](CLAUDE.md) — Claude Code 行動規範 (Issue ファースト / Conventional Commits / テスト運用ルール) |
+| **CI 実行履歴** | [Actions タブ](https://github.com/80-cloud/trip-diary/actions) — 全 PR で backend (Rails Minitest + zeitwerk) + frontend (Vitest + Nuxt build) が緑であること |
+| **PR 一覧** | [Pulls (closed)](https://github.com/80-cloud/trip-diary/pulls?q=is%3Apr+is%3Aclosed) — 全機能を Issue → ブランチ → PR → セルフレビュー → CI 緑 → マージで進めた履歴 |
+
+> **ローカル動作確認用シードユーザー**: `taro@example.com` / `password` (他 2 アカウントの一覧は本 README 下部 「シードユーザー」参照)
+
+---
+
+## 差別化ポイント (他の旅行 SNS / 一般 SNS との違い)
+
+| 項目 | Instagram / 一般 SNS | trip-diary |
+|---|---|---|
+| 投稿単位 | 写真 1 枚〜数枚に紐づくキャプション | **「1 つの旅行」が単位**。複数日の出来事 (DayEntry) を 1 つの旅行記録にネスト |
+| 計画と記録 | 別アプリ (旅のしおりは別) | **同一画面で計画 → 実記録に昇格** (F-PLAN-02) |
+| 持ち物管理 | なし (備忘録は別アプリ) | **trip 単位の持ち物チェックリスト** (F-PACK-01) |
+| 公開範囲 | public / private の 2 値 | **public / friends (相互フォロー限定) / private** の 3 値 + draft 状態 |
+| インプレッション競争 | 表示回数を煽る | **不採用** (いいね数のみ。再シェア機能なし → 炎上拡散抑制) |
+| 拡散機能 | リポスト / リツイート | **なし** (個人の旅行記憶を残すことが目的) |
+| お気に入り | 「保存」相当 | **いいね (公開反応) と お気に入り (私的ブックマーク) を分離** |
+| 個人メモ | なし | **他人の trip にも自分専用メモを残せる** (公開されない) |
+| レビュー | コメント欄に混在 | **trip 単位の 5★ + 振り返り本文** を独立して扱う |
+
+---
 
 ## スクリーンショット
 
@@ -20,7 +60,7 @@
 
 ## 主要機能
 
-### Phase 1 (MVP) ✅ 本セッションで実装
+### Phase 1 (MVP) ✅ — [PR #2](https://github.com/80-cloud/trip-diary/pull/2)
 
 - ユーザー認証 (サインアップ / ログイン / ログアウト) — JWT in HttpOnly Cookie
 - 旅行記録の **CRUD** (タイトル / 行き先 / 期間 / 本文 / 公開範囲)
@@ -28,24 +68,28 @@
 - 画像アップロード (ActiveStorage / 最大 5 枚)
 - **コメント** (140 文字以内 / 自分のもののみ削除)
 - **いいね** (1 ユーザー 1 記録 1 回 / counter_cache)
-- プロフィール閲覧 (自分 / 他人の旅行記録一覧)
 
-### Phase 2 (発展機能)
+### Phase 2 (発展機能) ✅ — 6 機能群 + CI 実装済
 
-- 公開範囲 (`public` / `friends` / `private`)
-- フォロー / フォロワー / フォロー中タイムライン
-- タグ・カテゴリ
-- 検索・ソート (タイトル / 行き先 / タグ)
-- プロフィール編集 (表示名・自己紹介・アバター)
+| Phase | 機能群 | PR |
+|---|---|---|
+| 2-1 | **タグ / カテゴリ / 検索高度化** (多対多関連 / scope / 複合 AND 検索 / LIKE エスケープ) | [#16](https://github.com/80-cloud/trip-diary/pull/16) |
+| CI | **GitHub Actions CI** (backend Rails Minitest + frontend Vitest + build を全 PR で自動実行) | [#18](https://github.com/80-cloud/trip-diary/pull/18) |
+| 2-2 | **下書き / ダークモード / 無限スクロール** (enum 状態管理 / `darkMode: class` + localStorage / IntersectionObserver + cursor pagination) | [#20](https://github.com/80-cloud/trip-diary/pull/20) |
+| 2-3 | **お気に入り / 個人メモ** (uniqueness 二段防衛 / upsert race rescue / 本人専用リソースの認可境界) | [#22](https://github.com/80-cloud/trip-diary/pull/22) |
+| 2-4 | **フォロー / フォロー中タイムライン** (自己参照関連 / `friends`=相互フォロー可視性 / N+1 防止 pre-fetch + Set) | [#24](https://github.com/80-cloud/trip-diary/pull/24) |
+| 2-5a | **計画モード / 荷物チェックリスト** (trip-owned 子リソースの CRUD / done → DayEntry 自動昇格 / 進捗集計) | [#26](https://github.com/80-cloud/trip-diary/pull/26) |
+| 2-5b | **チケット管理 / 旅行レビュー** (ActiveStorage 単体添付 + MIME/size 制限 / 1 trip 1 review upsert) | [#28](https://github.com/80-cloud/trip-diary/pull/28) |
 
-### Phase 3 (本番デプロイ)
+### Phase 3 (本番デプロイ) 🚧 計画中
 
+- 通知センター (コメント / いいね / フォロー受信)
 - 地図表示 (Leaflet / MapLibre)
-- 通知センター (コメント / いいね受信)
+- 統計ダッシュボード (都道府県制覇率 / 月別集計)
 - S3 への画像移行
 - **AWS デプロイ** (EC2 + RDS + Nginx / Terraform)
 
-### Phase 4 (発展余地)
+### Phase 4 (発展余地) 📅 検討中
 
 - リアルタイム反映 (ActionCable)
 - PWA (オフライン閲覧)
@@ -53,6 +97,13 @@
 - PDF 出力
 
 詳細は [docs/機能一覧.md](docs/機能一覧.md) を参照。
+
+### テスト規模 (2026-05-17 時点)
+
+| 種別 | 件数 | カバレッジ |
+|---|---|---|
+| Backend (Minitest) | 183 件 / 521 assertions GREEN | Line 89.51% / Branch 70.14% |
+| Frontend (Vitest) | 12 件 GREEN | `@vitest/coverage-v8` 設定済 (`npm run test:coverage`) |
 
 ---
 
@@ -148,7 +199,7 @@ npm run test:coverage
 open coverage/index.html
 ```
 
-> 閾値は Phase 1 では 0% (生成のみ確認)。段階目標は [docs/ログ・監視・障害対応設計書.md §5](docs/ログ・監視・障害対応設計書.md) を参照。
+> 現状の閾値は 0% (生成のみ確認 / Phase 2 末時点の実測は backend Line 89.51%)。段階目標は [docs/ログ・監視・障害対応設計書.md §5](docs/ログ・監視・障害対応設計書.md) を参照。
 
 ### API 疎通確認 (curl)
 
@@ -201,7 +252,116 @@ curl -sS -b /tmp/c.txt -X POST http://localhost:3010/api/v1/trips/2/comments \
 | [docs/学習ロードマップ.md](docs/学習ロードマップ.md) | 習う → 慣れる → マスター |
 | [CLAUDE.md](CLAUDE.md) | Claude Code 行動規範 (Issue ファースト / Conventional Commits 等) |
 
-### 本番デプロイ前チェックリスト (Phase 3 で実施)
+---
+
+## 開発ワークフロー
+
+### Issue ファースト (直接 main push 禁止)
+
+```
+① GitHub で Issue を作成 (テンプレート使用)
+       ↓
+② Issue 番号を確認 (例: #25)
+       ↓
+③ ブランチ作成: git switch -c feature/#25-plan-packing
+       ↓
+④ 受け入れ条件をテストに 1:1 写経 → 実装 → ローカル GREEN
+       ↓
+⑤ PR を作成 (--label 必須) / Closes #25 で Issue リンク
+       ↓
+⑥ CI 緑 (GitHub Actions) + セルフレビュー反映 → Squash and merge
+       ↓
+⑦ ローカル main を git pull で同期
+```
+
+詳細ルールは [CLAUDE.md](CLAUDE.md) 参照 (ブランチ命名 / コミット形式 / PR テンプレ / 認可ルール)。
+
+### ブランチ命名規則
+
+| 種別 | 命名パターン | 例 |
+|---|---|---|
+| 新機能 | `feature/#番号-説明` | `feature/#25-plan-packing` |
+| バグ修正 | `fix/#番号-説明` | `fix/#15-trip-save-bug` |
+| ドキュメント | `docs/#番号-説明` | `docs/#29-readme-for-submission` |
+| 雑務・設定 | `chore/#番号-説明` | `chore/#17-github-actions-ci` |
+
+### コミットメッセージ規則
+
+Conventional Commits 形式・**日本語**・50 字以内:
+
+```
+feat: 計画モード + 荷物チェックリスト (Phase 2-5a)
+
+- PlannedSpot モデル / done=true で DayEntry 自動昇格
+- PackingItem モデル / trip 単位のチェックリスト
+- Minitest 125 → 153 件
+
+Closes #25
+
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+```
+
+種別: `feat` / `fix` / `docs` / `style` / `refactor` / `test` / `chore`
+
+### 全 PR で適用したセルフレビュー文化
+
+Phase 1 〜 Phase 2 の **全 PR** で「初回 push → セルフレビュー反映 → 再 push → CI 緑 → マージ」を実施。
+PR ごとに **隠れバグ 1〜3 件を発見・修正** している (race condition / N+1 / silent failure / 認可境界の漏れ など)。
+
+---
+
+## 学習成果として意識したこと
+
+> 学習姿勢の全体像は [docs/学習ロードマップ.md](docs/学習ロードマップ.md)。
+> このセクションは **本プロジェクトを通じて実際に身につけた具体的な学習成果** を可視化するもの。
+
+### 各 Phase で意識した学習テーマ
+
+| Phase | 機能 | 意識した学習ポイント |
+|---|---|---|
+| 1 | 認証 / Trip CRUD / コメント / いいね | JWT in HttpOnly Cookie の安全性 / ネストフォーム (accepts_nested_attributes_for) / counter_cache の整合性 |
+| 2-1 | タグ / カテゴリ / 検索 | **多対多関連** / scope chain / 複合 AND 検索 / **LIKE エスケープによる SQL injection 防止** |
+| CI | GitHub Actions 導入 | **CI を「文化」として根付かせる** (ローカル緑 ≠ CI 緑 / 全 PR を CI で守る) |
+| 2-2 | 下書き / ダークモード / 無限スクロール | **Rails enum + 状態遷移** / Tailwind `darkMode: class` + localStorage / **cursor pagination + IntersectionObserver** |
+| 2-3 | お気に入り / 個人メモ | **uniqueness 二段防衛** (validation + DB unique index) / 本人専用リソースの認可境界 |
+| 2-4 | フォロー / フォロー中タイムライン | **自己参照関連** / through 関連 / `friends`=相互フォロー判定 |
+| 2-5a | 計画モード / 荷物 | trip-owned 子リソースの CRUD パターン / **after_update_commit による状態遷移ロジックの一元管理** (done → DayEntry 自動昇格) |
+| 2-5b | チケット / レビュー | ActiveStorage 単体添付 + MIME/size 制限 / 1 trip 1 review の **upsert + race rescue** |
+
+### 横断的に身についた設計判断
+
+- **受け入れ条件 → テスト → 実装** の順序 (CLAUDE.md §11-2): Issue に Given/When/Then を書き、まずテストに 1:1 写経してから実装する
+- **認可境界の徹底**: `Trip.visible_to(current_user)` を全リソース (likes/comments/favorites/memos/tickets/planned_spots/packing_items) で通し、他人の draft / private trip は 404 で隠す
+- **race condition の二段防衛**: uniqueness は **validation + DB unique index** の両方で守る。さらに API では **RecordInvalid (validation race) + RecordNotUnique (DB race)** を両方 rescue して upsert に倒す (PR #22 で確立 → PR #24 #28 で継承)
+- **N+1 防止の pre-fetch + Set パターン**: trip 一覧で `current_user.likes` / `favorites` / `followings` を **1 クエリで先取り → Set 参照** に統一 (PR #20/#22/#24 で確立)
+- **楽観 UI の世代管理**: 無限スクロール中にフィルタ変更で古いレスポンスが混入する race を **loadGen 世代カウンタ**で破棄 (PR #20)
+- **enum 不正値で 500 を出さない サニタイズ**: status/category/kind の不正値は controller で安全側 (nil / "other") に倒し、422 に変換 (PR #16/#20/#28)
+- **本人専用ビューと公開情報の責務分離**: tickets/planned_spots/packing_items の中身は本人のみ / 進捗バーや review (旅行レビュー) は公開、を Set + `is_owner` で出し分け (PR #26/#28)
+- **「存在の漏洩」を防ぐ 404 統一**: 「見えるが書込不可 = 403」「存在しない or 見えない = 404」を使い分け、RecordNotFound を Rails 標準で統一
+
+### 横断的に身についた開発プロセス
+
+- **Issue ファースト + Conventional Commits 日本語**: 全 PR で例外なく適用 ([Pulls (closed)](https://github.com/80-cloud/trip-diary/pulls?q=is%3Apr+is%3Aclosed) 参照)
+- **セルフレビュー → 隠れバグ発見 → 再 push** を全 PR で 1 周以上回し、**毎 PR で 1〜3 件の隠れバグを発見・修正** (race / N+1 / silent failure / 認可境界の漏れ など。各 PR 本文に「セルフレビューで発見・修正したバグ」セクションあり)
+- **CI 緑がマージの実質ゲート** (branch protection は別途設定): PR #18 の CI 導入以降、全 feature PR で `backend (rails test) + frontend (vitest + build)` の両 job 緑を確認してからマージ
+- **セキュリティ自己監査の継続適用**: sns-board の 10 教訓 (`docs/セキュリティ自己監査.md`) を Rails 文脈に転用し、毎 PR で E-H1 (識別子漏洩) / E-H2 (SQL injection) / E-L5 (race) を回帰固定
+- **「想定外シナリオ」の検証習慣**: PR 本文に毎回「想定外シナリオの調査結果」表を載せ、不正値 / 並行 race / 未ログイン / フィルタ後の状態変化 などを最低 8〜13 件検証
+
+---
+
+## AI 利用方針 (提出物としての透明性)
+
+- スクール提出物のため、**AI (Claude Code) の利用は許可されているが、透明性を最重視**
+- 全コミットに `Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>` を付与
+- 重要な設計判断は **コミットメッセージ / PR 本文で人間が承認した旨を明示**
+  - 例: 「マージしたのでプル」「次を実行」など人間の指示を起点に作業を進める
+  - 例: PR セルフレビューで「これは別 Issue 候補」など人間判断を残す
+- AI が独断で進めた範囲と人間判断は区別 (PR 本文の「セルフレビューで発見・修正したバグ」セクション参照)
+- AI 行動規範は [CLAUDE.md](CLAUDE.md) で明文化し、毎セッション読み込ませている
+
+---
+
+## 本番デプロイ前チェックリスト (Phase 3 で実施)
 
 - [ ] `.env` の `RAILS_ENV` を必ず `production` に変更 (development のままだと `seeds.rb` が本番 DB を汚染する — 詳細は [docs/セキュリティ自己監査.md §3 E-H3](docs/セキュリティ自己監査.md))
 - [ ] `SECRET_KEY_BASE` / `JWT_SECRET` を本番用の値に差し替え (`.env.example` の値は使わない)
@@ -214,7 +374,7 @@ curl -sS -b /tmp/c.txt -X POST http://localhost:3010/api/v1/trips/2/comments \
 
 ```
 trip-diary/
-├── README.md, CLAUDE.md, .gitignore, .env.example, docker-compose.yml
+├── README.md, CLAUDE.md, LICENSE, .gitignore, .env.example, docker-compose.yml
 ├── docs/             # 設計書一式
 ├── backend/          # Rails 8.1 API
 ├── frontend/         # Nuxt 4 (JS)
@@ -226,9 +386,14 @@ trip-diary/
 
 ---
 
-## ライセンス
+## 改訂履歴 (README)
 
-MIT License (学習目的 / スクール提出物)
+各設計書 (`docs/*.md`) の改訂履歴は当該ドキュメント先頭を参照。
+
+| 日付 | 内容 |
+|---|---|
+| 2026-05-17 | Phase 1 MVP 完成に伴う初版 (機能/技術/起動手順/curl/シードユーザー) |
+| 2026-05-17 | Phase 2 全 6 PR + CI 完了に伴う全面改訂。提出物 (Deliverables) 表 / CI バッジ / LICENSE / 差別化ポイント / 開発ワークフロー / AI 利用方針 を追加 (PR #30) |
 
 ---
 

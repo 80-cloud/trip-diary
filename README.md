@@ -305,7 +305,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
 
 ### 全 PR で適用したセルフレビュー文化
 
-Phase 1 〜 Phase 2 の全 PR (12 件) で「初回 push → セルフレビュー反映 → 再 push → CI 緑 → マージ」を実施。
+Phase 1 〜 Phase 2 の **全 PR** で「初回 push → セルフレビュー反映 → 再 push → CI 緑 → マージ」を実施。
 PR ごとに **隠れバグ 1〜3 件を発見・修正** している (race condition / N+1 / silent failure / 認可境界の漏れ など)。
 
 ---
@@ -341,7 +341,7 @@ PR ごとに **隠れバグ 1〜3 件を発見・修正** している (race con
 
 ### 横断的に身についた開発プロセス
 
-- **Issue ファースト + Conventional Commits 日本語**: 全 13 PR で例外なく適用 ([Pulls (closed)](https://github.com/80-cloud/trip-diary/pulls?q=is%3Apr+is%3Aclosed) 参照)
+- **Issue ファースト + Conventional Commits 日本語**: 全 PR で例外なく適用 ([Pulls (closed)](https://github.com/80-cloud/trip-diary/pulls?q=is%3Apr+is%3Aclosed) 参照)
 - **セルフレビュー → 隠れバグ発見 → 再 push** を全 PR で 1 周以上回し、**毎 PR で 1〜3 件の隠れバグを発見・修正** (race / N+1 / silent failure / 認可境界の漏れ など。各 PR 本文に「セルフレビューで発見・修正したバグ」セクションあり)
 - **CI 緑がマージの実質ゲート** (branch protection は別途設定): PR #18 の CI 導入以降、全 feature PR で `backend (rails test) + frontend (vitest + build)` の両 job 緑を確認してからマージ
 - **セキュリティ自己監査の継続適用**: sns-board の 10 教訓 (`docs/セキュリティ自己監査.md`) を Rails 文脈に転用し、毎 PR で E-H1 (識別子漏洩) / E-H2 (SQL injection) / E-L5 (race) を回帰固定
@@ -361,7 +361,7 @@ PR ごとに **隠れバグ 1〜3 件を発見・修正** している (race con
 
 ---
 
-### 本番デプロイ前チェックリスト (Phase 3 で実施)
+## 本番デプロイ前チェックリスト (Phase 3 で実施)
 
 - [ ] `.env` の `RAILS_ENV` を必ず `production` に変更 (development のままだと `seeds.rb` が本番 DB を汚染する — 詳細は [docs/セキュリティ自己監査.md §3 E-H3](docs/セキュリティ自己監査.md))
 - [ ] `SECRET_KEY_BASE` / `JWT_SECRET` を本番用の値に差し替え (`.env.example` の値は使わない)

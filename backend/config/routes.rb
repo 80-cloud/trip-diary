@@ -7,7 +7,9 @@ Rails.application.routes.draw do
       post "signup",  to: "auth#signup"
       post "login",   to: "auth#login"
       delete "logout", to: "auth#logout"
-      get  "me",      to: "auth#me"
+      get   "me",     to: "auth#me"
+      patch "me",     to: "auth#update_me"
+      put   "me",     to: "auth#update_me"
 
       resources :trips do
         resources :comments, only: [:create, :destroy]

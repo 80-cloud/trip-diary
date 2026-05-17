@@ -20,7 +20,7 @@ async function submit(formData) {
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-slate-800 mb-6">新しい旅行記録</h1>
+    <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6">新しい旅行記録</h1>
     <TripForm @submit="submit" :errors="errors" />
   </div>
 </template>

@@ -19,10 +19,15 @@ class User < ApplicationRecord
 
   has_one_attached :avatar
 
+  AVATAR_MAX_SIZE = 2.megabytes
+  AVATAR_CONTENT_TYPES = %w[image/jpeg image/png image/gif image/webp].freeze
+
   validates :email, presence: true, uniqueness: { case_sensitive: false },
                     format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :display_name, presence: true, length: { in: 1..30 }
+  validates :bio, length: { maximum: 500 }
   validates :password, length: { minimum: 6 }, if: -> { password.present? }
+  validate  :avatar_within_limits
 
   before_save { self.email = email.downcase.strip }
 
@@ -36,5 +41,17 @@ class User < ApplicationRecord
   def following?(other)
     return false unless other
     active_follows.exists?(followed_id: other.id)
+  end
+
+  private
+
+  def avatar_within_limits
+    return unless avatar.attached?
+    if avatar.blob.byte_size > AVATAR_MAX_SIZE
+      errors.add(:avatar, "は 2MB 以下にしてください")
+    end
+    unless AVATAR_CONTENT_TYPES.include?(avatar.blob.content_type)
+      errors.add(:avatar, "は JPEG / PNG / GIF / WebP 画像のみアップロードできます")
+    end
   end
 end

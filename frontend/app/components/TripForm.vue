@@ -136,54 +136,64 @@ function submit(statusOverride) {
   <!-- enter キーでの暴発を避けるため form 自体の submit はバインドしない -->
   <form @submit.prevent class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700 space-y-4 max-w-3xl">
     <div>
-      <label class="block text-sm font-medium text-slate-700 mb-1">タイトル *</label>
-      <input v-model="title" required maxlength="80" class="w-full border border-slate-300 rounded px-3 py-2" />
+      <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">タイトル *</label>
+      <input v-model="title" required maxlength="80" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" />
     </div>
     <div>
-      <label class="block text-sm font-medium text-slate-700 mb-1">行き先 *</label>
-      <input v-model="destination" required maxlength="80" class="w-full border border-slate-300 rounded px-3 py-2" />
+      <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">行き先 *</label>
+      <input v-model="destination" required maxlength="80" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" />
     </div>
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">開始日 *</label>
-        <input v-model="startedOn" type="date" required class="w-full border border-slate-300 rounded px-3 py-2" />
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">開始日 *</label>
+        <input v-model="startedOn" type="date" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" />
       </div>
       <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">終了日 *</label>
-        <input v-model="endedOn" type="date" required class="w-full border border-slate-300 rounded px-3 py-2" />
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">終了日 *</label>
+        <input v-model="endedOn" type="date" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" />
       </div>
     </div>
     <div>
-      <label class="block text-sm font-medium text-slate-700 mb-1">本文 (任意・5000 文字以内)</label>
-      <textarea v-model="body" rows="4" maxlength="5000" class="w-full border border-slate-300 rounded px-3 py-2"></textarea>
+      <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">本文 (任意・5000 文字以内)</label>
+      <textarea v-model="body" rows="4" maxlength="5000" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2"></textarea>
     </div>
     <div>
-      <label class="block text-sm font-medium text-slate-700 mb-1">
+      <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
         画像 (任意・最大 {{ MAX_IMAGES }} 枚・各 {{ MAX_SIZE_MB }}MB 以下)
       </label>
+      <!-- ネイティブ file input は Safari でブラウザ既定の白いボタンが出るため非表示にし、
+           カスタムボタンで包む。label の for / input id ペアでクリックを伝搬。 -->
       <input
+        id="trip-images-input"
+        ref="imagesInputRef"
         type="file" accept="image/*" multiple @change="onFilesChange"
-        class="block w-full text-sm text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
+        class="sr-only"
       />
-      <p v-if="selectedFiles.length" class="text-xs text-slate-500 mt-1">
-        選択中: {{ selectedFiles.map((f) => f.name).join(", ") }}
-      </p>
+      <div class="flex items-center gap-3">
+        <label
+          for="trip-images-input"
+          class="inline-block cursor-pointer bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-50 px-3 py-1.5 rounded text-sm font-medium hover:bg-brand-100 dark:hover:bg-brand-900/60"
+        >ファイルを選択</label>
+        <span class="text-xs text-slate-500 dark:text-slate-400 truncate">
+          {{ selectedFiles.length ? selectedFiles.map((f) => f.name).join(", ") : "ファイル未選択" }}
+        </span>
+      </div>
       <p v-if="localError" class="text-xs text-rose-600 mt-1">{{ localError }}</p>
-      <p v-if="props.initial?.image_urls?.length" class="text-xs text-slate-400 mt-1">
+      <p v-if="props.initial?.image_urls?.length" class="text-xs text-slate-400 dark:text-slate-500 mt-1">
         ※ 既存の画像は新しく選択した画像で置き換わります
       </p>
     </div>
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">カテゴリ *</label>
-        <select v-model="category" required class="w-full border border-slate-300 rounded px-3 py-2">
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">カテゴリ *</label>
+        <select v-model="category" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2">
           <option value="" disabled>選択してください</option>
           <option v-for="opt in CATEGORY_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
         </select>
       </div>
       <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">公開範囲</label>
-        <select v-model="visibility" class="w-full border border-slate-300 rounded px-3 py-2">
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">公開範囲</label>
+        <select v-model="visibility" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2">
           <option value="public">公開 (全員)</option>
           <option value="friends">フォロワーのみ (Phase 2)</option>
           <option value="private">非公開 (自分のみ)</option>
@@ -192,28 +202,28 @@ function submit(statusOverride) {
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-slate-700 mb-1">タグ (任意・カンマ区切り)</label>
+      <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">タグ (任意・カンマ区切り)</label>
       <input
         v-model="tagInput" maxlength="200" placeholder="例: 京都, 紅葉, 寺"
-        class="w-full border border-slate-300 rounded px-3 py-2"
+        class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2"
       />
-      <p class="text-xs text-slate-500 mt-1">複数指定するときは「,」または「、」で区切ってください</p>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">複数指定するときは「,」または「、」で区切ってください</p>
     </div>
 
-    <fieldset class="border-t pt-4">
-      <legend class="text-sm font-bold text-slate-800">日別の出来事</legend>
-      <div v-for="d in visibleDayEntries" :key="d.id || `new-${d._idx}`" class="bg-slate-50 p-3 rounded mt-2 space-y-2">
+    <fieldset class="border-t border-slate-200 dark:border-slate-700 pt-4">
+      <legend class="text-sm font-bold text-slate-800 dark:text-slate-100">日別の出来事</legend>
+      <div v-for="d in visibleDayEntries" :key="d.id || `new-${d._idx}`" class="bg-slate-50 dark:bg-slate-700/40 p-3 rounded mt-2 space-y-2">
         <div class="flex items-center justify-between">
-          <span class="text-xs text-slate-500">Day {{ d._idx + 1 }}</span>
+          <span class="text-xs text-slate-500 dark:text-slate-400">Day {{ d._idx + 1 }}</span>
           <button type="button" @click="removeDay(d._idx)" class="text-xs text-rose-500 hover:underline">削除</button>
         </div>
         <input v-model="dayEntries[d._idx].title" placeholder="タイトル *" required maxlength="80"
-          class="w-full border border-slate-300 rounded px-2 py-1 text-sm" />
+          class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-2 py-1 text-sm" />
         <div class="flex gap-2">
-          <input v-model="dayEntries[d._idx].happened_on" type="date" class="border border-slate-300 rounded px-2 py-1 text-sm" />
+          <input v-model="dayEntries[d._idx].happened_on" type="date" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
         </div>
         <textarea v-model="dayEntries[d._idx].body" rows="2" placeholder="メモ (任意)"
-          class="w-full border border-slate-300 rounded px-2 py-1 text-sm"></textarea>
+          class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-2 py-1 text-sm"></textarea>
       </div>
       <button type="button" @click="addDay" class="mt-3 text-sm text-brand-600 hover:underline">+ 出来事を追加</button>
     </fieldset>

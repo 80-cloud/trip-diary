@@ -7,8 +7,10 @@ const api = useApi()
 const config = useRuntimeConfig()
 const { labelOf } = useCategories()
 
-const { data, pending, error } = await useAsyncData("my-drafts", () =>
-  api.get("/trips", { params: { mine: "drafts" } })
+const { data, pending, error } = await useAsyncData(
+  "my-drafts",
+  () => api.get("/trips", { params: { mine: "drafts" } }),
+  { deep: true }
 )
 
 const drafts = computed(() => data.value?.trips || [])

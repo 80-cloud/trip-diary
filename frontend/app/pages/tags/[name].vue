@@ -12,7 +12,7 @@ const sort = ref(route.query.sort || "recent")
 const { data, pending, error } = await useAsyncData(
   () => `tag:${name.value}:${sort.value}`,
   () => api.get(`/tags/${encodeURIComponent(name.value)}`, { params: { sort: sort.value } }),
-  { watch: [name, sort] }
+  { watch: [name, sort], deep: true }
 )
 
 function fullImageUrl(path) {

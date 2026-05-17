@@ -69,7 +69,8 @@ await reload()
 
 // 人気タグは一度だけ取得
 const { data: popularTags } = await useAsyncData("popular-tags", () =>
-  api.get("/tags/popular", { params: { limit: 15 } })
+  api.get("/tags/popular", { params: { limit: 15 } }),
+  { deep: true }
 )
 
 // 絞り込み変更で URL 同期 + データ再読込

@@ -5,7 +5,13 @@ definePageMeta({ middleware: "auth" })
 
 const api = useApi()
 const router = useRouter()
+const route = useRoute()
 const errors = ref([])
+
+// ヘッダの「+ 新しい旅行記録」を /trips/new から再クリックされた時の remount 用 key。
+// クエリ ?fresh=<timestamp> が変わるたびに TripForm を unmount → mount してフォーム
+// 状態をリセットする (Nuxt SPA ルータは同一 path への navigation で再レンダしないため)。
+const formKey = computed(() => route.query.fresh || "initial")
 
 async function submit(formData) {
   errors.value = []
@@ -21,6 +27,6 @@ async function submit(formData) {
 <template>
   <div>
     <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6">新しい旅行記録</h1>
-    <TripForm @submit="submit" :errors="errors" />
+    <TripForm :key="formKey" @submit="submit" :errors="errors" />
   </div>
 </template>

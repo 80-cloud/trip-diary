@@ -1,7 +1,10 @@
 <script setup>
+import { useAuthStore } from "~/composables/useAuthStore.js"
+
 const route = useRoute()
 const api = useApi()
 const config = useRuntimeConfig()
+const auth = useAuthStore()
 
 const id = route.params.id
 const tab = ref(route.query.tab === "followers" ? "followers" : "following")
@@ -24,14 +27,130 @@ function fullImageUrl(path) {
   return base + path
 }
 
-// このユーザー (= プロフィール対象) は trip のレスポンスから display_name を拾う
-const profileName = computed(() => trips.value[0]?.user?.display_name || `User #${id}`)
+// プロフィール表示用: 自分自身なら auth.user / 他人なら trip レスポンスから
+const isSelf = computed(() => auth.user && Number(auth.user.id) === Number(id))
+const profileUser = computed(() => isSelf.value ? auth.user : trips.value[0]?.user)
+const profileName = computed(() => profileUser.value?.display_name || `User #${id}`)
+const profileBio  = computed(() => profileUser.value?.bio || "")
+const profileAvatar = computed(() => profileUser.value?.avatar_url)
+
+// 編集モード (自分のみ)
+const editing = ref(false)
+const editDisplayName = ref("")
+const editBio = ref("")
+const editAvatarFile = ref(null)
+const editError = ref(null)
+const editSaving = ref(false)
+
+function openEdit() {
+  editDisplayName.value = auth.user.display_name || ""
+  editBio.value = auth.user.bio || ""
+  editAvatarFile.value = null
+  editError.value = null
+  editing.value = true
+}
+
+function onAvatarChange(e) {
+  const f = e.target.files?.[0] || null
+  if (f && f.size > 2 * 1024 * 1024) {
+    editError.value = "画像は 2MB 以下にしてください"
+    editAvatarFile.value = null
+    e.target.value = ""
+    return
+  }
+  editError.value = null
+  editAvatarFile.value = f
+}
+
+async function saveProfile() {
+  editError.value = null
+  editSaving.value = true
+  try {
+    let body
+    if (editAvatarFile.value) {
+      body = new FormData()
+      body.append("display_name", editDisplayName.value)
+      body.append("bio", editBio.value)
+      body.append("avatar", editAvatarFile.value)
+    } else {
+      body = { display_name: editDisplayName.value, bio: editBio.value }
+    }
+    const res = await api.patch("/me", { body })
+    auth.user = res.user
+    editing.value = false
+  } catch (e) {
+    editError.value = e.data?.errors?.join(", ") || "プロフィール保存に失敗しました"
+  } finally {
+    editSaving.value = false
+  }
+}
 </script>
 
 <template>
   <div>
     <NuxtLink to="/" class="text-sm text-brand-600 dark:text-brand-50 hover:underline">← タイムラインに戻る</NuxtLink>
-    <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-4 mb-2">@{{ profileName }}</h1>
+
+    <!-- プロフィールカード -->
+    <section class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6 mt-4 mb-6">
+      <div class="flex items-start gap-4">
+        <div class="shrink-0">
+          <img
+            v-if="profileAvatar"
+            :src="fullImageUrl(profileAvatar)"
+            :alt="profileName"
+            class="w-20 h-20 rounded-full object-cover bg-slate-100 dark:bg-slate-700"
+          />
+          <div v-else class="w-20 h-20 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-2xl text-slate-500 dark:text-slate-400">
+            👤
+          </div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-start justify-between gap-2">
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 truncate">@{{ profileName }}</h1>
+            <button
+              v-if="isSelf && !editing"
+              @click="openEdit"
+              class="shrink-0 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-600"
+            >プロフィールを編集</button>
+          </div>
+          <p v-if="profileBio" class="text-sm text-slate-600 dark:text-slate-300 mt-2 whitespace-pre-wrap">{{ profileBio }}</p>
+          <p v-else-if="isSelf && !editing" class="text-xs text-slate-400 dark:text-slate-500 mt-2">自己紹介はまだ未設定です</p>
+        </div>
+      </div>
+
+      <!-- 編集フォーム (本人のみ) -->
+      <form v-if="isSelf && editing" @submit.prevent="saveProfile" class="mt-4 space-y-3 border-t border-slate-200 dark:border-slate-700 pt-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">表示名 *</label>
+          <input
+            v-model="editDisplayName" required maxlength="30"
+            class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded px-3 py-2"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">自己紹介 (500 字以内)</label>
+          <textarea
+            v-model="editBio" rows="3" maxlength="500"
+            class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded px-3 py-2"
+          ></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">アバター (JPEG / PNG / GIF / WebP / 2MB 以下)</label>
+          <input
+            type="file" accept="image/*" @change="onAvatarChange"
+            class="block w-full text-sm text-slate-600 dark:text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-brand-50 file:text-brand-700 dark:file:bg-brand-900/40 dark:file:text-brand-50"
+          />
+        </div>
+        <p v-if="editError" class="text-sm text-rose-600">{{ editError }}</p>
+        <div class="flex items-center gap-2 justify-end">
+          <button type="button" @click="editing = false" class="text-sm text-slate-500 dark:text-slate-400 hover:underline">キャンセル</button>
+          <button type="submit" :disabled="editSaving"
+            class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600 disabled:opacity-50">
+            {{ editSaving ? "保存中…" : "保存" }}
+          </button>
+        </div>
+      </form>
+    </section>
 
     <!-- フォロー/フォロワータブ -->
     <div class="flex gap-1 mb-4 border-b border-slate-200 dark:border-slate-700">

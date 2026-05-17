@@ -34,7 +34,11 @@ module Api
         use_cursor = sort_mode.empty? || sort_mode == "recent"
         limit      = (params[:limit] || DEFAULT_PAGE_LIMIT).to_i.clamp(1, MAX_PAGE_LIMIT)
 
-        trips = base.sorted(sort_mode).includes(:user, :tags, images_attachments: :blob)
+        trips = base.sorted(sort_mode).includes(
+          :tags,
+          { user: { avatar_attachment: :blob } },
+          images_attachments: :blob
+        )
         trips = trips.before_cursor(params[:cursor]).limit(limit) if use_cursor
 
         results = trips.to_a
@@ -92,7 +96,6 @@ module Api
         # (本人が自分の draft を編集できる必要があるため visible_to を使えない)。
         scope = action_name == "show" ? Trip.visible_to(current_user) : Trip
         @trip = scope.includes(
-          :user,
           :tags,
           :day_entries,
           :planned_spots,
@@ -100,8 +103,9 @@ module Api
           :review,
           :budget,
           :receipts,
+          { user: { avatar_attachment: :blob } },
           { tickets: { file_attachment: :blob } },
-          { comments: :user },
+          { comments: { user: { avatar_attachment: :blob } } },
           images_attachments: :blob
         ).find(params[:id])
       end
@@ -232,6 +236,7 @@ module Api
           id: user.id,
           display_name: user.display_name,
           email: user.email,
+          avatar_url: user.avatar.attached? ? rails_blob_path(user.avatar, only_path: true) : nil,
           followed_by_me: followed_user_ids.include?(user.id)
         }
       end

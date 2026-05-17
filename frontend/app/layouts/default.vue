@@ -1,4 +1,5 @@
 <script setup>
+import { SunIcon, MoonIcon } from "@heroicons/vue/24/outline"
 import { useAuthStore } from "~/composables/useAuthStore.js"
 import { useDarkMode } from "~/composables/useDarkMode.js"
 
@@ -13,6 +14,14 @@ onMounted(() => {
 async function logout() {
   await auth.logout()
   router.push("/login")
+}
+
+const config = useRuntimeConfig()
+function fullImageUrl(path) {
+  if (!path) return null
+  if (path.startsWith("http")) return path
+  const base = config.public.apiBase.replace(/\/api\/v1$/, "")
+  return base + path
 }
 </script>
 
@@ -30,8 +39,11 @@ async function logout() {
             type="button"
             :aria-label="isDark ? 'ライトモードに切替' : 'ダークモードに切替'"
             :title="isDark ? 'ライトモードに切替' : 'ダークモードに切替'"
-            class="text-lg p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700"
-          >{{ isDark ? "☀️" : "🌙" }}</button>
+            class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-100"
+          >
+            <SunIcon v-if="isDark" class="w-5 h-5" />
+            <MoonIcon v-else class="w-5 h-5" />
+          </button>
           <template v-if="auth.user">
             <NuxtLink
               to="/trips/new"
@@ -39,7 +51,18 @@ async function logout() {
             >+ 新しい旅行記録</NuxtLink>
             <NuxtLink to="/trips/drafts" class="text-sm text-slate-600 dark:text-slate-300 hover:underline">下書き</NuxtLink>
             <NuxtLink to="/favorites" class="text-sm text-slate-600 dark:text-slate-300 hover:underline">★</NuxtLink>
-            <span class="text-sm text-slate-600 dark:text-slate-300">@{{ auth.user.display_name }}</span>
+            <NuxtLink
+              :to="`/users/${auth.user.id}`"
+              class="text-sm text-slate-600 dark:text-slate-300 hover:underline flex items-center gap-1"
+            >
+              <img
+                v-if="auth.user.avatar_url"
+                :src="fullImageUrl(auth.user.avatar_url)"
+                :alt="auth.user.display_name"
+                class="w-6 h-6 rounded-full object-cover"
+              />
+              <span>@{{ auth.user.display_name }}</span>
+            </NuxtLink>
             <button
               @click="logout"
               class="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 underline"

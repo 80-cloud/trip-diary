@@ -85,14 +85,34 @@ module Api
         end
       end
 
+      # PATCH /api/v1/me: 本人プロフィール更新 (display_name / bio / avatar)
+      def update_me
+        return render(json: { error: "ログインが必要です" }, status: :unauthorized) unless current_user
+        if current_user.update(profile_params)
+          render json: { user: user_payload(current_user) }
+        else
+          render json: { errors: current_user.errors.full_messages }, status: :unprocessable_entity
+        end
+      end
+
       private
 
       def signup_params
         params.permit(:email, :password, :display_name)
       end
 
+      def profile_params
+        params.permit(:display_name, :bio, :avatar)
+      end
+
       def user_payload(user)
-        { id: user.id, email: user.email, display_name: user.display_name, bio: user.bio }
+        {
+          id: user.id,
+          email: user.email,
+          display_name: user.display_name,
+          bio: user.bio,
+          avatar_url: user.avatar.attached? ? Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: true) : nil
+        }
       end
     end
   end

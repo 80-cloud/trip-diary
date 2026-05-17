@@ -169,6 +169,34 @@ class Api::V1::AuthControllerTest < ActionDispatch::IntegrationTest
     assert_response :no_content
   end
 
+  # PATCH /me: 本人プロフィール更新 (display_name / bio)
+  test "PATCH /me で表示名と bio を更新できる" do
+    login_via_api(users(:alice))
+    patch "/api/v1/me", params: { display_name: "新太郎", bio: "旅行が好きです" }, as: :json
+    assert_response :ok
+    body = JSON.parse(response.body)
+    assert_equal "新太郎", body.dig("user", "display_name")
+    assert_equal "旅行が好きです", body.dig("user", "bio")
+    assert_equal "新太郎", users(:alice).reload.display_name
+  end
+
+  test "PATCH /me 未ログインは 401" do
+    patch "/api/v1/me", params: { display_name: "x" }, as: :json
+    assert_response :unauthorized
+  end
+
+  test "PATCH /me 表示名空は 422" do
+    login_via_api(users(:alice))
+    patch "/api/v1/me", params: { display_name: "" }, as: :json
+    assert_response :unprocessable_entity
+  end
+
+  test "PATCH /me bio 501 文字は 422" do
+    login_via_api(users(:alice))
+    patch "/api/v1/me", params: { bio: "あ" * 501 }, as: :json
+    assert_response :unprocessable_entity
+  end
+
   # E-M2: 正常な logout で denylist 行が確実に +1 される (副作用の明示テスト)
   test "logout で RevokedJti が 1 行追加される" do
     login_via_api(users(:alice))

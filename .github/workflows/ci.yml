@@ -83,6 +83,57 @@ jobs:
       - name: Zeitwerk autoload check
         run: bin/rails zeitwerk:check
 
+      # 失敗時もカバレッジ artifact を残し、PR レビュー時に詳細を確認できるようにする
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+          retention-days: 7
+
+  security:
+    # 静的解析 + 依存脆弱性スキャン専用 job (DB / Minitest / build は不要)。
+    # backend / frontend と並列に走るので CI 総時間は伸ばさない。
+    name: security (brakeman + bundle-audit + npm audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4.9
+          bundler-cache: true
+          working-directory: backend
+
+      # 静的解析: Rails の脆弱性パターン (SQL injection / XSS / mass assignment 等)
+      # --exit-on-warn で警告検出時に非ゼロ終了 → CI fail
+      - name: Brakeman (Rails 静的解析)
+        working-directory: backend
+        run: bundle exec brakeman -q --no-pager --exit-on-warn
+
+      # 依存 gem の既知脆弱性 (ruby-advisory-db) 検査
+      # --update で advisory DB を最新化してから check
+      - name: bundle-audit (gem 依存脆弱性)
+        working-directory: backend
+        run: bundle exec bundle-audit check --update
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      # production 依存のみ対象 (dev は CI 環境固有なのでブロック対象外)
+      # high 以上で fail (moderate/low はノイズが多い)
+      - name: npm audit (frontend 依存脆弱性)
+        working-directory: frontend
+        run: npm audit --omit=dev --audit-level=high
+
   frontend:
     name: frontend (vitest + build)
     runs-on: ubuntu-latest

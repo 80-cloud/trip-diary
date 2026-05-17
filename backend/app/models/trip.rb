@@ -14,12 +14,9 @@ class Trip < ApplicationRecord
     business: "business"
   }
 
-  # 下書き / 公開済の 2 値。
-  # DB 側に default は持たせず (enum バリデーション発火のため)、
-  # 代わりに Rails 層で「未指定なら published」を defaults として持たせる。
-  # これにより params に status が無くても Trip.new が NOT NULL 違反にならない。
-  enum :status, { draft: "draft", published: "published" }
-  attribute :status, :string, default: "published"
+  # 下書き / 公開済の 2 値。default: :published で省略時に Trip.new が
+  # NOT NULL 違反にならないようにする (DB 側 default は enum バリデーション発火のため敢えて持たない)。
+  enum :status, { draft: "draft", published: "published" }, default: :published
 
   belongs_to :user
   has_many :day_entries, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :trip

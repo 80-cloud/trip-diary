@@ -22,7 +22,9 @@ module Api
       private
 
       def set_trip
-        @trip = Trip.find(params[:trip_id])
+        # 他人の draft / 非公開 trip にいいねを付けられないよう visible_to で絞る。
+        # 見えない trip は 404 にすることで「存在の漏洩」も防ぐ (RecordNotFound)。
+        @trip = Trip.visible_to(current_user).find(params[:trip_id])
       end
     end
   end

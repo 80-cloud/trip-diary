@@ -19,6 +19,10 @@ const pending     = ref(false)
 const error       = ref(null)
 const loadingMore = ref(false)
 
+// 絞り込み変更で「世代」を増やし、世代をまたいだ古いレスポンスは破棄する。
+// (例: スクロール中にカテゴリ切替 → 古い loadMore のレスポンスが新リストに紛れる罠を防ぐ)
+let loadGen = 0
+
 function currentParams(cursor = null) {
   const p = { sort: sort.value }
   if (q.value) p.q = q.value
@@ -28,24 +32,29 @@ function currentParams(cursor = null) {
 }
 
 async function reload() {
+  loadGen += 1
+  const myGen = loadGen
   pending.value = true
   error.value = null
   try {
     const res = await api.get("/trips", { params: currentParams() })
+    if (myGen !== loadGen) return  // 世代不一致 → 破棄
     trips.value      = res.trips
     nextCursor.value = res.next_cursor
   } catch (e) {
-    error.value = e
+    if (myGen === loadGen) error.value = e
   } finally {
-    pending.value = false
+    if (myGen === loadGen) pending.value = false
   }
 }
 
 async function loadMore() {
   if (loadingMore.value || !nextCursor.value) return
+  const myGen = loadGen
   loadingMore.value = true
   try {
     const res = await api.get("/trips", { params: currentParams(nextCursor.value) })
+    if (myGen !== loadGen) return  // 絞り込み変更で世代が進んだ → 古い結果を捨てる
     trips.value.push(...res.trips)
     nextCursor.value = res.next_cursor
   } finally {

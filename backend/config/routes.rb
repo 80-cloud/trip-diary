@@ -45,6 +45,14 @@ Rails.application.routes.draw do
       # タグ名は日本語/記号を含み得る。デフォルトの :id 制約だと「.」「/」で詰まるため
       # constraint で任意文字 (slash 以外) を許容する。
       get "tags/:name",   to: "tags#show", constraints: { name: %r{[^/]+} }
+
+      # F-NOTIF-01/02: 通知センター (本人専用)
+      resources :notifications, only: [:index, :update] do
+        collection do
+          get  :unread_count
+          post :read_all
+        end
+      end
     end
   end
 end

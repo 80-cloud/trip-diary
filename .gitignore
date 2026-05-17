@@ -2,6 +2,13 @@
 .DS_Store
 Untitled
 *.swp
+# macOS Finder / iCloud などが作る "ファイル名 2.拡張子" 形式の重複
+# (Rails migration が `Illegal name for migration file` で起動失敗する事故防止)
+* 2.*
+
+# UI 検証スクリーンショット (PR 検討過程の中間ファイル / 個人作業領域)
+# PR に貼る場合は GitHub にドラッグ&ドロップで添付するため commit 不要
+docs/screenshots/
 
 # Env / secrets
 .env

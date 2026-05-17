@@ -49,7 +49,7 @@ function fullImageUrl(path) {
             type="button"
             :aria-label="isDark ? 'ライトモードに切替' : 'ダークモードに切替'"
             :title="isDark ? 'ライトモードに切替 (屋外の光が強い時に推奨)' : 'ダークモードに切替'"
-            class="text-lg p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700"
+            class="w-10 h-10 flex items-center justify-center text-2xl rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
           >{{ isDark ? "☀️" : "🌙" }}</button>
           <template v-if="auth.user">
             <NuxtLink
@@ -60,15 +60,20 @@ function fullImageUrl(path) {
             <NuxtLink to="/favorites" class="text-sm text-slate-600 dark:text-slate-300 hover:underline">★</NuxtLink>
             <NuxtLink
               :to="`/users/${auth.user.id}`"
-              class="text-sm text-slate-600 dark:text-slate-300 hover:underline flex items-center gap-1"
+              class="flex items-center"
+              :title="`@${auth.user.display_name}`"
+              :aria-label="`@${auth.user.display_name} のプロフィール`"
             >
               <img
                 v-if="auth.user.avatar_url"
                 :src="fullImageUrl(auth.user.avatar_url)"
                 :alt="auth.user.display_name"
-                class="w-6 h-6 rounded-full object-cover"
+                class="w-10 h-10 rounded-full object-cover"
               />
-              <span>@{{ auth.user.display_name }}</span>
+              <span
+                v-else
+                class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-base"
+              >👤</span>
             </NuxtLink>
             <button
               @click="logout"
@@ -85,6 +90,33 @@ function fullImageUrl(path) {
         </nav>
       </div>
     </header>
+
+    <!-- 右固定カテゴリショートカット (デスクトップのみ / lg 以上) -->
+    <aside
+      aria-label="カテゴリショートカット"
+      class="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-20 flex-col gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-l-2xl shadow-xl py-3 pl-1 pr-2"
+    >
+      <NuxtLink
+        v-for="cat in [
+          {label:'すべて',   icon:'🗺️', value:null},
+          {label:'国内',     icon:'🏔️', value:'domestic'},
+          {label:'海外',     icon:'✈️', value:'overseas'},
+          {label:'一人旅',   icon:'🎒', value:'solo'},
+          {label:'グルメ',   icon:'🍣', value:'gourmet'},
+          {label:'世界遺産', icon:'🏛️', value:'heritage'},
+          {label:'家族旅',   icon:'👨‍👩‍👧', value:'family'},
+          {label:'アウトドア', icon:'🏕️', value:'outdoor'},
+          {label:'出張',     icon:'💼', value:'business'}
+        ]"
+        :key="cat.label"
+        :to="{ path: '/', query: cat.value ? { category: cat.value } : {} }"
+        :title="cat.label"
+        class="group w-14 h-14 flex flex-col items-center justify-center rounded-xl hover:bg-brand-500 hover:text-white transition"
+      >
+        <span class="text-xl">{{ cat.icon }}</span>
+        <span class="text-[9px] mt-0.5 text-slate-600 dark:text-slate-300 group-hover:text-white tracking-tighter">{{ cat.label }}</span>
+      </NuxtLink>
+    </aside>
 
     <main class="max-w-5xl mx-auto px-4 py-6">
       <slot />

@@ -20,6 +20,10 @@ Rails.application.routes.draw do
         resources :planned_spots, only: [:create, :update, :destroy]
         # F-PACK-01: 持ち物チェックリスト (本人のみ CRUD)
         resources :packing_items, only: [:create, :update, :destroy]
+        # F-TICKET-01: チケット (本人のみ CRUD / ActiveStorage 単体添付)
+        resources :tickets, only: [:create, :update, :destroy]
+        # F-REVIEW-01: 旅行レビュー (1 trip 1 review / PUT upsert)
+        resource :review, only: [:update, :destroy]
       end
 
       # 自分のお気に入り trip 一覧 (本人専用)

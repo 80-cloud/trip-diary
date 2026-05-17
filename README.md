@@ -310,6 +310,45 @@ PR ごとに **隠れバグ 1〜3 件を発見・修正** している (race con
 
 ---
 
+## 学習成果として意識したこと
+
+> 学習姿勢の全体像は [docs/学習ロードマップ.md](docs/学習ロードマップ.md)。
+> このセクションは **本プロジェクトを通じて実際に身につけた具体的な学習成果** を可視化するもの。
+
+### 各 Phase で意識した学習テーマ
+
+| Phase | 機能 | 意識した学習ポイント |
+|---|---|---|
+| 1 | 認証 / Trip CRUD / コメント / いいね | JWT in HttpOnly Cookie の安全性 / ネストフォーム (accepts_nested_attributes_for) / counter_cache の整合性 |
+| 2-1 | タグ / カテゴリ / 検索 | **多対多関連** / scope chain / 複合 AND 検索 / **LIKE エスケープによる SQL injection 防止** |
+| CI | GitHub Actions 導入 | **CI を「文化」として根付かせる** (ローカル緑 ≠ CI 緑 / 全 PR を CI で守る) |
+| 2-2 | 下書き / ダークモード / 無限スクロール | **Rails enum + 状態遷移** / Tailwind `darkMode: class` + localStorage / **cursor pagination + IntersectionObserver** |
+| 2-3 | お気に入り / 個人メモ | **uniqueness 二段防衛** (validation + DB unique index) / 本人専用リソースの認可境界 |
+| 2-4 | フォロー / フォロー中タイムライン | **自己参照関連** / through 関連 / `friends`=相互フォロー判定 |
+| 2-5a | 計画モード / 荷物 | trip-owned 子リソースの CRUD パターン / **after_update_commit による状態遷移ロジックの一元管理** (done → DayEntry 自動昇格) |
+| 2-5b | チケット / レビュー | ActiveStorage 単体添付 + MIME/size 制限 / 1 trip 1 review の **upsert + race rescue** |
+
+### 横断的に身についた設計判断
+
+- **受け入れ条件 → テスト → 実装** の順序 (CLAUDE.md §11-2): Issue に Given/When/Then を書き、まずテストに 1:1 写経してから実装する
+- **認可境界の徹底**: `Trip.visible_to(current_user)` を全リソース (likes/comments/favorites/memos/tickets/planned_spots/packing_items) で通し、他人の draft / private trip は 404 で隠す
+- **race condition の二段防衛**: uniqueness は **validation + DB unique index** の両方で守る。さらに API では **RecordInvalid (validation race) + RecordNotUnique (DB race)** を両方 rescue して upsert に倒す (PR #22 で確立 → PR #24 #28 で継承)
+- **N+1 防止の pre-fetch + Set パターン**: trip 一覧で `current_user.likes` / `favorites` / `followings` を **1 クエリで先取り → Set 参照** に統一 (PR #20/#22/#24 で確立)
+- **楽観 UI の世代管理**: 無限スクロール中にフィルタ変更で古いレスポンスが混入する race を **loadGen 世代カウンタ**で破棄 (PR #20)
+- **enum 不正値で 500 を出さない サニタイズ**: status/category/kind の不正値は controller で安全側 (nil / "other") に倒し、422 に変換 (PR #16/#20/#28)
+- **本人専用ビューと公開情報の責務分離**: tickets/planned_spots/packing_items の中身は本人のみ / 進捗バーや review (旅行レビュー) は公開、を Set + `is_owner` で出し分け (PR #26/#28)
+- **「存在の漏洩」を防ぐ 404 統一**: 「見えるが書込不可 = 403」「存在しない or 見えない = 404」を使い分け、RecordNotFound を Rails 標準で統一
+
+### 横断的に身についた開発プロセス
+
+- **Issue ファースト + Conventional Commits 日本語**: 全 13 PR で例外なく適用 ([Pulls (closed)](https://github.com/80-cloud/trip-diary/pulls?q=is%3Apr+is%3Aclosed) 参照)
+- **セルフレビュー → 隠れバグ発見 → 再 push** を全 PR で 1 周以上回し、**毎 PR で 1〜3 件の隠れバグを発見・修正** (race / N+1 / silent failure / 認可境界の漏れ など。各 PR 本文に「セルフレビューで発見・修正したバグ」セクションあり)
+- **CI 緑がマージの実質ゲート** (branch protection は別途設定): PR #18 の CI 導入以降、全 feature PR で `backend (rails test) + frontend (vitest + build)` の両 job 緑を確認してからマージ
+- **セキュリティ自己監査の継続適用**: sns-board の 10 教訓 (`docs/セキュリティ自己監査.md`) を Rails 文脈に転用し、毎 PR で E-H1 (識別子漏洩) / E-H2 (SQL injection) / E-L5 (race) を回帰固定
+- **「想定外シナリオ」の検証習慣**: PR 本文に毎回「想定外シナリオの調査結果」表を載せ、不正値 / 並行 race / 未ログイン / フィルタ後の状態変化 などを最低 8〜13 件検証
+
+---
+
 ## AI 利用方針 (提出物としての透明性)
 
 - スクール提出物のため、**AI (Claude Code) の利用は許可されているが、透明性を最重視**

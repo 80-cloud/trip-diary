@@ -5,7 +5,6 @@ class CommentTest < ActiveSupport::TestCase
     @alice = users(:alice)
     @bob   = users(:bob)
     @alice_trip = trips(:alice_kyoto) # owner = alice
-    Notification.delete_all
   end
 
   # ----- バリデーション -----

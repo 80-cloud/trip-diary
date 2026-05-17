@@ -5,8 +5,8 @@ class NotificationTest < ActiveSupport::TestCase
     @alice = users(:alice)
     @bob   = users(:bob)
     @trip  = trips(:alice_kyoto)
-    # target として使う Comment を 1 件用意 (notification hook で 1 件作成される)
-    Notification.delete_all
+    # target として使う Comment を 1 件用意。Comment#after_commit で
+    # Notification も 1 件作られるので、テスト前にリセットする。
     @comment = Comment.create!(trip: @trip, user: @bob, body: "テスト")
     Notification.delete_all
   end
@@ -44,15 +44,16 @@ class NotificationTest < ActiveSupport::TestCase
 
   test ".unread は read_at が nil のみ返す" do
     unread = Notification.create!(recipient: @alice, actor: @bob, target: @comment, verb: "commented")
-    read   = Notification.create!(recipient: @alice, actor: @bob, target: @trip, verb: "liked", read_at: Time.current)
+    read   = Notification.create!(recipient: @alice, actor: @bob, target: @comment, verb: "liked", read_at: Time.current)
     result = Notification.unread.to_a
     assert_includes result, unread
     refute_includes result, read
   end
 
   test ".recent は created_at 降順" do
+    # uniqueness scope = [actor, verb, target] なので verb を変えて 2 行作成
     older = Notification.create!(recipient: @alice, actor: @bob, target: @comment, verb: "commented", created_at: 2.hours.ago)
-    newer = Notification.create!(recipient: @alice, actor: @bob, target: @trip,    verb: "liked",     created_at: 1.minute.ago)
+    newer = Notification.create!(recipient: @alice, actor: @bob, target: @comment, verb: "liked",     created_at: 1.minute.ago)
     assert_equal [newer, older], Notification.recent.to_a
   end
 
@@ -76,8 +77,8 @@ class NotificationTest < ActiveSupport::TestCase
   # ----- User 関連 -----
 
   test "User#notifications は recipient = self のみ" do
-    mine    = Notification.create!(recipient: @alice, actor: @bob, target: @comment, verb: "commented")
-    others  = Notification.create!(recipient: @bob,   actor: @alice, target: @trip,  verb: "liked")
+    mine    = Notification.create!(recipient: @alice, actor: @bob,   target: @comment, verb: "commented")
+    others  = Notification.create!(recipient: @bob,   actor: @alice, target: @comment, verb: "liked")
     assert_includes @alice.notifications, mine
     refute_includes @alice.notifications, others
   end

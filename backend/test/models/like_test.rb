@@ -5,8 +5,8 @@ class LikeTest < ActiveSupport::TestCase
     @alice = users(:alice)
     @bob   = users(:bob)
     @alice_trip = trips(:alice_kyoto) # owner = alice
-    Notification.delete_all
-    # alice_kyoto には bob_likes_kyoto fixture が既にあるので alice 別 trip を用意
+    # alice_kyoto には bob_likes_kyoto fixture (bob → alice_kyoto) が既にあり、
+    # (user, trip) ペアの uniqueness 検証と衝突するため、別途 alice 所有の clean な trip を用意。
     @clean_trip = Trip.create!(
       user: @alice, title: "テスト用", destination: "東京",
       started_on: Date.new(2026, 7, 1), ended_on: Date.new(2026, 7, 2),

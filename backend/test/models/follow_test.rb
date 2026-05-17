@@ -57,7 +57,6 @@ class FollowTest < ActiveSupport::TestCase
 
   # F-NOTIF-01: フォロー作成で followed 宛通知が作成される
   test "フォロー作成で followed ユーザーに通知が作成される" do
-    Notification.delete_all
     assert_difference -> { Notification.count }, 1 do
       Follow.create!(follower: @alice, followed: @bob)
     end

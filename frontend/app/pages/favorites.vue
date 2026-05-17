@@ -7,7 +7,7 @@ const api = useApi()
 const config = useRuntimeConfig()
 const { labelOf } = useCategories()
 
-const { data: trips, pending, error } = await useAsyncData("my-favorites", () => api.get("/favorites"))
+const { data: trips, pending, error } = await useAsyncData("my-favorites", () => api.get("/favorites"), { deep: true })
 
 function fullImageUrl(path) {
   if (!path) return null

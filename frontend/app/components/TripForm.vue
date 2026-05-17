@@ -1,5 +1,6 @@
 <script setup>
 import { CATEGORY_OPTIONS } from "~/composables/useCategories.js"
+import ImageCropperModal from "~/components/ImageCropperModal.vue"
 
 const props = defineProps({
   initial: { type: Object, default: null },
@@ -32,14 +33,38 @@ const dayEntries = ref(
     : []
 )
 
+// props.initial が非同期で到着するケース (useAsyncData の SPA モード遅延 等) に備えて
+// 値が来たらフォーム ref を全部上書きする。null → object の遷移時のみ動作させる。
+watch(() => props.initial, (val) => {
+  if (!val) return
+  title.value       = val.title || ""
+  destination.value = val.destination || ""
+  startedOn.value   = val.started_on || ""
+  endedOn.value     = val.ended_on || ""
+  body.value        = val.body || ""
+  visibility.value  = val.visibility || "public"
+  category.value    = val.category || ""
+  tagInput.value    = (val.tags || []).join(", ")
+  dayEntries.value  = val.day_entries?.length
+    ? val.day_entries.map((d) => ({ ...d }))
+    : []
+})
+
 const selectedFiles = ref([])
 const localError = ref(null)
 const MAX_IMAGES = 5
 const MAX_SIZE_MB = 5
 
+// クロップ待機キュー: 選択ファイル群を順番にモーダルへ渡してユーザに切り抜かせる
+const cropQueue = ref([])
+const currentCropFile = ref(null)
+const croppedResults = ref([])
+const inputElRef = ref(null)
+
 function onFilesChange(e) {
   localError.value = null
   const files = Array.from(e.target.files || [])
+  inputElRef.value = e.target
   if (files.length > MAX_IMAGES) {
     localError.value = `画像は最大 ${MAX_IMAGES} 枚までです`
     e.target.value = ""
@@ -53,7 +78,29 @@ function onFilesChange(e) {
     selectedFiles.value = []
     return
   }
-  selectedFiles.value = files
+  // 1 枚ずつクロップモーダルを開き、すべて確定したら selectedFiles に反映
+  cropQueue.value = [...files]
+  croppedResults.value = []
+  currentCropFile.value = cropQueue.value.shift() || null
+}
+
+function onCropConfirm(file) {
+  croppedResults.value.push(file)
+  if (cropQueue.value.length > 0) {
+    currentCropFile.value = cropQueue.value.shift()
+  } else {
+    selectedFiles.value = croppedResults.value
+    currentCropFile.value = null
+  }
+}
+
+function onCropCancel() {
+  // 途中キャンセル → 全選択を破棄 (中途半端な mix を避ける)
+  cropQueue.value = []
+  croppedResults.value = []
+  currentCropFile.value = null
+  selectedFiles.value = []
+  if (inputElRef.value) inputElRef.value.value = ""
 }
 
 function addDay() {
@@ -161,21 +208,20 @@ function submit(statusOverride) {
       <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
         画像 (任意・最大 {{ MAX_IMAGES }} 枚・各 {{ MAX_SIZE_MB }}MB 以下)
       </label>
-      <!-- ネイティブ file input は Safari でブラウザ既定の白いボタンが出るため非表示にし、
-           カスタムボタンで包む。label の for / input id ペアでクリックを伝搬。 -->
+      <!-- ネイティブ file input は Safari (iPad) で `hidden` でも稀にレイアウト残りや
+           白い箱が見えるため、絶対配置 + サイズ 0 で物理的に消す。label の for で連動。 -->
       <input
         id="trip-images-input"
-        ref="imagesInputRef"
         type="file" accept="image/*" multiple @change="onFilesChange"
-        class="sr-only"
+        class="absolute w-0 h-0 opacity-0 pointer-events-none -z-10"
       />
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 flex-wrap">
         <label
           for="trip-images-input"
-          class="inline-block cursor-pointer bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-50 px-3 py-1.5 rounded text-sm font-medium hover:bg-brand-100 dark:hover:bg-brand-900/60"
+          class="inline-block cursor-pointer bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-1.5 rounded text-sm font-medium hover:bg-slate-300 dark:hover:bg-slate-600"
         >ファイルを選択</label>
-        <span class="text-xs text-slate-500 dark:text-slate-400 truncate">
-          {{ selectedFiles.length ? selectedFiles.map((f) => f.name).join(", ") : "ファイル未選択" }}
+        <span v-if="selectedFiles.length" class="text-xs text-slate-600 dark:text-slate-300 truncate">
+          {{ selectedFiles.map((f) => f.name).join(", ") }}
         </span>
       </div>
       <p v-if="localError" class="text-xs text-rose-600 mt-1">{{ localError }}</p>
@@ -225,7 +271,7 @@ function submit(statusOverride) {
         <textarea v-model="dayEntries[d._idx].body" rows="2" placeholder="メモ (任意)"
           class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-2 py-1 text-sm"></textarea>
       </div>
-      <button type="button" @click="addDay" class="mt-3 text-sm text-brand-600 hover:underline">+ 出来事を追加</button>
+      <button type="button" @click="addDay" class="mt-3 text-sm text-brand-600 dark:text-brand-50 hover:underline">+ 出来事を追加</button>
     </fieldset>
 
     <ul v-if="errors.length" class="text-sm text-rose-600 list-disc list-inside">
@@ -244,4 +290,11 @@ function submit(statusOverride) {
       >公開して保存</button>
     </div>
   </form>
+  <ImageCropperModal
+    v-if="currentCropFile"
+    :file="currentCropFile"
+    :filename="currentCropFile?.name || 'cropped.jpg'"
+    @confirm="onCropConfirm"
+    @cancel="onCropCancel"
+  />
 </template>

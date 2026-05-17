@@ -15,6 +15,17 @@ async function logout() {
   router.push("/login")
 }
 
+const route = useRoute()
+// ヘッダの「+ 新しい旅行記録」リンク用 to。/trips/new に居る場合は ?fresh=<ts> を付けて
+// 同一 path への navigation を発火させ、ページ側で TripForm を remount してフォームを
+// リセットする (Nuxt の同一ルート抑止を回避)。
+const newTripTo = computed(() => {
+  if (route.path === "/trips/new") {
+    return { path: "/trips/new", query: { fresh: String(Date.now()) } }
+  }
+  return "/trips/new"
+})
+
 const config = useRuntimeConfig()
 function fullImageUrl(path) {
   if (!path) return null
@@ -42,7 +53,7 @@ function fullImageUrl(path) {
           >{{ isDark ? "☀️" : "🌙" }}</button>
           <template v-if="auth.user">
             <NuxtLink
-              to="/trips/new"
+              :to="newTripTo"
               class="bg-brand-500 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-brand-600"
             >+ 新しい旅行記録</NuxtLink>
             <NuxtLink to="/trips/drafts" class="text-sm text-slate-600 dark:text-slate-300 hover:underline">下書き</NuxtLink>

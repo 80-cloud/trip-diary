@@ -1,6 +1,7 @@
 <script setup>
 import { useAuthStore } from "~/composables/useAuthStore.js"
 import { useCategories } from "~/composables/useCategories.js"
+import ImageCropperModal from "~/components/ImageCropperModal.vue"
 
 const route = useRoute()
 const router = useRouter()
@@ -10,7 +11,14 @@ const config = useRuntimeConfig()
 const { labelOf } = useCategories()
 const id = route.params.id
 
-const { data: trip, refresh, pending, error } = await useAsyncData(`trip-${id}`, () => api.get(`/trips/${id}`))
+// Nuxt 4 では useAsyncData の data はデフォルト shallowRef (Nuxt 4 から deep: false が既定)。
+// trip.value.liked_by_me = true 等の深いプロパティ代入が UI に反映されないため
+// deep: true を明示。like/favorite/コメント/予算/レシート等の mutation を有効化する。
+const { data: trip, refresh, pending, error } = await useAsyncData(
+  `trip-${id}`,
+  () => api.get(`/trips/${id}`),
+  { deep: true }
+)
 
 const newComment = ref("")
 const submitting = ref(false)
@@ -247,8 +255,27 @@ async function deleteTicket(ticket) {
   }
 }
 
+const ticketCropFile = ref(null)
+const ticketInputEl = ref(null)
 function onTicketFileChange(e) {
-  newTicketFile.value = e.target.files?.[0] || null
+  const f = e.target.files?.[0] || null
+  ticketInputEl.value = e.target
+  if (!f) { newTicketFile.value = null; return }
+  // PDF / 画像以外はクロップせずそのまま使う (チケット PDF は全体保持したい)
+  if (f.type && f.type.startsWith("image/")) {
+    ticketCropFile.value = f
+  } else {
+    newTicketFile.value = f
+  }
+}
+function onTicketCropConfirm(file) {
+  newTicketFile.value = file
+  ticketCropFile.value = null
+}
+function onTicketCropCancel() {
+  ticketCropFile.value = null
+  newTicketFile.value = null
+  if (ticketInputEl.value) ticketInputEl.value.value = ""
 }
 
 function fileUrlFull(path) {
@@ -433,9 +460,9 @@ async function toggleFollow() {
   <div v-else-if="error" class="text-center py-12 text-rose-600">エラー: {{ error.message }}</div>
 
   <article v-else-if="trip" class="space-y-6">
-    <NuxtLink to="/" class="text-sm text-brand-600 hover:underline">← 一覧に戻る</NuxtLink>
+    <NuxtLink to="/" class="text-sm text-brand-600 dark:text-brand-50 hover:underline">← 一覧に戻る</NuxtLink>
 
-    <header class="bg-white p-6 rounded-lg border border-slate-200">
+    <header class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">
       <div class="flex items-start justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 flex-wrap">
@@ -467,8 +494,8 @@ async function toggleFollow() {
           </div>
         </div>
         <div v-if="isOwner()" class="flex gap-2 shrink-0">
-          <NuxtLink :to="`/trips/${trip.id}/edit`" class="text-sm bg-slate-200 px-3 py-1.5 rounded hover:bg-slate-300">編集</NuxtLink>
-          <button @click="deleteTrip" class="text-sm bg-rose-500 text-white px-3 py-1.5 rounded hover:bg-rose-600">削除</button>
+          <NuxtLink :to="`/trips/${trip.id}/edit`" class="text-sm bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-100 px-3 py-1.5 rounded hover:bg-slate-300 dark:hover:bg-slate-600">編集</NuxtLink>
+          <button type="button" @click="deleteTrip" class="text-sm bg-rose-500 text-white px-3 py-1.5 rounded hover:bg-rose-600">削除</button>
         </div>
       </div>
 
@@ -476,7 +503,7 @@ async function toggleFollow() {
         <img v-for="(url, idx) in trip.image_urls" :key="idx" :src="fullImageUrl(url)" class="w-full aspect-video object-cover rounded" />
       </div>
 
-      <p v-if="trip.body" class="mt-4 text-slate-700 whitespace-pre-wrap">{{ trip.body }}</p>
+      <p v-if="trip.body" class="mt-4 text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{{ trip.body }}</p>
 
       <div class="mt-6 flex flex-wrap items-center gap-2">
         <button
@@ -523,7 +550,7 @@ async function toggleFollow() {
           <input type="checkbox" :checked="spot.done" @change="toggleSpotDone(spot)" class="rounded" />
           <span :class="['flex-1 text-sm', spot.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200']">{{ spot.title }}</span>
           <span v-if="spot.day_entry_id" class="text-[10px] px-1.5 py-0.5 rounded bg-brand-100 dark:bg-brand-700 text-brand-700 dark:text-brand-50">記録に追加済</span>
-          <button @click="deleteSpot(spot)" class="text-xs text-rose-500 hover:underline">削除</button>
+          <button type="button" @click="deleteSpot(spot)" class="text-xs text-rose-500 hover:underline">削除</button>
         </li>
         <li v-if="trip.planned_spots.length === 0" class="text-xs text-slate-400 dark:text-slate-500">まだ計画はありません</li>
       </ul>
@@ -543,7 +570,7 @@ async function toggleFollow() {
         <li v-for="item in trip.packing_items" :key="item.id" class="flex items-center gap-2">
           <input type="checkbox" :checked="item.packed" @change="toggleItemPacked(item)" class="rounded" />
           <span :class="['flex-1 text-sm', item.packed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200']">{{ item.body }}</span>
-          <button @click="deleteItem(item)" class="text-xs text-rose-500 hover:underline">削除</button>
+          <button type="button" @click="deleteItem(item)" class="text-xs text-rose-500 hover:underline">削除</button>
         </li>
         <li v-if="trip.packing_items.length === 0" class="text-xs text-slate-400 dark:text-slate-500">まだ持ち物はありません</li>
       </ul>
@@ -567,7 +594,7 @@ async function toggleFollow() {
             <p v-if="t.notes" class="text-xs text-slate-500 dark:text-slate-400">{{ t.notes }}</p>
             <a v-if="t.file_url" :href="fileUrlFull(t.file_url)" target="_blank" rel="noopener" class="text-xs text-slate-500 dark:text-slate-400 underline">添付ファイル</a>
           </div>
-          <button @click="deleteTicket(t)" class="text-xs text-rose-500 hover:underline shrink-0">削除</button>
+          <button type="button" @click="deleteTicket(t)" class="text-xs text-rose-500 hover:underline shrink-0">削除</button>
         </li>
         <li v-if="trip.tickets.length === 0" class="text-xs text-slate-400 dark:text-slate-500">まだチケットはありません</li>
       </ul>
@@ -583,8 +610,15 @@ async function toggleFollow() {
           class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
         <input v-model="newTicket.notes" maxlength="500" placeholder="メモ (任意)"
           class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
-        <input type="file" accept="image/*,application/pdf" @change="onTicketFileChange"
-          class="block w-full text-xs text-slate-600 dark:text-slate-300" />
+        <input id="ticket-file-input" type="file" accept="image/*,application/pdf" @change="onTicketFileChange"
+          class="absolute w-0 h-0 opacity-0 pointer-events-none -z-10" />
+        <div class="flex items-center gap-3 flex-wrap">
+          <label
+            for="ticket-file-input"
+            class="inline-block cursor-pointer bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-1.5 rounded text-sm font-medium hover:bg-slate-300 dark:hover:bg-slate-600"
+          >ファイルを選択 (画像 / PDF)</label>
+          <span v-if="newTicketFile" class="text-xs text-slate-600 dark:text-slate-300 truncate">{{ newTicketFile.name }}</span>
+        </div>
         <button type="submit" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600">追加</button>
         <p v-if="ticketError" class="text-xs text-rose-600">{{ ticketError }}</p>
       </form>
@@ -705,7 +739,7 @@ async function toggleFollow() {
             <span v-if="r.spent_on" class="text-xs text-slate-500 dark:text-slate-400">{{ r.spent_on }}</span>
             <span v-if="r.description" class="text-xs text-slate-600 dark:text-slate-300 truncate">{{ r.description }}</span>
           </div>
-          <button @click="deleteReceipt(r)" class="text-xs text-rose-500 hover:underline shrink-0">削除</button>
+          <button type="button" @click="deleteReceipt(r)" class="text-xs text-rose-500 hover:underline shrink-0">削除</button>
         </li>
         <li v-if="!trip.receipts.length" class="text-xs text-slate-400 dark:text-slate-500">まだレシートはありません</li>
       </ul>
@@ -747,7 +781,7 @@ async function toggleFollow() {
             <p class="text-sm font-medium text-slate-700 dark:text-slate-200">@{{ c.user.display_name }}</p>
             <p class="text-sm text-slate-600 dark:text-slate-300 mt-0.5 whitespace-pre-wrap">{{ c.body }}</p>
           </div>
-          <button v-if="auth.user && c.user.id === auth.user.id" @click="deleteComment(c.id)" class="text-xs text-rose-500 hover:underline shrink-0">削除</button>
+          <button type="button" v-if="auth.user && c.user.id === auth.user.id" @click="deleteComment(c.id)" class="text-xs text-rose-500 hover:underline shrink-0">削除</button>
         </li>
         <li v-if="!trip.comments.length" class="text-sm text-slate-400">まだコメントはありません。</li>
       </ul>
@@ -763,8 +797,15 @@ async function toggleFollow() {
         </button>
       </form>
       <p v-else class="text-sm text-slate-500">
-        コメントするには <NuxtLink :to="`/login?redirect=${route.fullPath}`" class="text-brand-600 underline">ログイン</NuxtLink> してください。
+        コメントするには <NuxtLink :to="`/login?redirect=${route.fullPath}`" class="text-brand-600 dark:text-brand-50 underline">ログイン</NuxtLink> してください。
       </p>
     </section>
   </article>
+  <ImageCropperModal
+    v-if="ticketCropFile"
+    :file="ticketCropFile"
+    :filename="ticketCropFile?.name || 'ticket.jpg'"
+    @confirm="onTicketCropConfirm"
+    @cancel="onTicketCropCancel"
+  />
 </template>

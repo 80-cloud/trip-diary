@@ -1,5 +1,6 @@
 <script setup>
 import { useAuthStore } from "~/composables/useAuthStore.js"
+import ImageCropperModal from "~/components/ImageCropperModal.vue"
 
 const route = useRoute()
 const api = useApi()
@@ -12,11 +13,13 @@ const tab = ref(route.query.tab === "followers" ? "followers" : "following")
 const { data: list } = await useAsyncData(
   () => `users-${id}-${tab.value}`,
   () => api.get(`/users/${id}/follows`, { params: { type: tab.value } }),
-  { watch: [tab] }
+  { watch: [tab], deep: true }
 )
 
-const { data: tripsRes } = await useAsyncData(`users-${id}-trips`, () =>
-  api.get("/trips", { params: { user_id: id, limit: 20 } })
+const { data: tripsRes } = await useAsyncData(
+  `users-${id}-trips`,
+  () => api.get("/trips", { params: { user_id: id, limit: 20 } }),
+  { deep: true }
 )
 const trips = computed(() => tripsRes.value?.trips || [])
 
@@ -50,8 +53,11 @@ function openEdit() {
   editing.value = true
 }
 
+const avatarCropFile = ref(null)
+const avatarInputEl = ref(null)
 function onAvatarChange(e) {
   const f = e.target.files?.[0] || null
+  avatarInputEl.value = e.target
   if (f && f.size > 2 * 1024 * 1024) {
     editError.value = "画像は 2MB 以下にしてください"
     editAvatarFile.value = null
@@ -59,7 +65,17 @@ function onAvatarChange(e) {
     return
   }
   editError.value = null
-  editAvatarFile.value = f
+  // クロップモーダルへ。確定したら editAvatarFile に入る
+  avatarCropFile.value = f
+}
+function onAvatarCropConfirm(file) {
+  editAvatarFile.value = file
+  avatarCropFile.value = null
+}
+function onAvatarCropCancel() {
+  avatarCropFile.value = null
+  editAvatarFile.value = null
+  if (avatarInputEl.value) avatarInputEl.value.value = ""
 }
 
 async function saveProfile() {
@@ -137,9 +153,17 @@ async function saveProfile() {
         <div>
           <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">アバター (JPEG / PNG / GIF / WebP / 2MB 以下)</label>
           <input
+            id="user-avatar-input"
             type="file" accept="image/*" @change="onAvatarChange"
-            class="block w-full text-sm text-slate-600 dark:text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-brand-50 file:text-brand-700 dark:file:bg-brand-900/40 dark:file:text-brand-50"
+            class="absolute w-0 h-0 opacity-0 pointer-events-none -z-10"
           />
+          <div class="flex items-center gap-3 flex-wrap">
+            <label
+              for="user-avatar-input"
+              class="inline-block cursor-pointer bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-1.5 rounded text-sm font-medium hover:bg-slate-300 dark:hover:bg-slate-600"
+            >ファイルを選択</label>
+            <span v-if="editAvatarFile" class="text-xs text-slate-600 dark:text-slate-300 truncate">{{ editAvatarFile.name }}</span>
+          </div>
         </div>
         <p v-if="editError" class="text-sm text-rose-600">{{ editError }}</p>
         <div class="flex items-center gap-2 justify-end">
@@ -198,4 +222,11 @@ async function saveProfile() {
       </NuxtLink>
     </div>
   </div>
+  <ImageCropperModal
+    v-if="avatarCropFile"
+    :file="avatarCropFile"
+    :filename="avatarCropFile?.name || 'avatar.jpg'"
+    @confirm="onAvatarCropConfirm"
+    @cancel="onAvatarCropCancel"
+  />
 </template>

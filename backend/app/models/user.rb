@@ -17,6 +17,10 @@ class User < ApplicationRecord
   has_many :followings, through: :active_follows,  source: :followed
   has_many :followers,  through: :passive_follows, source: :follower
 
+  # 通知 (F-NOTIF-01): recipient=自分宛 / actor=自分が引き金になった通知
+  has_many :notifications,           foreign_key: :recipient_id, dependent: :destroy
+  has_many :triggered_notifications, class_name: "Notification", foreign_key: :actor_id, dependent: :destroy
+
   has_one_attached :avatar
 
   AVATAR_MAX_SIZE = 2.megabytes

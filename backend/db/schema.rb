@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_17_080000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_18_000000) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -112,6 +112,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_080000) do
     t.index ["trip_id"], name: "index_memos_on_trip_id"
     t.index ["user_id", "trip_id"], name: "index_memos_on_user_id_and_trip_id", unique: true
     t.index ["user_id"], name: "index_memos_on_user_id"
+  end
+
+  create_table "notifications", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "actor_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "read_at"
+    t.bigint "recipient_id", null: false
+    t.bigint "target_id", null: false
+    t.string "target_type", limit: 32, null: false
+    t.datetime "updated_at", null: false
+    t.string "verb", limit: 16, null: false
+    t.index ["actor_id"], name: "fk_rails_06a39bb8cc"
+    t.index ["recipient_id", "created_at"], name: "index_notifications_on_recipient_id_and_created_at"
+    t.index ["recipient_id", "read_at"], name: "index_notifications_on_recipient_id_and_read_at"
+    t.index ["target_type", "target_id"], name: "index_notifications_on_target_type_and_target_id"
   end
 
   create_table "packing_items", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -243,6 +258,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_080000) do
   add_foreign_key "likes", "users"
   add_foreign_key "memos", "trips"
   add_foreign_key "memos", "users"
+  add_foreign_key "notifications", "users", column: "actor_id", on_delete: :cascade
+  add_foreign_key "notifications", "users", column: "recipient_id", on_delete: :cascade
   add_foreign_key "packing_items", "trips"
   add_foreign_key "planned_spots", "day_entries"
   add_foreign_key "planned_spots", "trips"

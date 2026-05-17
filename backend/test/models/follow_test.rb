@@ -54,4 +54,16 @@ class FollowTest < ActiveSupport::TestCase
     assert_equal [@bob, users(:carol)].sort_by(&:id), @alice.followings.order(:id).to_a
     assert_equal [@alice], @bob.followers.to_a
   end
+
+  # F-NOTIF-01: フォロー作成で followed 宛通知が作成される
+  test "フォロー作成で followed ユーザーに通知が作成される" do
+    assert_difference -> { Notification.count }, 1 do
+      Follow.create!(follower: @alice, followed: @bob)
+    end
+    n = Notification.last
+    assert_equal @bob.id,   n.recipient_id
+    assert_equal @alice.id, n.actor_id
+    assert_equal "followed", n.verb
+    assert_equal "Follow", n.target_type
+  end
 end

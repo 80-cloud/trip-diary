@@ -133,10 +133,6 @@ function formatRange(s, e) {
 
 <template>
   <div>
-    <div class="flex items-center justify-between mb-4">
-      <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">タイムライン</h1>
-    </div>
-
     <!-- F-FOLLOW-04: タイムラインタブ -->
     <div class="flex gap-1 mb-4 border-b border-slate-200 dark:border-slate-700">
       <button

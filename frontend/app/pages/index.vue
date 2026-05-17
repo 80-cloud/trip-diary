@@ -11,6 +11,8 @@ const { labelOf } = useCategories()
 const q        = ref(route.query.q || "")
 const category = ref(route.query.category || "")
 const sort     = ref(route.query.sort || "recent")
+// F-FOLLOW-04: タイムラインタブ ("all" or "following")
+const feed     = ref(route.query.feed === "following" ? "following" : "all")
 
 // 無限スクロール状態 (絞り込み変更で常にリセット)
 const trips       = ref([])
@@ -28,6 +30,7 @@ function currentParams(cursor = null) {
   if (q.value) p.q = q.value
   if (category.value) p.category = category.value
   if (cursor) p.cursor = cursor
+  if (feed.value === "following") p.mine = "following"
   return p
 }
 
@@ -70,11 +73,12 @@ const { data: popularTags } = await useAsyncData("popular-tags", () =>
 )
 
 // 絞り込み変更で URL 同期 + データ再読込
-watch([q, category, sort], ([newQ, newCat, newSort]) => {
+watch([q, category, sort, feed], ([newQ, newCat, newSort, newFeed]) => {
   const query = { ...route.query }
   newQ      ? query.q        = newQ        : delete query.q
   newCat    ? query.category = newCat      : delete query.category
   newSort && newSort !== "recent" ? query.sort = newSort : delete query.sort
+  newFeed === "following" ? query.feed = "following" : delete query.feed
   router.replace({ query })
   reload()
 })
@@ -130,6 +134,24 @@ function formatRange(s, e) {
   <div>
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">タイムライン</h1>
+    </div>
+
+    <!-- F-FOLLOW-04: タイムラインタブ -->
+    <div class="flex gap-1 mb-4 border-b border-slate-200 dark:border-slate-700">
+      <button
+        type="button" @click="feed = 'all'"
+        :class="[
+          'px-4 py-2 text-sm border-b-2 -mb-px',
+          feed === 'all' ? 'border-brand-500 text-brand-600 dark:text-brand-50 font-bold' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+        ]"
+      >すべて</button>
+      <button
+        type="button" @click="feed = 'following'"
+        :class="[
+          'px-4 py-2 text-sm border-b-2 -mb-px',
+          feed === 'following' ? 'border-brand-500 text-brand-600 dark:text-brand-50 font-bold' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+        ]"
+      >フォロー中</button>
     </div>
 
     <!-- 検索 + ソート -->

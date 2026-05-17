@@ -161,4 +161,46 @@ class TripTest < ActiveSupport::TestCase
       assert t.id < cursor_id, "Trip ##{t.id} は cursor #{cursor_id} 未満であること"
     end
   end
+
+  # --- F-FOLLOW-04 / friends visibility ---
+
+  test "friends trip は相互フォローしているユーザーから見える" do
+    friend_trip = trips(:alice_kyoto).dup.tap do |t|
+      t.title = "alice の友達限定 trip"
+      t.visibility = "friends"
+      t.save!
+    end
+    # 相互フォローを成立させる
+    Follow.create!(follower: users(:alice), followed: users(:bob))
+    Follow.create!(follower: users(:bob),   followed: users(:alice))
+    assert_includes Trip.visible_to(users(:bob)), friend_trip
+  end
+
+  test "friends trip は片方向フォローしか無いユーザーから見えない" do
+    friend_trip = trips(:alice_kyoto).dup.tap do |t|
+      t.title = "alice の友達限定 trip"
+      t.visibility = "friends"
+      t.save!
+    end
+    Follow.create!(follower: users(:bob), followed: users(:alice)) # bob → alice のみ
+    refute_includes Trip.visible_to(users(:bob)), friend_trip
+  end
+
+  test "friends trip は本人には常に見える (相互フォロー無くても)" do
+    friend_trip = trips(:alice_kyoto).dup.tap do |t|
+      t.title = "alice の友達限定 trip"
+      t.visibility = "friends"
+      t.save!
+    end
+    assert_includes Trip.visible_to(users(:alice)), friend_trip
+  end
+
+  test "friends trip は未ログインから見えない" do
+    friend_trip = trips(:alice_kyoto).dup.tap do |t|
+      t.title = "alice の友達限定 trip"
+      t.visibility = "friends"
+      t.save!
+    end
+    refute_includes Trip.visible_to(nil), friend_trip
+  end
 end

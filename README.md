@@ -18,6 +18,7 @@
 
 | 提出物 | 場所 |
 |---|---|
+| **🌐 本番デモ URL** | **https://d1ctuupidq4pfi.cloudfront.net/** (AWS CloudFront + ECS Fargate + RDS) |
 | **GitHub リポジトリ** | https://github.com/80-cloud/trip-diary |
 | **README (本ファイル)** | [README.md](README.md) — 機能/技術/起動手順/テスト/カバレッジ/curl 疎通/シードユーザー |
 | **設計書一式** (10 種) | [docs/](docs/) — 要件定義 / 機能一覧 / 画面設計 / ER 図 / 技術スタック / インフラ構成 / ログ・監視・障害対応 / テスト計画 / セキュリティ自己監査 / 学習ロードマップ |
@@ -25,7 +26,46 @@
 | **CI 実行履歴** | [Actions タブ](https://github.com/80-cloud/trip-diary/actions) — 全 PR で backend (Rails Minitest + zeitwerk) + frontend (Vitest + Nuxt build) が緑であること |
 | **PR 一覧** | [Pulls (closed)](https://github.com/80-cloud/trip-diary/pulls?q=is%3Apr+is%3Aclosed) — 全機能を Issue → ブランチ → PR → セルフレビュー → CI 緑 → マージで進めた履歴 |
 
+> **本番動作確認**: 本番 URL は誰でも signup して試せます (シードユーザーは本番には投入していません / signup でアカウント作成 → trip 作成 → ダークモード切替を 3 分で体験できます)。詳細手順は本 README 下部 [「🎓 講師向け動作確認手順」](#-講師向け動作確認手順) を参照。
 > **ローカル動作確認用シードユーザー**: `taro@example.com` / `password` (他 2 アカウントの一覧は本 README 下部 「シードユーザー」参照)
+
+---
+
+## 🎓 講師向け動作確認手順
+
+本番 URL: **https://d1ctuupidq4pfi.cloudfront.net/**
+
+### 3 分で主要機能を確認するフロー
+
+1. **サインアップ** — 右上「サインアップ」→ 任意の email / password (6 文字以上) で登録 → 自動ログイン
+2. **旅行記録を作成** — ヘッダー「+ 新しい旅行記録」→ タイトル / 行き先 / 期間 / カテゴリ入力 → 画像を 1 枚アップロード (クロップモーダルで「適用」) → 「公開して保存」
+3. **詳細画面で確認** — 自動遷移する詳細画面で以下を確認
+   - 画像が S3 経由で表示される (`/rails/active_storage/blobs/redirect/...` → S3 presigned URL)
+   - 計画スポット / 持ち物 / チケット / 振り返り / 予算 / 個人メモ の owner 専用セクションが表示
+   - 編集 / 削除 ボタン
+4. **ダークモード切替** — 右上の太陽 / 月アイコンをクリック → `<html class="dark">` 切替 / localStorage `trip-diary:theme` 永続化
+5. **複数アカウント連携 (任意)** — 別ブラウザ (シークレットウィンドウ) で別 email で signup → 1 で作成した trip にコメント / いいね → 元アカウントでヘッダー鈴アイコンに未読バッジが付くことを確認
+
+### 確認できる Phase 3 達成スコープ (6/6)
+
+| # | 機能 | 本番での確認方法 |
+|---|---|---|
+| 1 | S3 画像保存 | trip 詳細の画像が `s3.ap-northeast-1.amazonaws.com/...` に redirect される |
+| 2 | AWS 本番デプロイ | CloudFront + ECS Fargate + RDS が稼働 (本ページが表示されている時点で 〇) |
+| 3 | E2E 基盤 | [Actions タブ](https://github.com/80-cloud/trip-diary/actions/workflows/e2e.yml) で smoke spec GREEN |
+| 4 | 性能テスト基盤 | [Actions タブ](https://github.com/80-cloud/trip-diary/actions/workflows/perf.yml) で k6 シナリオ 6 種 |
+| 5 | 通知センター | 上記フロー 5 (バッジ + dropdown + 個別/一括既読) |
+| 6 | CI 拡充 | [Actions タブ](https://github.com/80-cloud/trip-diary/actions/workflows/ci.yml) で rubocop / ESLint / Minitest / Vitest が全 PR で実行 |
+
+### 既知の制限
+
+- **Issue #68**: E2E Playwright が **Local Mac の Chromium で hydrate 失敗**することがある (CI Ubuntu / 本番ブラウザはいずれも動作する localhost 環境固有の問題)
+- **rack-attack throttle (ブルートフォース防止)**: ALB/CloudFront 経由のため `req.ip` が edge IP になり、IP ベースの throttle が想定通り発火しない場合があります (login 自体は password 必須のため認証強度は維持。CloudFront 設定で `CF-Connecting-IP` を Rails の trusted_proxies に追加することで完全動作させる予定。)
+- **本番 DB の seed**: `db/seeds.rb` は `Rails.env.development?` ガードで本番投入されません。本番では sign up からアカウント作成してください。
+
+### 本番デプロイ後の引き戻し (講師レビュー後)
+
+講師レビュー完了後は `scripts/teardown.sh` で AWS リソース (RDS / ECS / ALB / CloudFront / S3 uploads) を撤収し、月額無料枠を超えないよう運用します (tfstate bucket のみ残置)。
 
 ---
 
@@ -81,16 +121,17 @@
 | 2-5a | **計画モード / 荷物チェックリスト** (trip-owned 子リソースの CRUD / done → DayEntry 自動昇格 / 進捗集計) | [#26](https://github.com/80-cloud/trip-diary/pull/26) |
 | 2-5b | **チケット管理 / 旅行レビュー** (ActiveStorage 単体添付 + MIME/size 制限 / 1 trip 1 review upsert) | [#28](https://github.com/80-cloud/trip-diary/pull/28) |
 
-### Phase 3 (講師提出スコープ) 🚧 進行中
+### Phase 3 (講師提出スコープ) ✅ 完成 (6/6)
 
 | 機能 | 状態 |
 |---|---|
-| **S3 画像保存** (F-S3-01) | ✅ [PR #56](https://github.com/80-cloud/trip-diary/pull/56) でマージ済 |
-| **AWS 本番デプロイ** (F-DEPLOY-01 / ECS Fargate + RDS + ALB + CloudFront) | 🚧 [PR #58](https://github.com/80-cloud/trip-diary/pull/58) で infra 完成 → 撤収済 → 再デプロイ予定 |
-| **E2E 基盤** (F-E2E-01 / Playwright + smoke spec) | 🚧 [PR #64](https://github.com/80-cloud/trip-diary/pull/64) 提出 / smoke GREEN 確認待ち |
-| **性能テスト基盤** (F-PERF-01 / k6 + Lighthouse) | 📅 計画中 |
-| **通知センター** (F-NOTIF-01 / コメント・いいね・フォロー受信通知) | 📅 計画中 (v0.4.1 で Phase 4 → 3 に引き戻し) |
-| **通知既読管理** (F-NOTIF-02 / 個別/一括既読 + 未読バッジ) | 📅 計画中 (F-NOTIF-01 と同 PR で実装予定) |
+| **S3 画像保存** (F-S3-01) | ✅ [PR #56](https://github.com/80-cloud/trip-diary/pull/56) — 本番 Active Storage が S3 に切替済 |
+| **AWS 本番デプロイ** (F-DEPLOY-01 / ECS Fargate + RDS + ALB + CloudFront) | ✅ [PR #58](https://github.com/80-cloud/trip-diary/pull/58) で infra 完成 / 本番稼働中 (https://d1ctuupidq4pfi.cloudfront.net/) |
+| **E2E 基盤** (F-E2E-01 / Playwright + smoke spec) | ✅ [PR #64](https://github.com/80-cloud/trip-diary/pull/64) + [PR #83](https://github.com/80-cloud/trip-diary/pull/83) (CI 化) — smoke CI GREEN |
+| **性能テスト基盤** (F-PERF-01 / k6 シナリオ) | ✅ [PR #71](https://github.com/80-cloud/trip-diary/pull/71) (Layer A) + [PR #93](https://github.com/80-cloud/trip-diary/pull/93) (拡充 + 30 分 soak) |
+| **通知センター** (F-NOTIF-01 / コメント・いいね・フォロー受信通知) | ✅ [PR #73](https://github.com/80-cloud/trip-diary/pull/73) / [PR #74](https://github.com/80-cloud/trip-diary/pull/74) — N-1〜N-9 動作実証済 |
+| **通知既読管理** (F-NOTIF-02 / 個別/一括既読 + 未読バッジ) | ✅ [PR #75](https://github.com/80-cloud/trip-diary/pull/75) — Headlessui `Menu` slot prop で重複 fetch 抑制 |
+| **CI 拡充** (rubocop / ESLint / E2E / Thruster) | ✅ [PR #77](https://github.com/80-cloud/trip-diary/pull/77) / [PR #79](https://github.com/80-cloud/trip-diary/pull/79) / [PR #83](https://github.com/80-cloud/trip-diary/pull/83) / [PR #84](https://github.com/80-cloud/trip-diary/pull/84) / [PR #87](https://github.com/80-cloud/trip-diary/pull/87) (ESLint blocking 化) |
 
 ### Phase 4 ⏸ (講師提出後の発展枠)
 
@@ -98,12 +139,15 @@
 
 詳細は [docs/機能一覧.md](docs/機能一覧.md) を参照。
 
-### テスト規模 (2026-05-17 時点)
+### テスト規模 (2026-05-18 時点 / Pivot-6 本番デプロイ後)
 
 | 種別 | 件数 | カバレッジ |
 |---|---|---|
-| Backend (Minitest) | 183 件 / 521 assertions GREEN | Line 89.51% / Branch 70.14% |
-| Frontend (Vitest) | 12 件 GREEN | `@vitest/coverage-v8` 設定済 (`npm run test:coverage`) |
+| Backend (Minitest) | **268 件 GREEN** | **Line 92.49% / Branch 76.33%** |
+| Frontend (Vitest) | **19 件 GREEN** | `@vitest/coverage-v8` 設定済 (`npm run test:coverage`) |
+| ESLint (Frontend) | **0 warning / 0 error** ([PR #87](https://github.com/80-cloud/trip-diary/pull/87) で blocking 化) | — |
+| E2E (Playwright) | smoke 1 件 (CI Ubuntu で GREEN / Issue #68) | — |
+| 性能 (k6) | scenarios 6 種 (smoke + timeline + trip_create + trip_detail + like + 30min soak) | — |
 
 ---
 
@@ -116,7 +160,7 @@
 | DB | MySQL 8 (Docker) |
 | 認証 | JWT in HttpOnly Cookie |
 | 画像 | ActiveStorage (Disk / Phase3 で S3) |
-| インフラ (Phase3) | AWS EC2 + RDS + Terraform |
+| インフラ (Phase3) | AWS ECS Fargate + RDS MySQL + ALB + CloudFront + S3 / Terraform 管理 |
 
 ### 使用ポート
 
@@ -223,6 +267,11 @@ open coverage/index.html
 ### API 疎通確認 (curl)
 
 ```bash
+# === 本番環境 (CloudFront 経由 / HTTPS) ===
+curl -sS https://d1ctuupidq4pfi.cloudfront.net/api/v1/health
+# → {"status":"ok","time":"..."}
+
+# === ローカル環境 ===
 # ヘルスチェック
 curl -sS http://localhost:3010/api/v1/health
 

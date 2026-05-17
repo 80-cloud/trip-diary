@@ -98,6 +98,8 @@ module Api
           :planned_spots,
           :packing_items,
           :review,
+          :budget,
+          :receipts,
           { tickets: { file_attachment: :blob } },
           { comments: :user },
           images_attachments: :blob
@@ -157,6 +159,19 @@ module Api
         planned_spots = is_owner ? trip.planned_spots.map { |s| planned_spot_payload(s) } : []
         packing_items = is_owner ? trip.packing_items.map { |i| packing_item_payload(i) } : []
         tickets       = is_owner ? trip.tickets.map       { |t| ticket_payload(t)        } : []
+        # F-BUDGET / F-RECEIPT: 本人のみ閲覧 (機密性高: 旅行金額は他人に出さない)
+        budget        = is_owner && trip.budget ? budget_payload(trip.budget) : nil
+        receipts      = is_owner ? trip.receipts.map { |r| receipt_payload(r) } : []
+        receipts_total, receipts_by_category =
+          if is_owner
+            # 既に includes(:receipts) で eager load 済 → group_by で追加クエリなし (N+1 防止)
+            list = trip.receipts.to_a
+            by_cat = Receipt::CATEGORIES.each_with_object({}) { |c, h| h[c] = 0 }
+            list.each { |r| by_cat[r.category] += r.amount }
+            [list.sum(&:amount), by_cat]
+          else
+            [nil, nil]
+          end
         trip_summary(trip, liked_ids: liked_ids, favorited_ids: favorited_ids, followed_user_ids: followed_user_ids).merge(
           body: trip.body,
           my_memo: my_memo,
@@ -168,7 +183,11 @@ module Api
           planned_spots: planned_spots,
           packing_items: packing_items,
           tickets: tickets,
-          review: trip.review ? review_payload(trip.review) : nil
+          review: trip.review ? review_payload(trip.review) : nil,
+          budget: budget,
+          receipts: receipts,
+          receipts_total: receipts_total ? format("%.2f", receipts_total) : nil,
+          receipts_by_category: receipts_by_category&.transform_values { |v| format("%.2f", v) }
         )
       end
 
@@ -190,6 +209,14 @@ module Api
 
       def review_payload(r)
         { id: r.id, rating: r.rating, body: r.body, updated_at: r.updated_at }
+      end
+
+      def budget_payload(b)
+        { id: b.id, planned_amount: format("%.2f", b.planned_amount), currency: b.currency }
+      end
+
+      def receipt_payload(r)
+        { id: r.id, amount: format("%.2f", r.amount), category: r.category, description: r.description, spent_on: r.spent_on }
       end
 
       def day_entry_payload(d)

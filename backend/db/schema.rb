@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_17_060001) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_17_070001) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -37,6 +37,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_060001) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "budgets", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "currency", limit: 3, default: "JPY", null: false
+    t.decimal "planned_amount", precision: 10, scale: 2, default: "0.0", null: false
+    t.bigint "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["trip_id"], name: "index_budgets_on_trip_id", unique: true
   end
 
   create_table "comments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -129,6 +138,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_060001) do
     t.index ["trip_id"], name: "index_planned_spots_on_trip_id"
   end
 
+  create_table "receipts", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.string "category", limit: 16, null: false
+    t.datetime "created_at", null: false
+    t.string "description", limit: 200
+    t.date "spent_on"
+    t.bigint "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["trip_id", "category"], name: "index_receipts_on_trip_id_and_category"
+    t.index ["trip_id", "spent_on"], name: "index_receipts_on_trip_id_and_spent_on"
+    t.index ["trip_id"], name: "index_receipts_on_trip_id"
+  end
+
   create_table "reviews", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.text "body"
     t.datetime "created_at", null: false
@@ -203,6 +225,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_060001) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "budgets", "trips"
   add_foreign_key "comments", "trips", on_delete: :cascade
   add_foreign_key "comments", "users"
   add_foreign_key "day_entries", "trips", on_delete: :cascade
@@ -217,6 +240,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_060001) do
   add_foreign_key "packing_items", "trips"
   add_foreign_key "planned_spots", "day_entries"
   add_foreign_key "planned_spots", "trips"
+  add_foreign_key "receipts", "trips"
   add_foreign_key "reviews", "trips"
   add_foreign_key "tickets", "trips"
   add_foreign_key "trip_tags", "tags"

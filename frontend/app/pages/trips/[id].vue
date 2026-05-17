@@ -291,6 +291,122 @@ async function deleteReview() {
   }
 }
 
+// F-BUDGET-01 / F-RECEIPT-01: 予算とレシート (本人のみ表示・編集)
+const RECEIPT_CATEGORIES = [
+  { value: "food",        label: "食事" },
+  { value: "transport",   label: "交通" },
+  { value: "lodging",     label: "宿泊" },
+  { value: "sightseeing", label: "観光" },
+  { value: "other",       label: "その他" }
+]
+const CURRENCIES = ["JPY", "USD", "EUR", "GBP", "KRW", "CNY", "TWD"]
+const CATEGORY_COLORS = {
+  food:        "bg-rose-400",
+  transport:   "bg-sky-400",
+  lodging:     "bg-amber-400",
+  sightseeing: "bg-emerald-400",
+  other:       "bg-slate-400"
+}
+
+const budgetDraft = ref({ planned_amount: 0, currency: "JPY" })
+const budgetError = ref(null)
+const budgetSaving = ref(false)
+const newReceipt = ref({ amount: "", category: "food", description: "", spent_on: "" })
+const receiptError = ref(null)
+
+watch(trip, (t) => {
+  if (t?.budget) {
+    budgetDraft.value = { planned_amount: Number(t.budget.planned_amount), currency: t.budget.currency }
+  }
+}, { immediate: true })
+
+function categoryLabel(value) {
+  return RECEIPT_CATEGORIES.find(c => c.value === value)?.label || value
+}
+
+// 進捗率 (0-100). 予算 0 の場合は 0 を返す (DivideByZero 回避)
+function spendingPercent() {
+  const planned = Number(trip.value?.budget?.planned_amount || 0)
+  const actual  = Number(trip.value?.receipts_total || 0)
+  if (planned <= 0) return 0
+  return Math.min(100, Math.round((actual / planned) * 100))
+}
+
+function categoryPercent(category) {
+  const total = Number(trip.value?.receipts_total || 0)
+  if (total <= 0) return 0
+  const v = Number(trip.value?.receipts_by_category?.[category] || 0)
+  return Math.round((v / total) * 100)
+}
+
+async function saveBudget() {
+  budgetError.value = null
+  budgetSaving.value = true
+  try {
+    const res = await api.put(`/trips/${id}/budget`, { body: { ...budgetDraft.value } })
+    trip.value.budget = res
+  } catch (e) {
+    budgetError.value = e.data?.errors?.join(", ") || "予算保存に失敗しました"
+  } finally {
+    budgetSaving.value = false
+  }
+}
+
+async function deleteBudget() {
+  if (!confirm("予算を削除しますか？")) return
+  budgetError.value = null
+  try {
+    await api.del(`/trips/${id}/budget`)
+    trip.value.budget = null
+    budgetDraft.value = { planned_amount: 0, currency: "JPY" }
+  } catch (e) {
+    budgetError.value = e.data?.error || "削除に失敗しました"
+  }
+}
+
+async function addReceipt() {
+  receiptError.value = null
+  try {
+    const created = await api.post(`/trips/${id}/receipts`, { body: { ...newReceipt.value } })
+    trip.value.receipts.unshift(created)
+    // 集計を再計算 (サーバー側で再計算するため API 結果ベースで合計を再算出)
+    recalcReceiptTotals()
+    newReceipt.value = { amount: "", category: "food", description: "", spent_on: "" }
+  } catch (e) {
+    receiptError.value = e.data?.errors?.join(", ") || "レシート追加に失敗しました"
+  }
+}
+
+async function deleteReceipt(receipt) {
+  if (!confirm("このレシートを削除しますか？")) return
+  receiptError.value = null
+  try {
+    await api.del(`/trips/${id}/receipts/${receipt.id}`)
+    trip.value.receipts = trip.value.receipts.filter(r => r.id !== receipt.id)
+    recalcReceiptTotals()
+  } catch (e) {
+    receiptError.value = e.data?.error || "削除に失敗しました"
+  }
+}
+
+// クライアント側で receipts_total と receipts_by_category を再算出
+// (API を再フェッチせずに集計バーを即時更新するための補助。サーバー値が真実)
+function recalcReceiptTotals() {
+  const list = trip.value.receipts || []
+  let total = 0
+  const byCat = RECEIPT_CATEGORIES.reduce((acc, c) => (acc[c.value] = 0, acc), {})
+  for (const r of list) {
+    const v = Number(r.amount)
+    total += v
+    if (byCat[r.category] !== undefined) byCat[r.category] += v
+    else byCat.other += v
+  }
+  trip.value.receipts_total = total.toFixed(2)
+  trip.value.receipts_by_category = Object.fromEntries(
+    Object.entries(byCat).map(([k, v]) => [k, v.toFixed(2)])
+  )
+}
+
 // F-FOLLOW-01: 投稿者を follow/unfollow
 async function toggleFollow() {
   if (!auth.user) {
@@ -501,6 +617,98 @@ async function toggleFollow() {
         </div>
         <p v-if="reviewError" class="text-xs text-rose-600">{{ reviewError }}</p>
       </form>
+    </section>
+
+    <!-- F-BUDGET-01 / F-RECEIPT-01: 予算とレシート (本人のみ) -->
+    <section v-if="isOwner()" class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">
+      <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-3">
+        予算とレシート
+        <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(自分にだけ見えます)</span>
+      </h2>
+
+      <!-- 予算 upsert form -->
+      <form @submit.prevent="saveBudget" class="space-y-2 mb-4">
+        <div class="flex flex-wrap items-end gap-2">
+          <label class="block text-xs text-slate-600 dark:text-slate-400">
+            予算
+            <input
+              v-model.number="budgetDraft.planned_amount" type="number" min="0" step="1"
+              class="block w-32 mt-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm"
+            />
+          </label>
+          <label class="block text-xs text-slate-600 dark:text-slate-400">
+            通貨
+            <select v-model="budgetDraft.currency" class="block mt-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm">
+              <option v-for="c in CURRENCIES" :key="c" :value="c">{{ c }}</option>
+            </select>
+          </label>
+          <button type="submit" :disabled="budgetSaving"
+            class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600 disabled:opacity-50">
+            {{ budgetSaving ? "保存中…" : (trip.budget ? "予算を更新" : "予算を保存") }}
+          </button>
+          <button v-if="trip.budget" type="button" @click="deleteBudget" class="text-xs text-rose-500 hover:underline">予算を削除</button>
+        </div>
+        <p v-if="budgetError" class="text-xs text-rose-600">{{ budgetError }}</p>
+      </form>
+
+      <!-- 進捗バー: planned vs actual -->
+      <div v-if="trip.budget && Number(trip.budget.planned_amount) > 0" class="mb-4">
+        <div class="flex justify-between text-xs text-slate-600 dark:text-slate-400 mb-1">
+          <span>支出 {{ trip.receipts_total }} / 予算 {{ trip.budget.planned_amount }} {{ trip.budget.currency }}</span>
+          <span :class="spendingPercent() >= 100 ? 'text-rose-500 font-bold' : ''">{{ spendingPercent() }}%</span>
+        </div>
+        <div class="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">
+          <div :class="['h-full', spendingPercent() >= 100 ? 'bg-rose-500' : 'bg-emerald-500']"
+            :style="{ width: spendingPercent() + '%' }"></div>
+        </div>
+      </div>
+
+      <!-- カテゴリ別バー -->
+      <div v-if="Number(trip.receipts_total || 0) > 0" class="mb-4 space-y-1">
+        <p class="text-xs text-slate-600 dark:text-slate-400">カテゴリ別内訳</p>
+        <div v-for="c in RECEIPT_CATEGORIES" :key="c.value" class="flex items-center gap-2 text-xs">
+          <span class="w-12 text-slate-600 dark:text-slate-300">{{ c.label }}</span>
+          <div class="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">
+            <div :class="['h-full', CATEGORY_COLORS[c.value]]" :style="{ width: categoryPercent(c.value) + '%' }"></div>
+          </div>
+          <span class="w-24 text-right tabular-nums text-slate-700 dark:text-slate-200">{{ trip.receipts_by_category?.[c.value] || "0.00" }}</span>
+        </div>
+      </div>
+
+      <!-- レシート追加 form -->
+      <form @submit.prevent="addReceipt" class="space-y-2 border-t border-slate-200 dark:border-slate-700 pt-3">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <input v-model.number="newReceipt.amount" type="number" min="1" step="1" required placeholder="金額"
+            class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
+          <select v-model="newReceipt.category"
+            class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm">
+            <option v-for="c in RECEIPT_CATEGORIES" :key="c.value" :value="c.value">{{ c.label }}</option>
+          </select>
+          <input v-model="newReceipt.spent_on" type="date"
+            class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
+          <input v-model="newReceipt.description" type="text" maxlength="200" placeholder="メモ (任意)"
+            class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" />
+        </div>
+        <button type="submit"
+          class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600">レシートを追加</button>
+        <p v-if="receiptError" class="text-xs text-rose-600">{{ receiptError }}</p>
+      </form>
+
+      <!-- レシート一覧 -->
+      <ul class="mt-3 space-y-1">
+        <li v-for="r in trip.receipts" :key="r.id"
+          class="flex items-center justify-between text-sm border-b border-slate-100 dark:border-slate-700 pb-1 last:border-0">
+          <div class="flex items-center gap-2 min-w-0">
+            <span :class="['inline-block w-2 h-2 rounded-full shrink-0', CATEGORY_COLORS[r.category]]"></span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 w-12">{{ categoryLabel(r.category) }}</span>
+            <span class="tabular-nums text-slate-800 dark:text-slate-100">{{ r.amount }}</span>
+            <span v-if="r.spent_on" class="text-xs text-slate-500 dark:text-slate-400">{{ r.spent_on }}</span>
+            <span v-if="r.description" class="text-xs text-slate-600 dark:text-slate-300 truncate">{{ r.description }}</span>
+          </div>
+          <button @click="deleteReceipt(r)" class="text-xs text-rose-500 hover:underline shrink-0">削除</button>
+        </li>
+        <li v-if="!trip.receipts.length" class="text-xs text-slate-400 dark:text-slate-500">まだレシートはありません</li>
+      </ul>
     </section>
 
     <!-- F-MEMO-01: 個人メモ (本人のみ表示・本人のみ参照可) -->

@@ -161,11 +161,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 初回は continue-on-error: true で warning/error を可視化のみ。
-      # 別 PR で remaining errors を 0 化 → continue-on-error を削除して blocking 化する。
+      # ESLint は blocking。lint 違反 (warning 含む) は CI fail。
+      # 過去経緯: PR #79 で auto-fix → grandfather (continue-on-error) で導入し、
+      # Issue #80 (PR #本PR) で残 errors を 0 化して blocking 化した。
       - name: Run ESLint
         run: npm run lint
-        continue-on-error: true
 
       - name: Run Vitest
         run: npm test -- --run

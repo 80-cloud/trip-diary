@@ -77,10 +77,14 @@ const { data: popularTags } = await useAsyncData("popular-tags", () =>
 // 絞り込み変更で URL 同期 + データ再読込
 watch([q, category, sort, feed], ([newQ, newCat, newSort, newFeed]) => {
   const query = { ...route.query }
-  newQ      ? query.q        = newQ        : delete query.q
-  newCat    ? query.category = newCat      : delete query.category
-  newSort && newSort !== "recent" ? query.sort = newSort : delete query.sort
-  newFeed === "following" ? query.feed = "following" : delete query.feed
+  if (newQ) query.q = newQ
+  else delete query.q
+  if (newCat) query.category = newCat
+  else delete query.category
+  if (newSort && newSort !== "recent") query.sort = newSort
+  else delete query.sort
+  if (newFeed === "following") query.feed = "following"
+  else delete query.feed
   router.replace({ query })
   reload()
 })

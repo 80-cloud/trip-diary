@@ -134,6 +134,55 @@ class Api::V1::AuthControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # E-M2: logout した token は denylist に載り、以降の認証で弾かれる
+  test "logout 後の me は user: nil (jti denylist)" do
+    login_via_api(users(:alice))
+    get "/api/v1/me"
+    assert_equal users(:alice).email, JSON.parse(response.body).dig("user", "email")
+
+    delete "/api/v1/logout"
+    assert_response :no_content
+
+    get "/api/v1/me"
+    assert_nil JSON.parse(response.body)["user"]
+  end
+
+  # E-M2: logout で revoke された token を直接埋め込んでも認証は通らない
+  # (Cookie 漏洩 → 再利用を防ぐシナリオ)
+  test "revoke 済 jti を持つ token は current_user 不成立" do
+    # ログイン → token を抜き取り → logout → 同 token を埋めて再アクセス
+    login_via_api(users(:alice))
+    leaked_cookie = cookies[ApplicationController::COOKIE_NAME.to_s]
+    delete "/api/v1/logout"
+    # logout で cookie は消えるが、漏洩した raw cookie を再注入
+    cookies[ApplicationController::COOKIE_NAME.to_s] = leaked_cookie
+    get "/api/v1/me"
+    assert_nil JSON.parse(response.body)["user"], "revoke 済 token は弾かれること"
+  end
+
+  # 壊れた cookie が来ても logout は 204 で成功する (decode 失敗時の安全動作)
+  test "壊れた cookie でも logout は 204" do
+    cookies[ApplicationController::COOKIE_NAME.to_s] = "garbage"
+    assert_no_difference -> { RevokedJti.count } do
+      delete "/api/v1/logout"
+    end
+    assert_response :no_content
+  end
+
+  # E-M2: 正常な logout で denylist 行が確実に +1 される (副作用の明示テスト)
+  test "logout で RevokedJti が 1 行追加される" do
+    login_via_api(users(:alice))
+    assert_difference -> { RevokedJti.count }, 1 do
+      delete "/api/v1/logout"
+    end
+  end
+
+  # NOTE: 「expired な denylist entry は認証を妨げない」は model test の
+  # `active scope は expires_at > now のみ` で境界を担保しており、controller の
+  # チェックは `RevokedJti.active.exists?(jti: ...)` の 1 行なので integration を
+  # 重ねない (`cookies.encrypted` が Rack::Test::CookieJar では使えないため、
+  # cookie 経由で jti を取り出す integration test は不安定)。
+
   # E-M1: signup throttle (3 req/min 超過で 429)
   test "signup: 4 連射目で 429 (rack-attack)" do
     Rack::Attack.enabled = true

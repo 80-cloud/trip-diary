@@ -8,6 +8,8 @@ class JsonWebToken
     def encode(payload, exp: DEFAULT_EXP.from_now)
       payload = payload.dup
       payload[:exp] = exp.to_i
+      # E-M2: 個別 token を一意識別する jti を付与し、logout で denylist に登録できるようにする
+      payload[:jti] ||= SecureRandom.uuid
       JWT.encode(payload, secret, ALGORITHM)
     end
 

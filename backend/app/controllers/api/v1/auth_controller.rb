@@ -60,6 +60,13 @@ module Api
       end
 
       def logout
+        # E-M2: cookie を消すだけでなく jti を denylist に登録し、流出 token を無効化
+        token = cookies.encrypted[ApplicationController::COOKIE_NAME]
+        if token.present? && (payload = JsonWebToken.decode(token)) && payload[:jti] && payload[:exp]
+          RevokedJti.revoke!(jti: payload[:jti], expires_at: Time.at(payload[:exp]))
+          # logout はそれほど頻発しない (= cleanup の機会としてちょうど良い)
+          RevokedJti.cleanup_expired!
+        end
         clear_jwt_cookie
         head :no_content
       end

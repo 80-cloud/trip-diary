@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_17_070001) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_17_080000) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -158,6 +158,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_070001) do
     t.bigint "trip_id", null: false
     t.datetime "updated_at", null: false
     t.index ["trip_id"], name: "index_reviews_on_trip_id", unique: true
+  end
+
+  create_table "revoked_jtis", primary_key: "jti", id: { type: :string, limit: 36 }, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.index ["expires_at"], name: "index_revoked_jtis_on_expires_at"
   end
 
   create_table "tags", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|

@@ -15,7 +15,11 @@ class ApplicationController < ActionController::API
     return @current_user if token.blank?
 
     payload = JsonWebToken.decode(token)
-    @current_user = User.find_by(id: payload[:user_id]) if payload
+    return @current_user unless payload
+    # E-M2: logout 時に denylist へ載った jti は弾く (token 自体は exp までは有効でも認証不成立)
+    return @current_user if payload[:jti] && RevokedJti.active.exists?(jti: payload[:jti])
+
+    @current_user = User.find_by(id: payload[:user_id])
   end
 
   def authenticate_user!

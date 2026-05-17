@@ -60,6 +60,19 @@ module Api
       end
 
       def logout
+        # E-M2: cookie を消すだけでなく jti を denylist に登録し、流出 token を無効化
+        token = cookies.encrypted[ApplicationController::COOKIE_NAME]
+        if token.present? && (payload = JsonWebToken.decode(token)) && payload[:jti] && payload[:exp]
+          begin
+            RevokedJti.revoke!(jti: payload[:jti], expires_at: Time.at(payload[:exp]))
+            # logout はそれほど頻発しない (= cleanup の機会としてちょうど良い)
+            RevokedJti.cleanup_expired!
+          rescue => e
+            # denylist 障害でも cookie 削除 + 204 は保証する (UX: 500 で「ログアウトできない」を防ぐ)
+            # 流出 token が exp までは有効になる劣化はあるが、cookie 削除という第一防衛は機能
+            Rails.logger.warn("[logout] denylist failure: #{e.class}: #{e.message}")
+          end
+        end
         clear_jwt_cookie
         head :no_content
       end

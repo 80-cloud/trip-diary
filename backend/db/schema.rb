@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_16_232938) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_17_010002) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -73,8 +73,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_16_232938) do
     t.index ["user_id"], name: "index_likes_on_user_id"
   end
 
+  create_table "tags", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", limit: 32, null: false
+    t.integer "trips_count", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_tags_on_name", unique: true
+    t.index ["trips_count"], name: "index_tags_on_trips_count"
+  end
+
+  create_table "trip_tags", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "tag_id", null: false
+    t.bigint "trip_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tag_id"], name: "index_trip_tags_on_tag_id"
+    t.index ["trip_id", "tag_id"], name: "index_trip_tags_on_trip_id_and_tag_id", unique: true
+    t.index ["trip_id"], name: "index_trip_tags_on_trip_id"
+  end
+
   create_table "trips", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.text "body"
+    t.string "category", limit: 32, null: false
     t.integer "comments_count", default: 0, null: false
     t.datetime "created_at", null: false
     t.string "destination", limit: 80, null: false
@@ -85,6 +105,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_16_232938) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.string "visibility", limit: 16, default: "public", null: false
+    t.index ["category"], name: "index_trips_on_category"
     t.index ["created_at"], name: "index_trips_on_created_at"
     t.index ["destination"], name: "index_trips_on_destination"
     t.index ["user_id"], name: "index_trips_on_user_id"
@@ -107,5 +128,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_16_232938) do
   add_foreign_key "day_entries", "trips", on_delete: :cascade
   add_foreign_key "likes", "trips", on_delete: :cascade
   add_foreign_key "likes", "users"
+  add_foreign_key "trip_tags", "tags"
+  add_foreign_key "trip_tags", "trips"
   add_foreign_key "trips", "users"
 end

@@ -11,6 +11,7 @@ alice_kyoto:
   ended_on: <%= Date.new(2026, 4, 3) %>
   body: 桜が綺麗だった
   visibility: public
+  category: domestic
 
 bob_okinawa:
   user: bob
@@ -20,6 +21,7 @@ bob_okinawa:
   ended_on: <%= Date.new(2026, 5, 5) %>
   body: 海が綺麗
   visibility: public
+  category: domestic
 
 alice_private:
   user: alice
@@ -29,3 +31,24 @@ alice_private:
   ended_on: <%= Date.new(2026, 6, 2) %>
   body: 秘密
   visibility: private
+  category: domestic
+
+bob_paris:
+  user: bob
+  title: パリ 5 日間
+  destination: パリ
+  started_on: <%= Date.new(2026, 5, 10) %>
+  ended_on: <%= Date.new(2026, 5, 14) %>
+  body: ルーヴル美術館を回った
+  visibility: public
+  category: overseas
+
+alice_ramen:
+  user: alice
+  title: 京都ラーメン巡り
+  destination: 京都
+  started_on: <%= Date.new(2026, 7, 1) %>
+  ended_on: <%= Date.new(2026, 7, 2) %>
+  body: 一乗寺の名店をはしご
+  visibility: public
+  category: gourmet

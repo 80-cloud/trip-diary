@@ -7,8 +7,13 @@ module Api
 
       def index
         trips = Trip.visible_to(current_user)
-                    .recent
-                    .includes(:user, images_attachments: :blob)
+                    .by_tag(params[:tag])
+                    .by_category(params[:category])
+                    .in_date_range(params[:date_from], params[:date_to])
+                    .search(params[:q])
+                    .sorted(params[:sort])
+                    .includes(:user, :tags, images_attachments: :blob)
+        trips = trips.where(user_id: params[:user_id]) if params[:user_id].present?
         liked_ids = current_user ? current_user.likes.where(trip_id: trips.map(&:id)).pluck(:trip_id).to_set : Set.new
         render json: trips.map { |t| trip_summary(t, liked_ids: liked_ids) }
       end
@@ -45,6 +50,7 @@ module Api
       def set_trip
         @trip = Trip.includes(
           :user,
+          :tags,
           :day_entries,
           { comments: :user },
           images_attachments: :blob
@@ -58,8 +64,9 @@ module Api
 
       def trip_params
         params.permit(
-          :title, :destination, :started_on, :ended_on, :body, :visibility,
+          :title, :destination, :started_on, :ended_on, :body, :visibility, :category,
           images: [],
+          tag_list: [],
           day_entries_attributes: [:id, :day_number, :happened_on, :title, :body, :position, :_destroy]
         )
       end
@@ -72,6 +79,8 @@ module Api
           started_on: trip.started_on,
           ended_on: trip.ended_on,
           visibility: trip.visibility,
+          category: trip.category,
+          tags: trip.tags.map(&:name),
           likes_count: trip.likes_count,
           comments_count: trip.comments_count,
           liked_by_me: liked_ids.include?(trip.id),

@@ -15,6 +15,11 @@ concurrency:
 permissions:
   contents: read
 
+# 2026-06-02 に actions/* の Node.js 20 ランタイムが廃止される。
+# 強制 Node 24 オプトインで前倒し対応。
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   backend:
     name: backend (rails test)

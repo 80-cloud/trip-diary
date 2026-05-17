@@ -130,4 +130,30 @@ class Api::V1::TripsControllerTest < ActionDispatch::IntegrationTest
       as: :json
     assert_response :unprocessable_entity
   end
+
+  # enum setter は不正値で ArgumentError を上げる (= デフォルト 500)。
+  # controller 側で sanitize して 422 にしていることを保証する。
+  test "POST /api/v1/trips with invalid category は 500 ではなく 422" do
+    login_via_api(users(:alice))
+    post "/api/v1/trips",
+      params: {
+        title: "不正カテゴリ", destination: "東京",
+        started_on: "2026-08-01", ended_on: "2026-08-02",
+        body: "", visibility: "public", category: "invalid_xyz"
+      },
+      as: :json
+    assert_response :unprocessable_entity
+  end
+
+  test "POST /api/v1/trips with empty category は 422" do
+    login_via_api(users(:alice))
+    post "/api/v1/trips",
+      params: {
+        title: "空カテゴリ", destination: "東京",
+        started_on: "2026-08-01", ended_on: "2026-08-02",
+        body: "", visibility: "public", category: ""
+      },
+      as: :json
+    assert_response :unprocessable_entity
+  end
 end

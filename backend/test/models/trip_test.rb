@@ -113,4 +113,13 @@ class TripTest < ActiveSupport::TestCase
     expected_order = Trip.all.sort_by { |t| t.created_at }.reverse.map(&:id)
     assert_equal expected_order, sorted_ids
   end
+
+  # 33 文字以上のタグを渡すと Tag.create! が後付けで 500 になる罠を、
+  # Trip 側のプリバリデーションで 422 に倒すことを保証する。
+  test "tag_list= で 32 文字超のタグは validation で弾く" do
+    trip = trips(:alice_kyoto)
+    trip.tag_list = ["あ" * 33]
+    refute trip.valid?
+    assert_includes trip.errors[:tags], "は各 32 文字以内にしてください"
+  end
 end

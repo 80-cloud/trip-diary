@@ -1,4 +1,6 @@
 <script setup>
+import { CATEGORY_OPTIONS } from "~/composables/useCategories.js"
+
 const props = defineProps({
   initial: { type: Object, default: null },
   errors: { type: Array, default: () => [] }
@@ -13,8 +15,6 @@ const body = ref(props.initial?.body || "")
 const visibility = ref(props.initial?.visibility || "public")
 const category = ref(props.initial?.category || "")
 const tagInput = ref((props.initial?.tags || []).join(", "))
-
-import { CATEGORY_OPTIONS } from "~/composables/useCategories.js"
 
 function parseTagList(text) {
   return (text || "")

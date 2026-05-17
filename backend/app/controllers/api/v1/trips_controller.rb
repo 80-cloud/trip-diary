@@ -63,12 +63,18 @@ module Api
       end
 
       def trip_params
-        params.permit(
+        permitted = params.permit(
           :title, :destination, :started_on, :ended_on, :body, :visibility, :category,
           images: [],
           tag_list: [],
           day_entries_attributes: [:id, :day_number, :happened_on, :title, :body, :position, :_destroy]
         )
+        # 未知の category 値は nil に倒す。enum setter は不正値で ArgumentError を raise し、
+        # そのままだと 500 になるため。nil にしておけば presence: true で 422 を返せる。
+        if permitted[:category].present? && !Trip.categories.key?(permitted[:category])
+          permitted[:category] = nil
+        end
+        permitted
       end
 
       def trip_summary(trip, liked_ids:)

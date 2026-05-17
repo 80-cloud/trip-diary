@@ -34,6 +34,7 @@ class Trip < ApplicationRecord
   validate :end_after_start
   validate :images_count_within_limit
   validate :images_size_within_limit
+  validate :tag_list_within_limits
 
   scope :recent, -> { order(created_at: :desc) }
   scope :visible_to, ->(user) {
@@ -112,7 +113,6 @@ class Trip < ApplicationRecord
     @tag_list_pending = nil
   end
 
-
   def end_after_start
     return if started_on.blank? || ended_on.blank?
     errors.add(:ended_on, "は開始日以降を指定してください") if ended_on < started_on
@@ -129,6 +129,16 @@ class Trip < ApplicationRecord
         errors.add(:images, "の各ファイルは 5MB 以下にしてください")
         break
       end
+    end
+  end
+
+  # tag_list= 経由でフォーム入力されたタグを、save 前に長さ検証する。
+  # Tag.create! が後付けで RecordInvalid を上げると 500 になるため、ここで先回り。
+  def tag_list_within_limits
+    return if @tag_list_pending.nil?
+    cleaned = @tag_list_pending.map { |n| n.to_s.strip }.reject(&:blank?).uniq
+    if cleaned.any? { |n| n.length > 32 }
+      errors.add(:tags, "は各 32 文字以内にしてください")
     end
   end
 end

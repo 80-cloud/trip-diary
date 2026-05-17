@@ -6,6 +6,7 @@
 |---|---|---|---|
 | 0.1 | 2026-05-17 | hideharu-AI | 初版 (Phase1 テーブル + Phase2/3 予定テーブル) |
 | 0.2 | 2026-05-17 | hideharu-AI | 機能一覧 v0.2 拡張に同期。§5 に categories / planned_spots / expenses / budgets / locations (polymorphic) / direct_messages を追加。主要関連・追加インデックス・counter_cache 候補も整理 |
+| 0.3 | 2026-05-17 | hideharu-AI | 機能一覧 v0.3 (機能候補第 2 弾) に同期。§5-5 に favorites / memos / packing_items / tickets / reviews / search_histories / trip_collaborators + 既存テーブル拡張カラム (trips.status, categories.color, users.preferences, expenses.receipt, day_entries.started_at/ended_at, trips.lock_version) を整理。§5-6 統計キャッシュ戦略 / §6-2 第 2 弾削除戦略を追加 |
 
 ---
 
@@ -203,6 +204,29 @@
 - `trips.planned_spots_count` / `trips.visited_spots_count` (進捗バー用)
 - `users.followers_count` / `users.following_count`
 
+### 5-5. 機能候補第 2 弾で追加するテーブル / カラム
+
+| テーブル / カラム | 概要 | Phase | 関連機能 ID |
+|---|---|---|---|
+| `favorites` | user_id / trip_id / UNIQUE(user_id, trip_id) | 2 | F-FAV-01 |
+| `memos` | trip_id / user_id / body (各ユーザーが他人 trip にも書ける個人メモ) | 2 | F-MEMO-01 |
+| `packing_items` | trip_id / name / checked / position | 2 | F-PACK-01 |
+| `tickets` | trip_id / kind (transport/lodging/event) / reservation_no / url / note + has_one_attached :file | 2 | F-TICKET-01 |
+| `reviews` | trip_id / user_id / rating(1-5) / body / UNIQUE(trip_id, user_id) | 2 | F-REVIEW-01 |
+| `search_histories` | user_id / query / hit_count / last_used_at | 2 | F-UX-SEARCH-HIST |
+| (trips.status) | enum: draft / published — **既存 trips に追加** | 2 | F-UX-DRAFT |
+| (categories.color) | hex (例: "#0284c7") — **既存 categories に追加** | 2 | F-UI-CAT-COLOR |
+| (users.preferences) | jsonb (dark_mode / locale 等) — **既存 users に追加** | 2 | F-UI-DARK |
+| (expenses.receipt) | has_one_attached :receipt — **既存 expenses 拡張** | 2 | F-RECEIPT-01 |
+| (day_entries.started_at / ended_at) | time 列追加で滞在時間集計 | 3 | F-STATS-05 |
+| (trips.lock_version) | 楽観ロック (Rails 標準 ActiveRecord::Locking::Optimistic) | 4 | F-GROUP-02 |
+| `trip_collaborators` | trip_id / user_id / role (viewer/editor) / invited_at / accepted_at | 4 | F-GROUP-01 |
+
+### 5-6. 統計系のキャッシュ戦略 (Phase 3 / F-STATS-*)
+
+- 旅行統計はオンデマンド集計 (キャッシュなし) で開始 → Trip 数 100 超で `solid_cache` ベースのキャッシュへ移行
+- 都道府県制覇率は `trips.destination` の文字列マッチではなく **`Trip.prefecture` (string, enum 47 都道府県)** を追加すると正確 (Phase 3 着手時に検討)
+
 ---
 
 ## 6. データ整合性ルール
@@ -212,7 +236,7 @@
 - `User` 削除時は その人の `trips` も CASCADE 削除 (※ 講師方針が「ユーザー削除なし」なら Phase2 で軟削除へ変更可)
 - カウンタ (likes_count / comments_count) は Rails `counter_cache` で自動更新。整合性は Phase3 で月次バッチで再計算
 
-### 6-2. Phase 2-4 追加テーブルの削除戦略 (§5 と連動)
+### 6-2. Phase 2-4 追加テーブルの削除戦略 (§5 / §5-5 と連動)
 
 | 削除対象 | 連鎖削除 | 理由 |
 |---|---|---|
@@ -224,6 +248,9 @@
 | `DayEntry / PlannedSpot` 削除時 | `locations` (polymorphic) を CASCADE | 位置情報は親に従属 |
 | `Tag` 削除時 (Phase 2 後半) | `trip_tags` を CASCADE / `Tag` 自体は手動削除のみ | タグの孤児化を防ぐ |
 | `Category` 削除時 | `Trip.category_id` を NULLIFY または `restrict_with_error` | カテゴリ削除で trip を消したくないため |
+| `Trip` 削除時 (第 2 弾) | `favorites` / `memos` / `packing_items` / `tickets` / `reviews` / `trip_collaborators` を CASCADE | 旅行記録に従属 |
+| `User` 削除時 (第 2 弾) | `favorites` / `memos` / `reviews` / `search_histories` / `trip_collaborators` を CASCADE | 当事者なし → 残せない |
+| `Expense` 削除時 | `expenses.receipt` (ActiveStorage) を purge | 添付ファイルの孤児化を防ぐ |
 
 ### 6-3. 追加 counter_cache の整合性
 - `trips.planned_spots_count` / `trips.visited_spots_count` (計画進捗バー) → counter_cache + Phase 3 で月次再計算

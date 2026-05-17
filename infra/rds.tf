@@ -1,14 +1,20 @@
 # RDS MySQL 8.0。Rails 8.1 + mysql2 gem。
 # docs/インフラ構成.md §2 (v0.2 ECS 構成)。
 #
-# !!! 重要: Rails 8 Solid stack (cache / queue / cable) について !!!
+# !!! Rails 8 Solid stack (cache / queue / cable) の 4 データベース構成について !!!
 # Rails 8 はデフォルトで cache / queue / cable に別データベースを使う構成
 # (config/database.yml の production 参照)。RDS インスタンス 1 個に 4 つの
-# データベース (primary + cache + queue + cable) を作成する。
-#   - aws_db_instance.db_name は primary (trip_diary_prod) のみを作成
-#   - 残り 3 つ (trip_diary_prod_cache / _queue / _cable) は初回 apply 後に
-#     手動で `CREATE DATABASE` を発行する (README §運用 Runbook 参照)
-# 自動化は別 PR (init container / null_resource 等) で検討。
+# データベース (primary + cache + queue + cable) を作成する必要がある。
+#
+# **自動化済み**: backend/bin/docker-entrypoint が `./bin/rails server` 起動前に
+# `./bin/rails db:prepare` を実行する。db:prepare は database.yml に列挙された
+# 全データベースについて「存在しなければ create + schema load」を行う:
+#   - primary: aws_db_instance.db_name (trip_diary_prod) + db/schema.rb
+#   - cache:   trip_diary_prod_cache + db/cache_schema.rb (solid_cache_entries)
+#   - queue:   trip_diary_prod_queue + db/queue_schema.rb (solid_queue_*)
+#   - cable:   trip_diary_prod_cable + db/cable_schema.rb (solid_cable_messages)
+# RDS マスターユーザー (var.db_username) は CREATE DATABASE 権限を持つため動作する。
+# → 手動 CREATE DATABASE / 別 PR の init container 不要。
 
 # DB Subnet Group: RDS は最低 2 AZ のサブネットを要求するため A / C をまとめる
 # (RDS 自体は Single-AZ で az_a に配置される)。

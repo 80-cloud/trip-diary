@@ -5,6 +5,9 @@ class User < ApplicationRecord
   has_many :comments, dependent: :destroy
   has_many :likes, dependent: :destroy
   has_many :liked_trips, through: :likes, source: :trip
+  has_many :favorites, dependent: :destroy
+  has_many :favorite_trips, through: :favorites, source: :trip
+  has_many :memos, dependent: :destroy
   has_one_attached :avatar
 
   validates :email, presence: true, uniqueness: { case_sensitive: false },

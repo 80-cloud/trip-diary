@@ -374,7 +374,7 @@ PR ごとに **隠れバグ 1〜3 件を発見・修正** している (race con
 
 ### ECS 構成での追加チェック (Issue #55 で確定)
 
-- [ ] **Active Storage**: `config.active_storage.service = :amazon` を確認 (PR #N で対応済)
+- [ ] **Active Storage**: `config.active_storage.service = :amazon` を確認 (本 PR #56 で対応 / 起動時は `S3_BUCKET` / `S3_REGION` 環境変数が SSM 経由で注入されている必要あり)
 - [ ] **シークレット**: SSM Parameter Store に SecureString で投入 (`RAILS_MASTER_KEY` / `DATABASE_URL` / `JWT_SECRET` / `SECRET_KEY_BASE` / `CORS_ORIGINS` / `S3_BUCKET` / `S3_REGION`)
 - [ ] **IAM Role**: ECS task_role に S3 uploads bucket スコープの `s3:PutObject/GetObject/DeleteObject` + SSM `GetParameters` + KMS `Decrypt` を付与
 - [ ] **Image Tag**: `latest` 禁止、git commit SHA を使用 (sns-board と同方針、E-H3 と同型の事故防止)

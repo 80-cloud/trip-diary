@@ -214,9 +214,9 @@
 | `tickets` | trip_id / kind (transport/lodging/event) / reservation_no / url / note + has_one_attached :file | 2 | F-TICKET-01 |
 | `reviews` | trip_id / user_id / rating(1-5) / body / UNIQUE(trip_id, user_id) | 2 | F-REVIEW-01 |
 | `search_histories` | user_id / query / hit_count / last_used_at | 2 | F-UX-SEARCH-HIST |
-| (trips.status) | enum: draft / published — **既存 trips に追加** | 2 | F-UX-DRAFT |
+| (trips.status) | enum: draft / published — **既存 trips に追加**。`visibility` (public/friends/private) とは独立した軸: `status` = 公開フロー (作成中 / 公開済) / `visibility` = 公開範囲 (公開済になった後の閲覧範囲)。一覧 scope は `Trip.published` で絞り込み、編集画面のみ draft 表示 | 2 | F-UX-DRAFT |
 | (categories.color) | hex (例: "#0284c7") — **既存 categories に追加** | 2 | F-UI-CAT-COLOR |
-| (users.preferences) | jsonb (dark_mode / locale 等) — **既存 users に追加** | 2 | F-UI-DARK |
+| (users.preferences) | **`json` 型** (dark_mode / locale 等) — **既存 users に追加**。MySQL 8 は `json` 型のみ (PostgreSQL の `jsonb` ではない点に注意) | 2 | F-UI-DARK |
 | (expenses.receipt) | has_one_attached :receipt — **既存 expenses 拡張** | 2 | F-RECEIPT-01 |
 | (day_entries.started_at / ended_at) | time 列追加で滞在時間集計 | 3 | F-STATS-05 |
 | (trips.lock_version) | 楽観ロック (Rails 標準 ActiveRecord::Locking::Optimistic) | 4 | F-GROUP-02 |

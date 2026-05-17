@@ -27,8 +27,11 @@ class Trip < ApplicationRecord
   has_many :tags, through: :trip_tags
   has_many :favorites, dependent: :destroy
   has_many :memos,     dependent: :destroy
-  has_many :planned_spots, dependent: :destroy
-  has_many :packing_items, dependent: :destroy
+  # has_many に order を入れることで、eager load (includes :planned_spots) 結果が
+  # そのまま position 順で取れる。controller 側で .ordered を再度呼ぶ必要がなくなり
+  # (=N+1 防止)、Ruby の sort_by よりも DB index を活用できる。
+  has_many :planned_spots, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :trip
+  has_many :packing_items, -> { order(:position, :id) }, dependent: :destroy, inverse_of: :trip
   has_many_attached :images
 
   accepts_nested_attributes_for :day_entries, allow_destroy: true, reject_if: :all_blank

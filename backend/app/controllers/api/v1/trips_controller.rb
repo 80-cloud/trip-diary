@@ -151,8 +151,9 @@ module Api
       def trip_detail(trip, liked_ids:, favorited_ids: Set.new, my_memo: nil, followed_user_ids: Set.new)
         is_owner = current_user && trip.user_id == current_user.id
         # 計画/持ち物の中身は本人のみ閲覧 (他人には進捗バーの数値だけ見せる)
-        planned_spots = is_owner ? trip.planned_spots.ordered.map { |s| planned_spot_payload(s) } : []
-        packing_items = is_owner ? trip.packing_items.ordered.map { |i| packing_item_payload(i) } : []
+        # trip.planned_spots / packing_items は has_many 側で order 済 → そのまま使う
+        planned_spots = is_owner ? trip.planned_spots.map { |s| planned_spot_payload(s) } : []
+        packing_items = is_owner ? trip.packing_items.map { |i| packing_item_payload(i) } : []
         trip_summary(trip, liked_ids: liked_ids, favorited_ids: favorited_ids, followed_user_ids: followed_user_ids).merge(
           body: trip.body,
           my_memo: my_memo,

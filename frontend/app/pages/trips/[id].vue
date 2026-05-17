@@ -123,47 +123,83 @@ async function deleteTrip() {
 
 // F-PLAN: 計画スポット CRUD (本人のみ)
 const newSpotTitle = ref("")
+const planError = ref(null)
 async function addSpot() {
   const title = newSpotTitle.value.trim()
   if (!title) return
-  const created = await api.post(`/trips/${id}/planned_spots`, { body: { title } })
-  trip.value.planned_spots.push(created)
-  trip.value.planned_count += 1
-  newSpotTitle.value = ""
+  planError.value = null
+  try {
+    const created = await api.post(`/trips/${id}/planned_spots`, { body: { title } })
+    trip.value.planned_spots.push(created)
+    trip.value.planned_count += 1
+    newSpotTitle.value = ""
+  } catch (e) {
+    planError.value = e.data?.errors?.join(", ") || "計画追加に失敗しました"
+  }
 }
 async function toggleSpotDone(spot) {
   const next = !spot.done
-  const updated = await api.patch(`/trips/${id}/planned_spots/${spot.id}`, { body: { done: next } })
-  spot.done = updated.done
-  spot.day_entry_id = updated.day_entry_id
-  trip.value.planned_done_count += next ? 1 : -1
-  // F-PLAN-02: done=true で DayEntry が新規作成されたら、UI のリストも増やす
-  // (簡易: refetch せず増えたとだけ表示)
+  const wasNotPromoted = !spot.day_entry_id
+  planError.value = null
+  try {
+    const updated = await api.patch(`/trips/${id}/planned_spots/${spot.id}`, { body: { done: next } })
+    spot.done = updated.done
+    spot.day_entry_id = updated.day_entry_id
+    trip.value.planned_done_count += next ? 1 : -1
+    // F-PLAN-02: done=false→true で新規 DayEntry が作成された場合、
+    // UI の day_entries 一覧にも反映するため trip 全体を refetch (簡易)
+    if (next && wasNotPromoted && updated.day_entry_id) {
+      await refresh()
+    }
+  } catch (e) {
+    planError.value = e.data?.errors?.join(", ") || "更新に失敗しました"
+  }
 }
 async function deleteSpot(spot) {
   if (!confirm(`「${spot.title}」を計画から削除しますか？`)) return
-  await api.del(`/trips/${id}/planned_spots/${spot.id}`)
-  trip.value.planned_spots = trip.value.planned_spots.filter(s => s.id !== spot.id)
-  trip.value.planned_count -= 1
-  if (spot.done) trip.value.planned_done_count -= 1
+  planError.value = null
+  try {
+    await api.del(`/trips/${id}/planned_spots/${spot.id}`)
+    trip.value.planned_spots = trip.value.planned_spots.filter(s => s.id !== spot.id)
+    trip.value.planned_count -= 1
+    if (spot.done) trip.value.planned_done_count -= 1
+  } catch (e) {
+    planError.value = e.data?.error || "削除に失敗しました"
+  }
 }
 
 // F-PACK: 持ち物 CRUD (本人のみ)
 const newItemBody = ref("")
+const packError = ref(null)
 async function addItem() {
   const body = newItemBody.value.trim()
   if (!body) return
-  const created = await api.post(`/trips/${id}/packing_items`, { body: { body } })
-  trip.value.packing_items.push(created)
-  newItemBody.value = ""
+  packError.value = null
+  try {
+    const created = await api.post(`/trips/${id}/packing_items`, { body: { body } })
+    trip.value.packing_items.push(created)
+    newItemBody.value = ""
+  } catch (e) {
+    packError.value = e.data?.errors?.join(", ") || "持ち物追加に失敗しました"
+  }
 }
 async function toggleItemPacked(item) {
-  const updated = await api.patch(`/trips/${id}/packing_items/${item.id}`, { body: { packed: !item.packed } })
-  item.packed = updated.packed
+  packError.value = null
+  try {
+    const updated = await api.patch(`/trips/${id}/packing_items/${item.id}`, { body: { packed: !item.packed } })
+    item.packed = updated.packed
+  } catch (e) {
+    packError.value = e.data?.error || "更新に失敗しました"
+  }
 }
 async function deleteItem(item) {
-  await api.del(`/trips/${id}/packing_items/${item.id}`)
-  trip.value.packing_items = trip.value.packing_items.filter(i => i.id !== item.id)
+  packError.value = null
+  try {
+    await api.del(`/trips/${id}/packing_items/${item.id}`)
+    trip.value.packing_items = trip.value.packing_items.filter(i => i.id !== item.id)
+  } catch (e) {
+    packError.value = e.data?.error || "削除に失敗しました"
+  }
 }
 
 const planProgress = computed(() => {
@@ -296,6 +332,7 @@ async function toggleFollow() {
           class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm" />
         <button type="submit" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600">追加</button>
       </form>
+      <p v-if="planError" class="text-xs text-rose-600 mt-2">{{ planError }}</p>
       <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">✓ にすると自動で「日別の出来事」に追加されます</p>
     </section>
 
@@ -315,6 +352,7 @@ async function toggleFollow() {
           class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm" />
         <button type="submit" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600">追加</button>
       </form>
+      <p v-if="packError" class="text-xs text-rose-600 mt-2">{{ packError }}</p>
     </section>
 
     <!-- F-MEMO-01: 個人メモ (本人のみ表示・本人のみ参照可) -->

@@ -177,6 +177,33 @@ class Api::V1::AuthControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # E-M2: logout の冪等性。2 回連続呼出 → 2 回目は cookie 無し → revoke スキップで 204
+  test "logout は冪等 (cookie 無しで呼んでも 204)" do
+    login_via_api(users(:alice))
+    delete "/api/v1/logout"
+    assert_response :no_content
+    assert_no_difference -> { RevokedJti.count } do
+      delete "/api/v1/logout"
+    end
+    assert_response :no_content
+  end
+
+  # E-M2: denylist の DB 障害でも cookie 削除と 204 は保証される (UX 安全性)
+  test "logout は revoke 失敗でも 204 (cookie 削除は必ず実行)" do
+    login_via_api(users(:alice))
+    # RevokedJti.revoke! を一時的に失敗させる
+    RevokedJti.singleton_class.alias_method :_real_revoke!, :revoke!
+    RevokedJti.singleton_class.define_method(:revoke!) { |**| raise ActiveRecord::StatementInvalid, "fake DB error" }
+    begin
+      delete "/api/v1/logout"
+      assert_response :no_content, "denylist 失敗でも 204 で応答"
+    ensure
+      RevokedJti.singleton_class.remove_method :revoke!
+      RevokedJti.singleton_class.alias_method  :revoke!, :_real_revoke!
+      RevokedJti.singleton_class.remove_method :_real_revoke!
+    end
+  end
+
   # NOTE: 「expired な denylist entry は認証を妨げない」は model test の
   # `active scope は expires_at > now のみ` で境界を担保しており、controller の
   # チェックは `RevokedJti.active.exists?(jti: ...)` の 1 行なので integration を

@@ -5,6 +5,7 @@
 | 版 | 日付 | 改訂者 | 内容 |
 |---|---|---|---|
 | 0.1 | 2026-05-17 | hideharu-AI | 初版 (Phase1 テーブル + Phase2/3 予定テーブル) |
+| 0.2 | 2026-05-17 | hideharu-AI | 機能一覧 v0.2 拡張に同期。§5 に categories / planned_spots / expenses / budgets / locations (polymorphic) / direct_messages を追加。主要関連・追加インデックス・counter_cache 候補も整理 |
 
 ---
 
@@ -157,22 +158,77 @@
 
 ---
 
-## 5. Phase 2 / 3 で追加予定テーブル
+## 5. Phase 2-4 で追加予定テーブル
+
+### 5-1. 一覧
 
 | テーブル | 概要 | Phase |
 |---|---|---|
-| `tags` | タグ名 (unique) | 2 |
-| `trip_tags` | trip ↔ tag の中間 | 2 |
-| `follows` | follower_id / followed_id (UNIQUE) | 2 |
-| `notifications` | recipient_id / actor_id / action / trip_id / read_at | 3 |
+| `categories` | id / name / slug / icon (国内 / 海外 / 一人旅 / グルメ / 世界遺産 / 家族旅 / アウトドア / 出張) | 2 |
+| `tags` | name (unique) | 2 |
+| `trip_tags` | trip ↔ tag の中間 (多対多) | 2 |
+| (trips.category_id) | trips に category 1 件 (多対 1) のため新規ではなく **既存 trips に追加** | 2 |
+| `follows` | follower_id / followed_id (UNIQUE 複合) | 2 |
+| `planned_spots` | trip_id / day_entry_id (nullable) / name / planned_on / position / status (planned/visited) | 2 |
+| `expenses` | trip_id / day_entry_id (nullable) / category (transport/lodging/food/sight/souvenir/other) / amount / spent_on | 2 |
+| `budgets` | trip_id / category / planned_amount | 2 |
+| `locations` | locatable_type (polymorphic: DayEntry / PlannedSpot) / locatable_id / latitude / longitude / address | 3 |
+| `notifications` | recipient_id / actor_id / verb (commented/liked/followed) / target_type / target_id / read_at | 3 |
+| `direct_messages` | sender_id / recipient_id / body / read_at | 4 |
+
+### 5-2. 主要な関連
+- `Trip belongs_to :category` (Phase 2 で追加)
+- `Trip has_many :tags, through: :trip_tags`
+- `Trip has_many :planned_spots, dependent: :destroy`
+- `Trip has_many :expenses, dependent: :destroy`
+- `Trip has_many :budgets, dependent: :destroy`
+- `User has_many :active_follows, class_name: "Follow", foreign_key: :follower_id`
+- `User has_many :passive_follows, class_name: "Follow", foreign_key: :followed_id`
+- `User has_many :following, through: :active_follows, source: :followed`
+- `User has_many :followers, through: :passive_follows, source: :follower`
+- `DayEntry has_one :location, as: :locatable, dependent: :destroy`
+- `PlannedSpot has_one :location, as: :locatable, dependent: :destroy`
+- `Notification belongs_to :recipient, class_name: "User"` / `belongs_to :actor, class_name: "User"`
+
+### 5-3. インデックス設計 (追加分)
+- `follows UNIQUE(follower_id, followed_id)` — 1 ユーザー 1 フォロー
+- `trip_tags UNIQUE(trip_id, tag_id)` — 重複付与防止
+- `expenses(trip_id, spent_on)` — 日付集計
+- `budgets UNIQUE(trip_id, category)` — カテゴリごとに 1 件
+- `notifications(recipient_id, read_at)` — 未読絞り込み
+- `direct_messages(sender_id, recipient_id, created_at)` — スレッド取得
+- `locations(locatable_type, locatable_id)` — polymorphic 既定
+
+### 5-4. counter_cache 追加候補
+- `trips.planned_spots_count` / `trips.visited_spots_count` (進捗バー用)
+- `users.followers_count` / `users.following_count`
 
 ---
 
 ## 6. データ整合性ルール
 
+### 6-1. Phase 1 (現状)
 - `Trip` 削除時は `day_entries` / `comments` / `likes` / `active_storage_attachments` を CASCADE で削除
 - `User` 削除時は その人の `trips` も CASCADE 削除 (※ 講師方針が「ユーザー削除なし」なら Phase2 で軟削除へ変更可)
 - カウンタ (likes_count / comments_count) は Rails `counter_cache` で自動更新。整合性は Phase3 で月次バッチで再計算
+
+### 6-2. Phase 2-4 追加テーブルの削除戦略 (§5 と連動)
+
+| 削除対象 | 連鎖削除 | 理由 |
+|---|---|---|
+| `Trip` 削除時 | `planned_spots` / `expenses` / `budgets` / `trip_tags` を CASCADE | 旅行記録ごとの設計・実支出データは旅行に従属 |
+| `Trip` 削除時 | `notifications WHERE target_type='Trip'` を CASCADE | 通知の参照先が消えるため |
+| `User` 削除時 | `follows (follower_id / followed_id 両側)` を CASCADE | フォロー関係は当事者なし → 残せない |
+| `User` 削除時 | `notifications (recipient_id / actor_id 両側)` を CASCADE | 同上 |
+| `User` 削除時 | `direct_messages (sender_id / recipient_id 両側)` を CASCADE | 同上 |
+| `DayEntry / PlannedSpot` 削除時 | `locations` (polymorphic) を CASCADE | 位置情報は親に従属 |
+| `Tag` 削除時 (Phase 2 後半) | `trip_tags` を CASCADE / `Tag` 自体は手動削除のみ | タグの孤児化を防ぐ |
+| `Category` 削除時 | `Trip.category_id` を NULLIFY または `restrict_with_error` | カテゴリ削除で trip を消したくないため |
+
+### 6-3. 追加 counter_cache の整合性
+- `trips.planned_spots_count` / `trips.visited_spots_count` (計画進捗バー) → counter_cache + Phase 3 で月次再計算
+- `users.followers_count` / `users.following_count` → 同上
+- `notifications` の未読数はキャッシュせず、`WHERE read_at IS NULL` のクエリで都度算出 (件数小)
 
 ---
 

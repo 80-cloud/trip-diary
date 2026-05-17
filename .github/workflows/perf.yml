@@ -109,14 +109,25 @@ jobs:
         run: |
           k6 run "k6/scenarios/${SCENARIO}.js"
 
+      - name: Install mysql client
+        # ubuntu-latest は mysql client がデフォルトで入らないバージョンがあるため明示 install
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends mysql-client
+
       - name: Cleanup test data
         if: always()
         working-directory: performance-tests
-        env:
-          PERF_DB_CONTAINER: dummy  # CI では services container を使うため未使用
         run: |
           # cleanup-local.sh は docker exec 前提だが、CI では services container に
-          # 直接 mysql client で接続する方が単純なため inline で実行する。
+          # mysql client で直接接続する方が単純なため inline で実行する。
+          # 注: 本 inline cleanup は users と trips のみ削除する最小実装。
+          # comments / likes / favorites / memos / planned_spots / packing_items /
+          # tickets / reviews / budgets / receipts / day_entries / follows / trip_tags
+          # は FOREIGN_KEY_CHECKS=0 によって orphan のまま残るが、scenario 完了直後の
+          # CI runner では後続影響なし (runner は ephemeral で次 run では新規 DB)。
+          # ローカルでの長期 cleanup は scripts/cleanup-local.sh + 別 Issue (improve cleanup)
+          # で対応予定。
           mysql -h 127.0.0.1 -P 3316 -uroot -ppassword trip_diary_dev <<'SQL'
           SET FOREIGN_KEY_CHECKS=0;
           DELETE FROM trips WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'perf\_%');

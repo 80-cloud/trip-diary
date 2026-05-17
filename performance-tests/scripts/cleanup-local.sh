@@ -55,6 +55,15 @@ if [[ "${BEFORE}" -gt 0 ]]; then
   #    users だけ削除すると trips が orphan として残り、後続 GET /api/v1/trips が
   #    500 (NoMethodError: undefined method 'id' for nil) になる。
   # 安全性: workers: 1 直列実行 / perf_* prefix 限定 / 別 spec との race なし
+  #
+  # 既知の制限: 本実装は trips + users のみ削除。trip-owned 子テーブル
+  # (comments / likes / favorites / memos / planned_spots / packing_items /
+  # tickets / reviews / budgets / receipts / day_entries / trip_tags) は
+  # FOREIGN_KEY_CHECKS=0 によって orphan のまま残る可能性がある。
+  # 後続の長期実行で蓄積した場合の対処:
+  #   bin/rails runner "User.where('email LIKE ?', 'perf_%').destroy_all"
+  # で dependent: :destroy 連鎖削除を全て効かせる (Rails 起動 10-30s)。
+  # 本 PR では smoke が短時間で完結するため最小実装で許容、改善は別 Issue 化。
   mysql_exec "SET FOREIGN_KEY_CHECKS=0; \
     DELETE FROM trips WHERE user_id IN (SELECT id FROM users WHERE email LIKE '${EMAIL_LIKE}'); \
     DELETE FROM users WHERE email LIKE '${EMAIL_LIKE}'; \

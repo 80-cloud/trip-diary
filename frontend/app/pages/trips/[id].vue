@@ -121,6 +121,92 @@ async function deleteTrip() {
   router.push("/")
 }
 
+// F-PLAN: 計画スポット CRUD (本人のみ)
+const newSpotTitle = ref("")
+const planError = ref(null)
+async function addSpot() {
+  const title = newSpotTitle.value.trim()
+  if (!title) return
+  planError.value = null
+  try {
+    const created = await api.post(`/trips/${id}/planned_spots`, { body: { title } })
+    trip.value.planned_spots.push(created)
+    trip.value.planned_count += 1
+    newSpotTitle.value = ""
+  } catch (e) {
+    planError.value = e.data?.errors?.join(", ") || "計画追加に失敗しました"
+  }
+}
+async function toggleSpotDone(spot) {
+  const next = !spot.done
+  const wasNotPromoted = !spot.day_entry_id
+  planError.value = null
+  try {
+    const updated = await api.patch(`/trips/${id}/planned_spots/${spot.id}`, { body: { done: next } })
+    spot.done = updated.done
+    spot.day_entry_id = updated.day_entry_id
+    trip.value.planned_done_count += next ? 1 : -1
+    // F-PLAN-02: done=false→true で新規 DayEntry が作成された場合、
+    // UI の day_entries 一覧にも反映するため trip 全体を refetch (簡易)
+    if (next && wasNotPromoted && updated.day_entry_id) {
+      await refresh()
+    }
+  } catch (e) {
+    planError.value = e.data?.errors?.join(", ") || "更新に失敗しました"
+  }
+}
+async function deleteSpot(spot) {
+  if (!confirm(`「${spot.title}」を計画から削除しますか？`)) return
+  planError.value = null
+  try {
+    await api.del(`/trips/${id}/planned_spots/${spot.id}`)
+    trip.value.planned_spots = trip.value.planned_spots.filter(s => s.id !== spot.id)
+    trip.value.planned_count -= 1
+    if (spot.done) trip.value.planned_done_count -= 1
+  } catch (e) {
+    planError.value = e.data?.error || "削除に失敗しました"
+  }
+}
+
+// F-PACK: 持ち物 CRUD (本人のみ)
+const newItemBody = ref("")
+const packError = ref(null)
+async function addItem() {
+  const body = newItemBody.value.trim()
+  if (!body) return
+  packError.value = null
+  try {
+    const created = await api.post(`/trips/${id}/packing_items`, { body: { body } })
+    trip.value.packing_items.push(created)
+    newItemBody.value = ""
+  } catch (e) {
+    packError.value = e.data?.errors?.join(", ") || "持ち物追加に失敗しました"
+  }
+}
+async function toggleItemPacked(item) {
+  packError.value = null
+  try {
+    const updated = await api.patch(`/trips/${id}/packing_items/${item.id}`, { body: { packed: !item.packed } })
+    item.packed = updated.packed
+  } catch (e) {
+    packError.value = e.data?.error || "更新に失敗しました"
+  }
+}
+async function deleteItem(item) {
+  packError.value = null
+  try {
+    await api.del(`/trips/${id}/packing_items/${item.id}`)
+    trip.value.packing_items = trip.value.packing_items.filter(i => i.id !== item.id)
+  } catch (e) {
+    packError.value = e.data?.error || "削除に失敗しました"
+  }
+}
+
+const planProgress = computed(() => {
+  if (!trip.value || !trip.value.planned_count) return 0
+  return Math.round((trip.value.planned_done_count / trip.value.planned_count) * 100)
+})
+
 // F-FOLLOW-01: 投稿者を follow/unfollow
 async function toggleFollow() {
   if (!auth.user) {
@@ -217,6 +303,57 @@ async function toggleFollow() {
       </div>
       <p v-if="actionError" class="mt-2 text-sm text-rose-600">{{ actionError }}</p>
     </header>
+
+    <!-- F-PLAN-03: 進捗バー (誰でも見える / 件数のみ) -->
+    <section v-if="trip.planned_count > 0" class="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-sm font-bold text-slate-700 dark:text-slate-200">計画達成度</h2>
+        <span class="text-xs text-slate-500 dark:text-slate-400">{{ trip.planned_done_count }} / {{ trip.planned_count }} 件 ({{ planProgress }}%)</span>
+      </div>
+      <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded overflow-hidden">
+        <div class="h-full bg-brand-500 transition-all" :style="{ width: `${planProgress}%` }"></div>
+      </div>
+    </section>
+
+    <!-- F-PLAN-01/02: 計画スポット (本人のみ表示・編集) -->
+    <section v-if="isOwner()" class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">
+      <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-3">計画スポット <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(自分にだけ見えます)</span></h2>
+      <ul class="space-y-2 mb-3">
+        <li v-for="spot in trip.planned_spots" :key="spot.id" class="flex items-center gap-2">
+          <input type="checkbox" :checked="spot.done" @change="toggleSpotDone(spot)" class="rounded" />
+          <span :class="['flex-1 text-sm', spot.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200']">{{ spot.title }}</span>
+          <span v-if="spot.day_entry_id" class="text-[10px] px-1.5 py-0.5 rounded bg-brand-100 dark:bg-brand-700 text-brand-700 dark:text-brand-50">記録に追加済</span>
+          <button @click="deleteSpot(spot)" class="text-xs text-rose-500 hover:underline">削除</button>
+        </li>
+        <li v-if="trip.planned_spots.length === 0" class="text-xs text-slate-400 dark:text-slate-500">まだ計画はありません</li>
+      </ul>
+      <form @submit.prevent="addSpot" class="flex gap-2">
+        <input v-model="newSpotTitle" maxlength="80" placeholder="新しい計画 (例: 金閣寺)"
+          class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm" />
+        <button type="submit" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600">追加</button>
+      </form>
+      <p v-if="planError" class="text-xs text-rose-600 mt-2">{{ planError }}</p>
+      <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">✓ にすると自動で「日別の出来事」に追加されます</p>
+    </section>
+
+    <!-- F-PACK-01: 持ち物チェックリスト (本人のみ表示・編集) -->
+    <section v-if="isOwner()" class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">
+      <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-3">持ち物チェックリスト <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(自分にだけ見えます)</span></h2>
+      <ul class="space-y-2 mb-3">
+        <li v-for="item in trip.packing_items" :key="item.id" class="flex items-center gap-2">
+          <input type="checkbox" :checked="item.packed" @change="toggleItemPacked(item)" class="rounded" />
+          <span :class="['flex-1 text-sm', item.packed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200']">{{ item.body }}</span>
+          <button @click="deleteItem(item)" class="text-xs text-rose-500 hover:underline">削除</button>
+        </li>
+        <li v-if="trip.packing_items.length === 0" class="text-xs text-slate-400 dark:text-slate-500">まだ持ち物はありません</li>
+      </ul>
+      <form @submit.prevent="addItem" class="flex gap-2">
+        <input v-model="newItemBody" maxlength="80" placeholder="新しい持ち物 (例: 歯ブラシ)"
+          class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm" />
+        <button type="submit" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600">追加</button>
+      </form>
+      <p v-if="packError" class="text-xs text-rose-600 mt-2">{{ packError }}</p>
+    </section>
 
     <!-- F-MEMO-01: 個人メモ (本人のみ表示・本人のみ参照可) -->
     <section v-if="auth.user" class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">

@@ -95,6 +95,8 @@ module Api
           :user,
           :tags,
           :day_entries,
+          :planned_spots,
+          :packing_items,
           { comments: :user },
           images_attachments: :blob
         ).find(params[:id])
@@ -147,13 +149,30 @@ module Api
       end
 
       def trip_detail(trip, liked_ids:, favorited_ids: Set.new, my_memo: nil, followed_user_ids: Set.new)
+        is_owner = current_user && trip.user_id == current_user.id
+        # 計画/持ち物の中身は本人のみ閲覧 (他人には進捗バーの数値だけ見せる)
+        # trip.planned_spots / packing_items は has_many 側で order 済 → そのまま使う
+        planned_spots = is_owner ? trip.planned_spots.map { |s| planned_spot_payload(s) } : []
+        packing_items = is_owner ? trip.packing_items.map { |i| packing_item_payload(i) } : []
         trip_summary(trip, liked_ids: liked_ids, favorited_ids: favorited_ids, followed_user_ids: followed_user_ids).merge(
           body: trip.body,
           my_memo: my_memo,
           day_entries: trip.day_entries.map { |d| day_entry_payload(d) },
           comments: trip.comments.order(:created_at).map { |c| comment_payload(c, followed_user_ids: followed_user_ids) },
-          image_urls: trip.images.attached? ? trip.images.map { |i| rails_blob_path(i, only_path: true) } : []
+          image_urls: trip.images.attached? ? trip.images.map { |i| rails_blob_path(i, only_path: true) } : [],
+          planned_count: trip.planned_spots.size,
+          planned_done_count: trip.planned_spots.count { |s| s.done },
+          planned_spots: planned_spots,
+          packing_items: packing_items
         )
+      end
+
+      def planned_spot_payload(s)
+        { id: s.id, title: s.title, done: s.done, position: s.position, day_entry_id: s.day_entry_id }
+      end
+
+      def packing_item_payload(i)
+        { id: i.id, body: i.body, packed: i.packed, position: i.position }
       end
 
       def day_entry_payload(d)

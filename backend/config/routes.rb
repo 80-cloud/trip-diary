@@ -16,6 +16,10 @@ Rails.application.routes.draw do
         resource  :favorite, only: [:create, :destroy], controller: "favorites"
         # 各 trip に対する個人メモ (PUT で upsert、DELETE で削除)
         resource  :memo,     only: [:update, :destroy], controller: "memos"
+        # F-PLAN-01/02: 計画スポット (本人のみ CRUD)
+        resources :planned_spots, only: [:create, :update, :destroy]
+        # F-PACK-01: 持ち物チェックリスト (本人のみ CRUD)
+        resources :packing_items, only: [:create, :update, :destroy]
       end
 
       # 自分のお気に入り trip 一覧 (本人専用)

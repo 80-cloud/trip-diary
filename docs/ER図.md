@@ -207,9 +207,28 @@
 
 ## 6. データ整合性ルール
 
+### 6-1. Phase 1 (現状)
 - `Trip` 削除時は `day_entries` / `comments` / `likes` / `active_storage_attachments` を CASCADE で削除
 - `User` 削除時は その人の `trips` も CASCADE 削除 (※ 講師方針が「ユーザー削除なし」なら Phase2 で軟削除へ変更可)
 - カウンタ (likes_count / comments_count) は Rails `counter_cache` で自動更新。整合性は Phase3 で月次バッチで再計算
+
+### 6-2. Phase 2-4 追加テーブルの削除戦略 (§5 と連動)
+
+| 削除対象 | 連鎖削除 | 理由 |
+|---|---|---|
+| `Trip` 削除時 | `planned_spots` / `expenses` / `budgets` / `trip_tags` を CASCADE | 旅行記録ごとの設計・実支出データは旅行に従属 |
+| `Trip` 削除時 | `notifications WHERE target_type='Trip'` を CASCADE | 通知の参照先が消えるため |
+| `User` 削除時 | `follows (follower_id / followed_id 両側)` を CASCADE | フォロー関係は当事者なし → 残せない |
+| `User` 削除時 | `notifications (recipient_id / actor_id 両側)` を CASCADE | 同上 |
+| `User` 削除時 | `direct_messages (sender_id / recipient_id 両側)` を CASCADE | 同上 |
+| `DayEntry / PlannedSpot` 削除時 | `locations` (polymorphic) を CASCADE | 位置情報は親に従属 |
+| `Tag` 削除時 (Phase 2 後半) | `trip_tags` を CASCADE / `Tag` 自体は手動削除のみ | タグの孤児化を防ぐ |
+| `Category` 削除時 | `Trip.category_id` を NULLIFY または `restrict_with_error` | カテゴリ削除で trip を消したくないため |
+
+### 6-3. 追加 counter_cache の整合性
+- `trips.planned_spots_count` / `trips.visited_spots_count` (計画進捗バー) → counter_cache + Phase 3 で月次再計算
+- `users.followers_count` / `users.following_count` → 同上
+- `notifications` の未読数はキャッシュせず、`WHERE read_at IS NULL` のクエリで都度算出 (件数小)
 
 ---
 

@@ -45,6 +45,9 @@ module Backend
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore, key: "_trip_diary_session"
 
+    # E-M1: rack-attack をミドルウェアに登録 (login / signup の throttle)
+    config.middleware.use Rack::Attack
+
     config.time_zone = "Tokyo"
     config.active_record.default_timezone = :local
   end

@@ -80,4 +80,77 @@ class Api::V1::AuthControllerTest < ActionDispatch::IntegrationTest
     assert cookies[ApplicationController::COOKIE_NAME.to_s].present?,
       "JWT cookie must be set on successful login"
   end
+
+  # E-L5: Rails-level uniqueness を通過した後の DB race (RecordNotUnique) を 422 で受ける
+  # (rescue が無いと 500 になり、攻撃者から「email 既存」と推測されてしまう)
+  test "signup: DB unique race は 422 + 汎用メッセージ (500 を出さない)" do
+    # 一時的に User#save を RecordNotUnique を上げるように差し替えて controller の
+    # rescue 経路を強制的に通す。HTTP 経由で同時 2 リクエストの race を再現するのは
+    # 困難なため alias_method による in-place stub を採用。
+    User.class_eval do
+      alias_method :_real_save, :save
+      define_method(:save) { raise ActiveRecord::RecordNotUnique, "Duplicate entry" }
+    end
+    begin
+      post "/api/v1/signup",
+        params: { email: "race@example.com", password: "password123", display_name: "R" },
+        as: :json
+      assert_response :unprocessable_entity
+      assert_match(/入力内容に誤りがあります/, JSON.parse(response.body)["error"],
+        "DB race でも E-H1 と同じ汎用メッセージで返すこと (email 列挙防止)")
+    ensure
+      # 他テストに影響しないよう必ず元に戻す
+      User.class_eval do
+        remove_method :save
+        alias_method  :save, :_real_save
+        remove_method :_real_save
+      end
+    end
+  end
+
+  # E-M1: rack-attack throttle が login に効く (5 req/min 超過で 429)
+  test "login: 6 連射目で 429 (rack-attack)" do
+    Rack::Attack.enabled = true
+    Rack::Attack.cache.store.clear
+    begin
+      5.times do
+        post "/api/v1/login",
+          params: { email: "rate-test@example.com", password: "x" },
+          as: :json
+        assert_includes [401, 422], response.status,
+          "1〜5 回目はレート未超過 (#{response.status})"
+      end
+      post "/api/v1/login",
+        params: { email: "rate-test@example.com", password: "x" },
+        as: :json
+      assert_response :too_many_requests
+      body = JSON.parse(response.body)
+      assert_match(/リクエストが多すぎます/, body["error"])
+    ensure
+      Rack::Attack.enabled = false
+      Rack::Attack.cache.store.clear
+    end
+  end
+
+  # E-M1: signup throttle (3 req/min 超過で 429)
+  test "signup: 4 連射目で 429 (rack-attack)" do
+    Rack::Attack.enabled = true
+    Rack::Attack.cache.store.clear
+    begin
+      3.times do |i|
+        post "/api/v1/signup",
+          params: { email: "rate-sig-#{i}@example.com", password: "password123", display_name: "X" },
+          as: :json
+        # 成功 (201) か失敗 (422) かは値次第。429 だけ出ないことを確認
+        refute_equal 429, response.status, "1〜3 回目は throttle 未発火"
+      end
+      post "/api/v1/signup",
+        params: { email: "rate-sig-final@example.com", password: "password123", display_name: "X" },
+        as: :json
+      assert_response :too_many_requests
+    ensure
+      Rack::Attack.enabled = false
+      Rack::Attack.cache.store.clear
+    end
+  end
 end

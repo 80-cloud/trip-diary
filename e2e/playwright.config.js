@@ -24,9 +24,9 @@ export default defineConfig({
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
     ['json', { outputFile: 'test-results/results.json' }],
   ],
-  timeout: 60_000,
+  timeout: 120_000,
   expect: {
-    timeout: 10_000,
+    timeout: 30_000,
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.02,
       threshold: 0.2,
@@ -38,8 +38,8 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    actionTimeout: 10_000,
-    navigationTimeout: 15_000,
+    actionTimeout: 30_000,
+    navigationTimeout: 60_000,
     extraHTTPHeaders: {
       'X-E2E-Test': '1',
     },

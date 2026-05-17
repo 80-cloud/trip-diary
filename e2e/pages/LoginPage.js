@@ -13,6 +13,9 @@ export class LoginPage {
 
   async goto() {
     await this.page.goto('/login');
+    // Nuxt SPA + Vite dev の cold start は初回モジュール transform に時間がかかるため
+    // DOM が hydrate されて input が DOM に出現するまで明示的に待つ。
+    await this.emailInput.waitFor({ state: 'visible', timeout: 30_000 });
   }
 
   async login(email, password) {

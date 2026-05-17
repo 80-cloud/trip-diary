@@ -29,6 +29,6 @@ class ReceiptTest < ActiveSupport::TestCase
     Receipt.create!(trip: @trip, amount: 200, category: "food", spent_on: Date.new(2026, 4, 3))
     Receipt.create!(trip: @trip, amount: 300, category: "food", spent_on: Date.new(2026, 4, 2))
     amounts = @trip.receipts.ordered.pluck(:amount).map(&:to_i)
-    assert_equal [200, 300, 100], amounts
+    assert_equal [ 200, 300, 100 ], amounts
   end
 end

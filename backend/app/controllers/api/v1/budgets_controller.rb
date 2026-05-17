@@ -15,7 +15,7 @@ module Api
         end
       rescue ActiveRecord::RecordNotUnique
         # race: 同時 2 リクエストで両方が build_budget → 後発を 422 に変換 (500 回避)
-        render json: { errors: ["既に予算が登録されています"] }, status: :unprocessable_entity
+        render json: { errors: [ "既に予算が登録されています" ] }, status: :unprocessable_entity
       end
 
       def destroy

@@ -69,7 +69,7 @@ class Trip < ApplicationRecord
         "OR (visibility = ? AND status = ? AND user_id IN (?)) " \
         "OR user_id = ?",
         "public", "published",
-        "friends", "published", mutual_ids.presence || [-1],
+        "friends", "published", mutual_ids.presence || [ -1 ],
         user.id
       )
     else

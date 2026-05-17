@@ -33,7 +33,7 @@ class Api::V1::ReviewsControllerTest < ActionDispatch::IntegrationTest
 
   test "PUT: rating 範囲外は 422" do
     login_via_api(@owner)
-    [0, 6, -1].each do |r|
+    [ 0, 6, -1 ].each do |r|
       put "/api/v1/trips/#{@trip.id}/review", params: { rating: r }, as: :json
       assert_response :unprocessable_entity
     end

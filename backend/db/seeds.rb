@@ -16,9 +16,9 @@ if Trip.count == 0
     body: "桜の季節に京都へ。清水寺・嵐山・伏見稲荷を巡る定番ルート。",
     visibility: "public"
   )
-  trip1.day_entries.create!(day_number: 1, happened_on: Date.new(2026,4,1), title: "清水寺と東山散策", body: "清水の舞台から市内を一望。昼は湯豆腐。", position: 0)
-  trip1.day_entries.create!(day_number: 2, happened_on: Date.new(2026,4,2), title: "嵐山 渡月橋と竹林", body: "桜と竹林のコントラストが美しい。", position: 1)
-  trip1.day_entries.create!(day_number: 3, happened_on: Date.new(2026,4,3), title: "伏見稲荷の千本鳥居", body: "早朝に行くと人が少なくて良い。", position: 2)
+  trip1.day_entries.create!(day_number: 1, happened_on: Date.new(2026, 4, 1), title: "清水寺と東山散策", body: "清水の舞台から市内を一望。昼は湯豆腐。", position: 0)
+  trip1.day_entries.create!(day_number: 2, happened_on: Date.new(2026, 4, 2), title: "嵐山 渡月橋と竹林", body: "桜と竹林のコントラストが美しい。", position: 1)
+  trip1.day_entries.create!(day_number: 3, happened_on: Date.new(2026, 4, 3), title: "伏見稲荷の千本鳥居", body: "早朝に行くと人が少なくて良い。", position: 2)
 
   trip2 = hanako.trips.create!(
     title: "ハワイ・オアフ島ひとり旅",
@@ -28,8 +28,8 @@ if Trip.count == 0
     body: "ワイキキ・ノースショア・ダイヤモンドヘッド。海とパンケーキ。",
     visibility: "public"
   )
-  trip2.day_entries.create!(day_number: 1, happened_on: Date.new(2026,3,10), title: "ワイキキビーチ", body: "夕日が綺麗。", position: 0)
-  trip2.day_entries.create!(day_number: 3, happened_on: Date.new(2026,3,12), title: "ノースショアのエビトラック", body: "Giovanni's の garlic shrimp は名物。", position: 1)
+  trip2.day_entries.create!(day_number: 1, happened_on: Date.new(2026, 3, 10), title: "ワイキキビーチ", body: "夕日が綺麗。", position: 0)
+  trip2.day_entries.create!(day_number: 3, happened_on: Date.new(2026, 3, 12), title: "ノースショアのエビトラック", body: "Giovanni's の garlic shrimp は名物。", position: 1)
 
   trip3 = jiro.trips.create!(
     title: "北海道 雪まつり弾丸",
@@ -39,8 +39,8 @@ if Trip.count == 0
     body: "2泊3日で雪まつりとスープカレー。",
     visibility: "public"
   )
-  trip3.day_entries.create!(day_number: 1, happened_on: Date.new(2026,2,6), title: "大通公園 雪像", body: "夜のライトアップが圧巻。", position: 0)
-  trip3.day_entries.create!(day_number: 2, happened_on: Date.new(2026,2,7), title: "藻岩山 夜景", body: "ロープウェイで山頂へ。", position: 1)
+  trip3.day_entries.create!(day_number: 1, happened_on: Date.new(2026, 2, 6), title: "大通公園 雪像", body: "夜のライトアップが圧巻。", position: 0)
+  trip3.day_entries.create!(day_number: 2, happened_on: Date.new(2026, 2, 7), title: "藻岩山 夜景", body: "ロープウェイで山頂へ。", position: 1)
 
   trip1.comments.create!(user: hanako, body: "京都いいですね！来月行く予定です")
   trip1.comments.create!(user: jiro,   body: "嵐山の竹林、写真上手ですね")

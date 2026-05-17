@@ -7,7 +7,7 @@ class Notification < ApplicationRecord
 
   validates :verb, inclusion: { in: VERBS }
   # 同一 (recipient, actor, verb, target) は 1 件のみ (二重作成防御)
-  validates :recipient_id, uniqueness: { scope: [:actor_id, :verb, :target_type, :target_id] }
+  validates :recipient_id, uniqueness: { scope: [ :actor_id, :verb, :target_type, :target_id ] }
   validate  :actor_must_differ_from_recipient
 
   scope :unread, -> { where(read_at: nil) }

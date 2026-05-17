@@ -64,7 +64,7 @@ class Api::V1::FavoritesControllerTest < ActionDispatch::IntegrationTest
     get "/api/v1/favorites"
     assert_response :ok
     ids = JSON.parse(response.body).map { |t| t["id"] }
-    assert_equal [trips(:alice_ramen).id, trips(:alice_kyoto).id], ids, "新しい順 + 他人の favorites は含まない"
+    assert_equal [ trips(:alice_ramen).id, trips(:alice_kyoto).id ], ids, "新しい順 + 他人の favorites は含まない"
   end
 
   test "GET /api/v1/favorites は登録後に投稿者が private 化した trip を返さない" do

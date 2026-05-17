@@ -3,10 +3,10 @@ require "test_helper"
 class Api::V1::TripsControllerTest < ActionDispatch::IntegrationTest
   setup do
     # 検索/絞り込みテスト用に各 trip にタグを付与
-    trips(:alice_kyoto).update!(tag_list: ["京都", "桜"])
-    trips(:bob_okinawa).update!(tag_list: ["海", "夏"])
-    trips(:bob_paris).update!(tag_list: ["海外", "美術館"])
-    trips(:alice_ramen).update!(tag_list: ["京都", "ラーメン"])
+    trips(:alice_kyoto).update!(tag_list: [ "京都", "桜" ])
+    trips(:bob_okinawa).update!(tag_list: [ "海", "夏" ])
+    trips(:bob_paris).update!(tag_list: [ "海外", "美術館" ])
+    trips(:alice_ramen).update!(tag_list: [ "京都", "ラーメン" ])
   end
 
   # F-TAG-02 受け入れ条件
@@ -94,7 +94,7 @@ class Api::V1::TripsControllerTest < ActionDispatch::IntegrationTest
           title: "新規旅行", destination: "札幌",
           started_on: "2026-08-01", ended_on: "2026-08-03",
           body: "雪まつり", visibility: "public", category: "domestic",
-          tag_list: ["雪", "北海道", "祭"]
+          tag_list: [ "雪", "北海道", "祭" ]
         },
         as: :json
     end
@@ -112,7 +112,7 @@ class Api::V1::TripsControllerTest < ActionDispatch::IntegrationTest
           title: "再利用テスト", destination: "東京",
           started_on: "2026-08-01", ended_on: "2026-08-02",
           body: "", visibility: "public", category: "domestic",
-          tag_list: ["既存タグ", "新規タグ"]
+          tag_list: [ "既存タグ", "新規タグ" ]
         },
         as: :json
     end

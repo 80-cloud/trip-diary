@@ -1,9 +1,9 @@
 module Api
   module V1
     class TripsController < BaseController
-      before_action :authenticate_user!, only: [:create, :update, :destroy]
-      before_action :set_trip, only: [:show, :update, :destroy]
-      before_action :authorize_owner!, only: [:update, :destroy]
+      before_action :authenticate_user!, only: [ :create, :update, :destroy ]
+      before_action :set_trip, only: [ :show, :update, :destroy ]
+      before_action :authorize_owner!, only: [ :update, :destroy ]
 
       DEFAULT_PAGE_LIMIT = 20
       MAX_PAGE_LIMIT     = 50
@@ -61,7 +61,7 @@ module Api
         favorited_ids = current_user && current_user.favorites.exists?(trip_id: @trip.id) ? Set[@trip.id] : Set.new
         my_memo       = current_user&.memos&.find_by(trip_id: @trip.id)&.body
         # N+1 防止: 投稿者 + 全コメント投稿者の followed_by_me を 1 クエリで先取り
-        related_user_ids = ([@trip.user_id] + @trip.comments.map(&:user_id)).uniq
+        related_user_ids = ([ @trip.user_id ] + @trip.comments.map(&:user_id)).uniq
         followed_user_ids = current_user ? current_user.followings.where(id: related_user_ids).pluck(:id).to_set : Set.new
         render json: trip_detail(@trip, liked_ids: liked_ids, favorited_ids: favorited_ids, my_memo: my_memo, followed_user_ids: followed_user_ids)
       end
@@ -120,7 +120,7 @@ module Api
           :title, :destination, :started_on, :ended_on, :body, :visibility, :category, :status,
           images: [],
           tag_list: [],
-          day_entries_attributes: [:id, :day_number, :happened_on, :title, :body, :position, :_destroy]
+          day_entries_attributes: [ :id, :day_number, :happened_on, :title, :body, :position, :_destroy ]
         )
         # 未知の category 値は nil に倒す。enum setter は不正値で ArgumentError を raise し、
         # そのままだと 500 になるため。nil にしておけば presence: true で 422 を返せる。
@@ -172,9 +172,9 @@ module Api
             list = trip.receipts.to_a
             by_cat = Receipt::CATEGORIES.each_with_object({}) { |c, h| h[c] = 0 }
             list.each { |r| by_cat[r.category] += r.amount }
-            [list.sum(&:amount), by_cat]
+            [ list.sum(&:amount), by_cat ]
           else
-            [nil, nil]
+            [ nil, nil ]
           end
         trip_summary(trip, liked_ids: liked_ids, favorited_ids: favorited_ids, followed_user_ids: followed_user_ids).merge(
           body: trip.body,

@@ -2,9 +2,9 @@ require "test_helper"
 
 class Api::V1::TagsControllerTest < ActionDispatch::IntegrationTest
   setup do
-    trips(:alice_kyoto).update!(tag_list: ["京都", "桜"])
-    trips(:alice_ramen).update!(tag_list: ["京都", "ラーメン"])
-    trips(:bob_okinawa).update!(tag_list: ["海"])
+    trips(:alice_kyoto).update!(tag_list: [ "京都", "桜" ])
+    trips(:alice_ramen).update!(tag_list: [ "京都", "ラーメン" ])
+    trips(:bob_okinawa).update!(tag_list: [ "海" ])
   end
 
   # F-TAG-02 受け入れ条件
@@ -42,7 +42,7 @@ class Api::V1::TagsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "GET /api/v1/tags/:name は非公開 trip を他人に見せない" do
-    trips(:alice_private).update!(tag_list: ["秘密タグ"])
+    trips(:alice_private).update!(tag_list: [ "秘密タグ" ])
     # 未ログイン
     get "/api/v1/tags/#{ERB::Util.url_encode('秘密タグ')}"
     assert_response :ok

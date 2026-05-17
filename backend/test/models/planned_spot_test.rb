@@ -58,6 +58,6 @@ class PlannedSpotTest < ActiveSupport::TestCase
   test ".ordered は position 昇順" do
     a = PlannedSpot.create!(trip: @trip, title: "A", position: 2)
     b = PlannedSpot.create!(trip: @trip, title: "B", position: 1)
-    assert_equal [b, a], @trip.planned_spots.ordered.to_a
+    assert_equal [ b, a ], @trip.planned_spots.ordered.to_a
   end
 end

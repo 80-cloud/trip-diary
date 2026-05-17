@@ -13,6 +13,6 @@ class CreateFollows < ActiveRecord::Migration[8.1]
     add_index :follows, :follower_id
     add_index :follows, :followed_id
     # 同じ (follower, followed) ペアは 1 件のみ (race 最終防衛)
-    add_index :follows, [:follower_id, :followed_id], unique: true
+    add_index :follows, [ :follower_id, :followed_id ], unique: true
   end
 end

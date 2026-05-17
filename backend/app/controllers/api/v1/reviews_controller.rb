@@ -47,7 +47,7 @@ module Api
         if existing&.update(review_params)
           render json: review_payload(existing)
         else
-          render json: { errors: existing&.errors&.full_messages || ["保存に失敗しました"] },
+          render json: { errors: existing&.errors&.full_messages || [ "保存に失敗しました" ] },
                  status: :unprocessable_entity
         end
       end

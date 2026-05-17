@@ -1,8 +1,10 @@
 <script setup>
 import { useAuthStore } from "~/composables/useAuthStore.js"
 import { useDarkMode } from "~/composables/useDarkMode.js"
+import { useNotificationsStore } from "~/composables/useNotificationsStore.js"
 
 const auth = useAuthStore()
+const notifications = useNotificationsStore()
 const router = useRouter()
 const { isDark, toggle: toggleDark } = useDarkMode()
 
@@ -12,6 +14,7 @@ onMounted(() => {
 
 async function logout() {
   await auth.logout()
+  notifications.reset()
   router.push("/login")
 }
 
@@ -52,6 +55,7 @@ function fullImageUrl(path) {
             class="w-10 h-10 flex items-center justify-center text-2xl rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
           >{{ isDark ? "☀️" : "🌙" }}</button>
           <template v-if="auth.user">
+            <NotificationsBell />
             <NuxtLink
               :to="newTripTo"
               class="bg-brand-500 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-brand-600"

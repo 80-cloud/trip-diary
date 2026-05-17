@@ -134,6 +134,22 @@ npm run test:watch          # 監視モード
 
 テスト方針の全体像は [docs/テスト計画書.md](docs/テスト計画書.md) を参照。
 
+### テストカバレッジ
+
+```bash
+# Backend (SimpleCov)
+cd backend
+bin/rails test
+open coverage/index.html    # ブラウザでカバレッジ詳細を確認
+
+# Frontend (@vitest/coverage-v8)
+cd frontend
+npm run test:coverage
+open coverage/index.html
+```
+
+> 閾値は Phase 1 では 0% (生成のみ確認)。段階目標は [docs/ログ・監視・障害対応設計書.md §5](docs/ログ・監視・障害対応設計書.md) を参照。
+
 ### API 疎通確認 (curl)
 
 ```bash

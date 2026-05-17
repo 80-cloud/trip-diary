@@ -98,18 +98,18 @@ function fullImageUrl(path) {
     >
       <NuxtLink
         v-for="cat in [
-          {label:'すべて',   icon:'🗺️', q:''},
-          {label:'国内',     icon:'🏔️', q:'?category=domestic'},
-          {label:'海外',     icon:'✈️', q:'?category=overseas'},
-          {label:'一人旅',   icon:'🎒', q:'?category=solo'},
-          {label:'グルメ',   icon:'🍣', q:'?category=gourmet'},
-          {label:'世界遺産', icon:'🏛️', q:'?category=heritage'},
-          {label:'家族旅',   icon:'👨‍👩‍👧', q:'?category=family'},
-          {label:'アウトドア', icon:'🏕️', q:'?category=outdoor'},
-          {label:'出張',     icon:'💼', q:'?category=business'}
+          {label:'すべて',   icon:'🗺️', value:null},
+          {label:'国内',     icon:'🏔️', value:'domestic'},
+          {label:'海外',     icon:'✈️', value:'overseas'},
+          {label:'一人旅',   icon:'🎒', value:'solo'},
+          {label:'グルメ',   icon:'🍣', value:'gourmet'},
+          {label:'世界遺産', icon:'🏛️', value:'heritage'},
+          {label:'家族旅',   icon:'👨‍👩‍👧', value:'family'},
+          {label:'アウトドア', icon:'🏕️', value:'outdoor'},
+          {label:'出張',     icon:'💼', value:'business'}
         ]"
         :key="cat.label"
-        :to="`/${cat.q}`"
+        :to="{ path: '/', query: cat.value ? { category: cat.value } : {} }"
         :title="cat.label"
         class="group w-14 h-14 flex flex-col items-center justify-center rounded-xl hover:bg-brand-500 hover:text-white transition"
       >

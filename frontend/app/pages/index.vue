@@ -84,6 +84,18 @@ watch([q, category, sort, feed], ([newQ, newCat, newSort, newFeed]) => {
   reload()
 })
 
+// URL → ref の逆方向同期: 外部リンク (右固定サイドナビ等) からの遷移で
+// route.query は変わるが、setup 時に初期化した ref は自動更新されない。
+// ここで明示同期することで「サイドナビ国内クリック → category ref が 'domestic' に更新
+// → 既存 watch が reload を発火」の流れを成立させる。
+// 同値代入は Vue ref がトリガーしないので無限ループの心配なし。
+watch(() => route.query, (newQuery) => {
+  q.value        = newQuery.q || ""
+  category.value = newQuery.category || ""
+  sort.value     = newQuery.sort || "recent"
+  feed.value     = newQuery.feed === "following" ? "following" : "all"
+})
+
 // F-UX-INF-SCROLL: sentinel の IntersectionObserver で末尾検知 → loadMore
 const sentinel = ref(null)
 let observer = null
@@ -166,18 +178,11 @@ function formatRange(s, e) {
 </script>
 
 <style scoped>
-@keyframes plane-fly {
-  0%   { transform: translateX(0) rotate(0deg); opacity: 0.6; }
-  50%  { transform: translateX(-8px) rotate(-6deg); opacity: 1; }
-  100% { transform: translateX(0) rotate(0deg); opacity: 0.6; }
-}
-.animate-pulse-plane { animation: plane-fly 3s ease-in-out infinite; }
-
-/* 画像の skeleton (load 完了で fade-in) */
+/* 画像の fade-in (load 完了で opacity 0 → 1) */
 .trip-img { opacity: 0; transition: opacity 350ms ease; }
 .trip-img.loaded { opacity: 1; }
 
-/* カードの fade-in stagger (リスト並び順に少しずつ遅らせる) */
+/* カードの初期描画 fade + 持ち上がり */
 @keyframes card-rise {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }

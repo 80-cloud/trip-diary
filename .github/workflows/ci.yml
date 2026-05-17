@@ -109,7 +109,6 @@ jobs:
         run: npm test -- --run
 
       - name: Build (production)
+        # NUXT_PUBLIC_API_BASE は nuxt.config.ts 側で `|| "http://localhost:3010/api/v1"`
+        # のフォールバックを持つため、CI で env を渡す必要はない。
         run: npm run build
-        env:
-          # 本番 API URL はビルド時には不要だが、空だと nuxtConfig が転ぶ場合に備えてダミー
-          NUXT_PUBLIC_API_BASE: http://localhost:3010/api/v1

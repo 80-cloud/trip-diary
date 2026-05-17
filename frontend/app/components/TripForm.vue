@@ -15,6 +15,9 @@ const body = ref(props.initial?.body || "")
 const visibility = ref(props.initial?.visibility || "public")
 const category = ref(props.initial?.category || "")
 const tagInput = ref((props.initial?.tags || []).join(", "))
+// 下書きで開いて再保存すると下書きのまま、公開済を編集すると公開のまま、
+// が UX として自然なので initial.status を尊重する。
+const initialStatus = props.initial?.status || "published"
 
 function parseTagList(text) {
   return (text || "")
@@ -76,8 +79,9 @@ const visibleDayEntries = computed(() =>
   dayEntries.value.map((d, idx) => ({ ...d, _idx: idx })).filter((d) => !d._destroy)
 )
 
-function submit() {
+function submit(statusOverride) {
   const tagList = parseTagList(tagInput.value)
+  const status = statusOverride || initialStatus
   // 画像がある場合は multipart/form-data、ない場合は JSON で送信
   if (selectedFiles.value.length > 0) {
     const fd = new FormData()
@@ -88,6 +92,7 @@ function submit() {
     fd.append("body", body.value)
     fd.append("visibility", visibility.value)
     fd.append("category", category.value)
+    fd.append("status", status)
     // 空配列でも Rails 側で「全タグ外し」を意図するため、必ず空配列フィールドを送る
     if (tagList.length === 0) {
       fd.append("tag_list[]", "")
@@ -115,6 +120,7 @@ function submit() {
       body: body.value,
       visibility: visibility.value,
       category: category.value,
+      status: status,
       tag_list: tagList,
       day_entries_attributes: dayEntries.value.map((d, i) => ({
         ...d,
@@ -127,7 +133,8 @@ function submit() {
 </script>
 
 <template>
-  <form @submit.prevent="submit" class="bg-white p-6 rounded-lg border border-slate-200 space-y-4 max-w-3xl">
+  <!-- enter キーでの暴発を避けるため form 自体の submit はバインドしない -->
+  <form @submit.prevent class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700 space-y-4 max-w-3xl">
     <div>
       <label class="block text-sm font-medium text-slate-700 mb-1">タイトル *</label>
       <input v-model="title" required maxlength="80" class="w-full border border-slate-300 rounded px-3 py-2" />
@@ -215,11 +222,16 @@ function submit() {
       <li v-for="err in errors" :key="err">{{ err }}</li>
     </ul>
 
-    <div class="flex items-center justify-end gap-2 border-t pt-4">
-      <NuxtLink to="/" class="px-4 py-2 text-sm text-slate-600 hover:underline">キャンセル</NuxtLink>
-      <button type="submit" class="bg-brand-500 text-white px-6 py-2 rounded font-medium hover:bg-brand-600">
-        保存
-      </button>
+    <div class="flex items-center justify-end gap-2 border-t border-slate-200 dark:border-slate-700 pt-4">
+      <NuxtLink to="/" class="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:underline">キャンセル</NuxtLink>
+      <button
+        type="button" @click="submit('draft')"
+        class="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-2 rounded font-medium hover:bg-slate-300 dark:hover:bg-slate-600"
+      >下書きとして保存</button>
+      <button
+        type="button" @click="submit('published')"
+        class="bg-brand-500 text-white px-6 py-2 rounded font-medium hover:bg-brand-600"
+      >公開して保存</button>
     </div>
   </form>
 </template>

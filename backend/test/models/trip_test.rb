@@ -122,4 +122,43 @@ class TripTest < ActiveSupport::TestCase
     refute trip.valid?
     assert_includes trip.errors[:tags], "は各 32 文字以内にしてください"
   end
+
+  # --- F-UX-DRAFT: status 関連 ---
+
+  test "Trip.statuses は draft / published の 2 値" do
+    assert_equal %w[draft published].sort, Trip.statuses.keys.sort
+  end
+
+  test "draft trip は他人には visible_to に含まれない" do
+    refute_includes Trip.visible_to(users(:bob)), trips(:alice_draft)
+  end
+
+  test "draft trip は本人には visible_to に含まれる" do
+    assert_includes Trip.visible_to(users(:alice)), trips(:alice_draft)
+  end
+
+  test "draft trip は未ログインユーザーには visible_to に含まれない" do
+    refute_includes Trip.visible_to(nil), trips(:alice_draft)
+  end
+
+  test "他人の private published trip は visible_to に含まれない" do
+    refute_includes Trip.visible_to(users(:bob)), trips(:alice_private)
+  end
+
+  # --- F-UX-INF-SCROLL: cursor pagination ---
+
+  test ".before_cursor(nil) は全件" do
+    assert_equal Trip.count, Trip.before_cursor(nil).count
+  end
+
+  test ".before_cursor(blank) は全件" do
+    assert_equal Trip.count, Trip.before_cursor("").count
+  end
+
+  test ".before_cursor は cursor より小さい id のみ返す" do
+    cursor_id = trips(:alice_kyoto).id
+    Trip.before_cursor(cursor_id).each do |t|
+      assert t.id < cursor_id, "Trip ##{t.id} は cursor #{cursor_id} 未満であること"
+    end
+  end
 end

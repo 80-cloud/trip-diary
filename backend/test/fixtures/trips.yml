@@ -12,6 +12,7 @@ alice_kyoto:
   body: 桜が綺麗だった
   visibility: public
   category: domestic
+  status: published
 
 bob_okinawa:
   user: bob
@@ -22,6 +23,7 @@ bob_okinawa:
   body: 海が綺麗
   visibility: public
   category: domestic
+  status: published
 
 alice_private:
   user: alice
@@ -32,6 +34,7 @@ alice_private:
   body: 秘密
   visibility: private
   category: domestic
+  status: published
 
 bob_paris:
   user: bob
@@ -42,6 +45,7 @@ bob_paris:
   body: ルーヴル美術館を回った
   visibility: public
   category: overseas
+  status: published
 
 alice_ramen:
   user: alice
@@ -52,3 +56,15 @@ alice_ramen:
   body: 一乗寺の名店をはしご
   visibility: public
   category: gourmet
+  status: published
+
+alice_draft:
+  user: alice
+  title: 下書き中の旅
+  destination: 札幌
+  started_on: <%= Date.new(2026, 8, 1) %>
+  ended_on: <%= Date.new(2026, 8, 3) %>
+  body: まだ書き途中
+  visibility: public
+  category: domestic
+  status: draft

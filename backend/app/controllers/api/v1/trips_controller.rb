@@ -5,17 +5,41 @@ module Api
       before_action :set_trip, only: [:show, :update, :destroy]
       before_action :authorize_owner!, only: [:update, :destroy]
 
+      DEFAULT_PAGE_LIMIT = 20
+      MAX_PAGE_LIMIT     = 50
+
       def index
-        trips = Trip.visible_to(current_user)
-                    .by_tag(params[:tag])
-                    .by_category(params[:category])
-                    .in_date_range(params[:date_from], params[:date_to])
-                    .search(params[:q])
-                    .sorted(params[:sort])
-                    .includes(:user, :tags, images_attachments: :blob)
-        trips = trips.where(user_id: params[:user_id]) if params[:user_id].present?
-        liked_ids = current_user ? current_user.likes.where(trip_id: trips.map(&:id)).pluck(:trip_id).to_set : Set.new
-        render json: trips.map { |t| trip_summary(t, liked_ids: liked_ids) }
+        # ?mine=drafts は本人専用ビュー。未ログイン or 他人は空配列で返す
+        # (404 等で「存在しない」を漏らさないよう、空配列で揃える)
+        if params[:mine] == "drafts"
+          return render(json: { trips: [], next_cursor: nil }) unless current_user
+          base = current_user.trips.draft
+        else
+          base = Trip.visible_to(current_user)
+                     .by_tag(params[:tag])
+                     .by_category(params[:category])
+                     .in_date_range(params[:date_from], params[:date_to])
+                     .search(params[:q])
+          base = base.where(user_id: params[:user_id]) if params[:user_id].present?
+        end
+
+        # cursor pagination は sort=recent (デフォルト) のみ。popular/title は
+        # created_at と無関係な順序なので cursor では適用できない (offset は本 PR 範囲外)。
+        sort_mode  = params[:sort].to_s
+        use_cursor = sort_mode.empty? || sort_mode == "recent"
+        limit      = (params[:limit] || DEFAULT_PAGE_LIMIT).to_i.clamp(1, MAX_PAGE_LIMIT)
+
+        trips = base.sorted(sort_mode).includes(:user, :tags, images_attachments: :blob)
+        trips = trips.before_cursor(params[:cursor]).limit(limit) if use_cursor
+
+        results = trips.to_a
+        next_cursor = (use_cursor && results.size == limit) ? results.last.id : nil
+
+        liked_ids = current_user ? current_user.likes.where(trip_id: results.map(&:id)).pluck(:trip_id).to_set : Set.new
+        render json: {
+          trips: results.map { |t| trip_summary(t, liked_ids: liked_ids) },
+          next_cursor: next_cursor
+        }
       end
 
       def show
@@ -48,7 +72,11 @@ module Api
       private
 
       def set_trip
-        @trip = Trip.includes(
+        # show は visible_to で絞る (draft / 他人 private は 404)。
+        # update / destroy は authorize_owner! で別途守るため、全件から find する
+        # (本人が自分の draft を編集できる必要があるため visible_to を使えない)。
+        scope = action_name == "show" ? Trip.visible_to(current_user) : Trip
+        @trip = scope.includes(
           :user,
           :tags,
           :day_entries,
@@ -64,7 +92,7 @@ module Api
 
       def trip_params
         permitted = params.permit(
-          :title, :destination, :started_on, :ended_on, :body, :visibility, :category,
+          :title, :destination, :started_on, :ended_on, :body, :visibility, :category, :status,
           images: [],
           tag_list: [],
           day_entries_attributes: [:id, :day_number, :happened_on, :title, :body, :position, :_destroy]
@@ -73,6 +101,11 @@ module Api
         # そのままだと 500 になるため。nil にしておけば presence: true で 422 を返せる。
         if permitted[:category].present? && !Trip.categories.key?(permitted[:category])
           permitted[:category] = nil
+        end
+        # status は不正値だと enum ArgumentError → 500 になるので同様にサニタイズ。
+        # 不正値は "published" にフォールバック (UI に存在しない値はバグなので安全側に倒す)。
+        if permitted[:status].present? && !Trip.statuses.key?(permitted[:status])
+          permitted[:status] = "published"
         end
         permitted
       end
@@ -86,6 +119,7 @@ module Api
           ended_on: trip.ended_on,
           visibility: trip.visibility,
           category: trip.category,
+          status: trip.status,
           tags: trip.tags.map(&:name),
           likes_count: trip.likes_count,
           comments_count: trip.comments_count,

@@ -13,6 +13,11 @@ Rails.application.routes.draw do
         resources :comments, only: [:create, :destroy]
         resource  :like,    only: [:create, :destroy]
       end
+
+      get "tags/popular", to: "tags#popular"
+      # タグ名は日本語/記号を含み得る。デフォルトの :id 制約だと「.」「/」で詰まるため
+      # constraint で任意文字 (slash 以外) を許容する。
+      get "tags/:name",   to: "tags#show", constraints: { name: %r{[^/]+} }
     end
   end
 end

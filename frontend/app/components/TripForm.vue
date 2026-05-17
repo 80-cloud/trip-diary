@@ -1,4 +1,6 @@
 <script setup>
+import { CATEGORY_OPTIONS } from "~/composables/useCategories.js"
+
 const props = defineProps({
   initial: { type: Object, default: null },
   errors: { type: Array, default: () => [] }
@@ -11,6 +13,15 @@ const startedOn = ref(props.initial?.started_on || "")
 const endedOn = ref(props.initial?.ended_on || "")
 const body = ref(props.initial?.body || "")
 const visibility = ref(props.initial?.visibility || "public")
+const category = ref(props.initial?.category || "")
+const tagInput = ref((props.initial?.tags || []).join(", "))
+
+function parseTagList(text) {
+  return (text || "")
+    .split(/[,、]/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+}
 
 const dayEntries = ref(
   props.initial?.day_entries?.length
@@ -66,6 +77,7 @@ const visibleDayEntries = computed(() =>
 )
 
 function submit() {
+  const tagList = parseTagList(tagInput.value)
   // 画像がある場合は multipart/form-data、ない場合は JSON で送信
   if (selectedFiles.value.length > 0) {
     const fd = new FormData()
@@ -75,6 +87,13 @@ function submit() {
     fd.append("ended_on", endedOn.value)
     fd.append("body", body.value)
     fd.append("visibility", visibility.value)
+    fd.append("category", category.value)
+    // 空配列でも Rails 側で「全タグ外し」を意図するため、必ず空配列フィールドを送る
+    if (tagList.length === 0) {
+      fd.append("tag_list[]", "")
+    } else {
+      tagList.forEach((t) => fd.append("tag_list[]", t))
+    }
     dayEntries.value.forEach((d, i) => {
       const prefix = `day_entries_attributes[${i}]`
       if (d.id) fd.append(`${prefix}[id]`, d.id)
@@ -95,6 +114,8 @@ function submit() {
       ended_on: endedOn.value,
       body: body.value,
       visibility: visibility.value,
+      category: category.value,
+      tag_list: tagList,
       day_entries_attributes: dayEntries.value.map((d, i) => ({
         ...d,
         day_number: d.day_number || i + 1,
@@ -145,13 +166,31 @@ function submit() {
         ※ 既存の画像は新しく選択した画像で置き換わります
       </p>
     </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">カテゴリ *</label>
+        <select v-model="category" required class="w-full border border-slate-300 rounded px-3 py-2">
+          <option value="" disabled>選択してください</option>
+          <option v-for="opt in CATEGORY_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">公開範囲</label>
+        <select v-model="visibility" class="w-full border border-slate-300 rounded px-3 py-2">
+          <option value="public">公開 (全員)</option>
+          <option value="friends">フォロワーのみ (Phase 2)</option>
+          <option value="private">非公開 (自分のみ)</option>
+        </select>
+      </div>
+    </div>
+
     <div>
-      <label class="block text-sm font-medium text-slate-700 mb-1">公開範囲</label>
-      <select v-model="visibility" class="border border-slate-300 rounded px-3 py-2">
-        <option value="public">公開 (全員)</option>
-        <option value="friends">フォロワーのみ (Phase 2)</option>
-        <option value="private">非公開 (自分のみ)</option>
-      </select>
+      <label class="block text-sm font-medium text-slate-700 mb-1">タグ (任意・カンマ区切り)</label>
+      <input
+        v-model="tagInput" maxlength="200" placeholder="例: 京都, 紅葉, 寺"
+        class="w-full border border-slate-300 rounded px-3 py-2"
+      />
+      <p class="text-xs text-slate-500 mt-1">複数指定するときは「,」または「、」で区切ってください</p>
     </div>
 
     <fieldset class="border-t pt-4">

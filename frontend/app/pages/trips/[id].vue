@@ -1,11 +1,13 @@
 <script setup>
 import { useAuthStore } from "~/composables/useAuthStore.js"
+import { useCategories } from "~/composables/useCategories.js"
 
 const route = useRoute()
 const router = useRouter()
 const api = useApi()
 const auth = useAuthStore()
 const config = useRuntimeConfig()
+const { labelOf } = useCategories()
 const id = route.params.id
 
 const { data: trip, refresh, pending, error } = await useAsyncData(`trip-${id}`, () => api.get(`/trips/${id}`))
@@ -91,6 +93,15 @@ async function deleteTrip() {
           <h1 class="text-2xl font-bold text-slate-800">{{ trip.title }}</h1>
           <p class="text-sm text-slate-500 mt-1">{{ trip.started_on }} 〜 {{ trip.ended_on }} / {{ trip.destination }}</p>
           <p class="text-sm text-slate-600 mt-1">@{{ trip.user.display_name }}</p>
+          <div class="mt-2 flex flex-wrap gap-1.5 items-center">
+            <span class="text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-700">{{ labelOf(trip.category) }}</span>
+            <NuxtLink
+              v-for="name in (trip.tags || [])"
+              :key="name"
+              :to="`/tags/${encodeURIComponent(name)}`"
+              class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200"
+            >#{{ name }}</NuxtLink>
+          </div>
         </div>
         <div v-if="isOwner()" class="flex gap-2 shrink-0">
           <NuxtLink :to="`/trips/${trip.id}/edit`" class="text-sm bg-slate-200 px-3 py-1.5 rounded hover:bg-slate-300">編集</NuxtLink>

@@ -89,10 +89,12 @@
 | **AWS 本番デプロイ** (F-DEPLOY-01 / ECS Fargate + RDS + ALB + CloudFront) | 🚧 [PR #58](https://github.com/80-cloud/trip-diary/pull/58) で infra 完成 → 撤収済 → 再デプロイ予定 |
 | **E2E 基盤** (F-E2E-01 / Playwright + smoke spec) | 🚧 [PR #64](https://github.com/80-cloud/trip-diary/pull/64) 提出 / smoke GREEN 確認待ち |
 | **性能テスト基盤** (F-PERF-01 / k6 + Lighthouse) | 📅 計画中 |
+| **通知センター** (F-NOTIF-01 / コメント・いいね・フォロー受信通知) | 📅 計画中 (v0.4.1 で Phase 4 → 3 に引き戻し) |
+| **通知既読管理** (F-NOTIF-02 / 個別/一括既読 + 未読バッジ) | 📅 計画中 (F-NOTIF-01 と同 PR で実装予定) |
 
 ### Phase 4 ⏸ (講師提出後の発展枠)
 
-地図 (F-MAP-*) / 通知 (F-NOTIF-*) / PDF (F-EXPORT-*) / 統計 (F-STATS-*) / アルバム / PWA / リアルタイム / DM / 多言語 など 25+ 機能。詳細とスライド経緯は [docs/機能一覧.md §Phase 3 スコープ確定経緯](docs/機能一覧.md) を参照。
+地図 (F-MAP-*) / PDF (F-EXPORT-*) / 統計 (F-STATS-*) / アルバム / PWA / リアルタイム / DM / 多言語 など 25+ 機能。詳細とスライド経緯は [docs/機能一覧.md §Phase 3 スコープ確定経緯](docs/機能一覧.md) を参照。
 
 詳細は [docs/機能一覧.md](docs/機能一覧.md) を参照。
 

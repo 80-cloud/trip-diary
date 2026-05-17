@@ -43,8 +43,11 @@ module Api
         ids = results.map(&:id)
         liked_ids     = current_user ? current_user.likes.where(trip_id: ids).pluck(:trip_id).to_set : Set.new
         favorited_ids = current_user ? current_user.favorites.where(trip_id: ids).pluck(:trip_id).to_set : Set.new
+        # N+1 防止: 各 trip の投稿者についての followed_by_me を 1 クエリで先取り
+        author_ids = results.map(&:user_id).uniq
+        followed_user_ids = current_user ? current_user.followings.where(id: author_ids).pluck(:id).to_set : Set.new
         render json: {
-          trips: results.map { |t| trip_summary(t, liked_ids: liked_ids, favorited_ids: favorited_ids) },
+          trips: results.map { |t| trip_summary(t, liked_ids: liked_ids, favorited_ids: favorited_ids, followed_user_ids: followed_user_ids) },
           next_cursor: next_cursor
         }
       end
@@ -53,13 +56,16 @@ module Api
         liked_ids     = current_user && @trip.liked_by?(current_user) ? Set[@trip.id] : Set.new
         favorited_ids = current_user && current_user.favorites.exists?(trip_id: @trip.id) ? Set[@trip.id] : Set.new
         my_memo       = current_user&.memos&.find_by(trip_id: @trip.id)&.body
-        render json: trip_detail(@trip, liked_ids: liked_ids, favorited_ids: favorited_ids, my_memo: my_memo)
+        # N+1 防止: 投稿者 + 全コメント投稿者の followed_by_me を 1 クエリで先取り
+        related_user_ids = ([@trip.user_id] + @trip.comments.map(&:user_id)).uniq
+        followed_user_ids = current_user ? current_user.followings.where(id: related_user_ids).pluck(:id).to_set : Set.new
+        render json: trip_detail(@trip, liked_ids: liked_ids, favorited_ids: favorited_ids, my_memo: my_memo, followed_user_ids: followed_user_ids)
       end
 
       def create
         trip = current_user.trips.new(trip_params)
         if trip.save
-          render json: trip_detail(trip, liked_ids: Set.new, favorited_ids: Set.new, my_memo: nil), status: :created
+          render json: trip_detail(trip, liked_ids: Set.new, favorited_ids: Set.new, my_memo: nil, followed_user_ids: Set.new), status: :created
         else
           render json: { errors: trip.errors.full_messages }, status: :unprocessable_entity
         end
@@ -67,7 +73,7 @@ module Api
 
       def update
         if @trip.update(trip_params)
-          render json: trip_detail(@trip, liked_ids: Set.new, favorited_ids: Set.new, my_memo: nil)
+          render json: trip_detail(@trip, liked_ids: Set.new, favorited_ids: Set.new, my_memo: nil, followed_user_ids: Set.new)
         else
           render json: { errors: @trip.errors.full_messages }, status: :unprocessable_entity
         end
@@ -119,7 +125,7 @@ module Api
         permitted
       end
 
-      def trip_summary(trip, liked_ids:, favorited_ids: Set.new)
+      def trip_summary(trip, liked_ids:, favorited_ids: Set.new, followed_user_ids: Set.new)
         {
           id: trip.id,
           title: trip.title,
@@ -134,18 +140,18 @@ module Api
           comments_count: trip.comments_count,
           liked_by_me: liked_ids.include?(trip.id),
           favorited_by_me: favorited_ids.include?(trip.id),
-          user: user_payload(trip.user),
+          user: user_payload(trip.user, followed_user_ids: followed_user_ids),
           image_url: trip.images.attached? ? rails_blob_path(trip.images.first, only_path: true) : nil,
           created_at: trip.created_at
         }
       end
 
-      def trip_detail(trip, liked_ids:, favorited_ids: Set.new, my_memo: nil)
-        trip_summary(trip, liked_ids: liked_ids, favorited_ids: favorited_ids).merge(
+      def trip_detail(trip, liked_ids:, favorited_ids: Set.new, my_memo: nil, followed_user_ids: Set.new)
+        trip_summary(trip, liked_ids: liked_ids, favorited_ids: favorited_ids, followed_user_ids: followed_user_ids).merge(
           body: trip.body,
           my_memo: my_memo,
           day_entries: trip.day_entries.map { |d| day_entry_payload(d) },
-          comments: trip.comments.order(:created_at).map { |c| comment_payload(c) },
+          comments: trip.comments.order(:created_at).map { |c| comment_payload(c, followed_user_ids: followed_user_ids) },
           image_urls: trip.images.attached? ? trip.images.map { |i| rails_blob_path(i, only_path: true) } : []
         )
       end
@@ -154,16 +160,16 @@ module Api
         { id: d.id, day_number: d.day_number, happened_on: d.happened_on, title: d.title, body: d.body, position: d.position }
       end
 
-      def comment_payload(c)
-        { id: c.id, body: c.body, created_at: c.created_at, user: user_payload(c.user) }
+      def comment_payload(c, followed_user_ids: Set.new)
+        { id: c.id, body: c.body, created_at: c.created_at, user: user_payload(c.user, followed_user_ids: followed_user_ids) }
       end
 
-      def user_payload(user)
+      def user_payload(user, followed_user_ids: Set.new)
         {
           id: user.id,
           display_name: user.display_name,
           email: user.email,
-          followed_by_me: current_user ? current_user.following?(user) : false
+          followed_by_me: followed_user_ids.include?(user.id)
         }
       end
 

@@ -6,7 +6,7 @@ const config = useRuntimeConfig()
 const id = route.params.id
 const tab = ref(route.query.tab === "followers" ? "followers" : "following")
 
-const { data: list, refresh: refreshList } = await useAsyncData(
+const { data: list } = await useAsyncData(
   () => `users-${id}-${tab.value}`,
   () => api.get(`/users/${id}/follows`, { params: { type: tab.value } }),
   { watch: [tab] }

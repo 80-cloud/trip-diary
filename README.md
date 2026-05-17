@@ -25,7 +25,7 @@
 | **CI 実行履歴** | [Actions タブ](https://github.com/80-cloud/trip-diary/actions) — 全 PR で backend (Rails Minitest + zeitwerk) + frontend (Vitest + Nuxt build) が緑であること |
 | **PR 一覧** | [Pulls (closed)](https://github.com/80-cloud/trip-diary/pulls?q=is%3Apr+is%3Aclosed) — 全機能を Issue → ブランチ → PR → セルフレビュー → CI 緑 → マージで進めた履歴 |
 
-> **採点用シードユーザー**: `taro@example.com` / `password` (詳細は本 README 下部 「シードユーザー」参照)
+> **ローカル動作確認用シードユーザー**: `taro@example.com` / `password` (他 2 アカウントの一覧は本 README 下部 「シードユーザー」参照)
 
 ---
 
@@ -87,7 +87,7 @@
 | 種別 | 件数 | カバレッジ |
 |---|---|---|
 | Backend (Minitest) | 183 件 / 521 assertions GREEN | Line 89.51% / Branch 70.14% |
-| Frontend (Vitest) | 12 件 GREEN | (V2 で計測予定) |
+| Frontend (Vitest) | 12 件 GREEN | `@vitest/coverage-v8` 設定済 (`npm run test:coverage`) |
 
 ---
 
@@ -183,7 +183,7 @@ npm run test:coverage
 open coverage/index.html
 ```
 
-> 閾値は Phase 1 では 0% (生成のみ確認)。段階目標は [docs/ログ・監視・障害対応設計書.md §5](docs/ログ・監視・障害対応設計書.md) を参照。
+> 現状の閾値は 0% (生成のみ確認 / Phase 2 末時点の実測は backend Line 89.51%)。段階目標は [docs/ログ・監視・障害対応設計書.md §5](docs/ログ・監視・障害対応設計書.md) を参照。
 
 ### API 疎通確認 (curl)
 
@@ -249,7 +249,7 @@ curl -sS -b /tmp/c.txt -X POST http://localhost:3010/api/v1/trips/2/comments \
 
 ```
 trip-diary/
-├── README.md, CLAUDE.md, .gitignore, .env.example, docker-compose.yml
+├── README.md, CLAUDE.md, LICENSE, .gitignore, .env.example, docker-compose.yml
 ├── docs/             # 設計書一式
 ├── backend/          # Rails 8.1 API
 ├── frontend/         # Nuxt 4 (JS)
@@ -258,12 +258,6 @@ trip-diary/
 ├── infra/            # (Phase3) Terraform
 └── .github/          # PR / Issue テンプレ
 ```
-
----
-
-## ライセンス
-
-MIT License (学習目的 / スクール提出物)
 
 ---
 

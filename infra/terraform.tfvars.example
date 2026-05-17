@@ -1,0 +1,50 @@
+# cp terraform.tfvars.example terraform.tfvars して値を設定する。
+# terraform.tfvars は機密 (DB パスワード等) を含むため Git 管理しない (.gitignore 参照)。
+
+# RDS マスターパスワード。強力なランダム値を設定すること。
+# 生成例: openssl rand -base64 32
+db_password = "REPLACE_WITH_STRONG_RANDOM_PASSWORD"
+
+# 画像アップロード用 S3 バケット名。S3 はグローバル一意のため、
+# 既存バケットと衝突しない名前にする (account ID を含めるのが定石)。
+s3_bucket_name = "trip-diary-uploads-prod-REPLACE_WITH_ACCOUNT_ID"
+
+# ALB の HTTPS リスナー用 ACM 証明書 ARN (ap-northeast-1 リージョン)。
+# 空のままなら HTTP リスナーのみ。独自ドメイン採用時に発行して設定。
+acm_certificate_arn = ""
+
+# Rails credentials.yml.enc の復号鍵 (backend/config/master.key の中身)。
+# bin/rails credentials:edit 実行時に自動生成されているはず。
+# !!! 流用厳禁: 本番は新規生成する !!!
+rails_master_key = "REPLACE_WITH_RAILS_MASTER_KEY"
+
+# Rails の Cookie 暗号化用 SECRET_KEY_BASE。32 文字以上の強力なランダム値。
+# 生成例: cd backend && bin/rails secret
+secret_key_base = "REPLACE_WITH_RAILS_SECRET_AT_LEAST_64_CHARS"
+
+# JWT 署名鍵 (HS256)。32 文字以上の強力なランダム値を設定すること。
+# 生成例: openssl rand -base64 48
+jwt_secret = "REPLACE_WITH_STRONG_RANDOM_SECRET_AT_LEAST_32_CHARS"
+
+# CORS 許可オリジン (カンマ区切り)。空なら CloudFront 既定ドメインを https で使う。
+# 独自ドメイン確定後に "https://trip-diary.example.com" 等を明示指定する。
+cors_allowed_origins = ""
+
+# ECS Task Definition で参照する backend image tag (必須、default 値なし)。
+# 推奨: git commit SHA の先頭 7 文字 (例: a1b2c3d)。latest は禁止 (validation 弾き)。
+# 初回 apply 時は dummy tag (例: "init") で OK (ImagePullError 期待、後で deploy-backend.sh が正式 tag を push)。
+backend_image_tag = "init"
+
+# AWS Budgets 通知の宛先メールアドレス (必須、default 値なし)。
+budget_notification_email = "you@example.com"
+
+# 月次コスト上限 (USD)。デフォルト 30 で十分な場合は記述不要。
+# budget_limit_usd = 30
+
+# CloudFront 料金クラス。デフォルト PriceClass_200 (日本含むアジア対応) で十分な場合は記述不要。
+# cloudfront_price_class = "PriceClass_200"
+
+# 学習/デモ用途で apply→tear-down を繰り返す場合は true。
+# S3 (uploads/frontend) と ECR (backend) を中身ごと撤収可能になる。
+# 本番運用では必ず false (default)、誤適用で全画像/全 image が永久喪失する。
+# force_destroy_resources = true

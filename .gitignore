@@ -51,3 +51,20 @@ db/mysql-data/
 
 # Build artifacts
 *.gem
+
+# Terraform (infra/)
+infra/.terraform/
+infra/.terraform.lock.hcl
+infra/terraform.tfstate
+infra/terraform.tfstate.backup
+infra/*.tfstate
+infra/*.tfstate.*
+infra/terraform.tfvars
+infra/*.tfvars
+!infra/terraform.tfvars.example
+infra/crash.log
+infra/crash.*.log
+infra/override.tf
+infra/override.tf.json
+infra/*_override.tf
+infra/*_override.tf.json

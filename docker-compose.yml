@@ -17,6 +17,10 @@ services:
       - "${MYSQL_PORT:-3316}:3306"
     volumes:
       - ./db/mysql-data:/var/lib/mysql
+      # 初回起動時のみ /docker-entrypoint-initdb.d/*.sql を実行する MySQL 公式機能。
+      # 01-grant-test-db.sql で trip_diary_test DB と 'trip'@'%' の権限を作成する
+      # (B29 再発防止 / 新環境で `bin/rails db:test:prepare` が失敗しないようにする)。
+      - ./db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s

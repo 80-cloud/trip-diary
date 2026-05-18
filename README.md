@@ -159,7 +159,7 @@
 | フロントエンド | Nuxt 4 + Vue 3 / Tailwind CSS (**TypeScript 不採用 = 純 JS**) |
 | DB | MySQL 8 (Docker) |
 | 認証 | JWT in HttpOnly Cookie |
-| 画像 | ActiveStorage (Disk / Phase3 で S3) |
+| 画像 | ActiveStorage (ローカル: Disk / 本番: S3) |
 | インフラ (Phase3) | AWS ECS Fargate + RDS MySQL + ALB + CloudFront + S3 / Terraform 管理 |
 
 ### 使用ポート

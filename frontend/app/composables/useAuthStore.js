@@ -26,6 +26,13 @@ export const useAuthStore = defineStore("auth", {
       this.fetched = true
       return data.user
     },
+    async guestLogin() {
+      const api = useApi()
+      const data = await api.post("/guest_login")
+      this.user = data.user
+      this.fetched = true
+      return data.user
+    },
     async signup(email, password, displayName) {
       const api = useApi()
       const data = await api.post("/signup", {

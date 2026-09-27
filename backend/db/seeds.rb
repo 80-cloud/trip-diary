@@ -11,6 +11,7 @@ if Trip.count == 0
   trip1 = taro.trips.create!(
     title: "京都3日間の旅",
     destination: "京都",
+    category: "heritage",
     started_on: Date.new(2026, 4, 1),
     ended_on:   Date.new(2026, 4, 3),
     body: "桜の季節に京都へ。清水寺・嵐山・伏見稲荷を巡る定番ルート。",
@@ -23,6 +24,7 @@ if Trip.count == 0
   trip2 = hanako.trips.create!(
     title: "ハワイ・オアフ島ひとり旅",
     destination: "ハワイ・オアフ島",
+    category: "overseas",
     started_on: Date.new(2026, 3, 10),
     ended_on:   Date.new(2026, 3, 15),
     body: "ワイキキ・ノースショア・ダイヤモンドヘッド。海とパンケーキ。",
@@ -34,6 +36,7 @@ if Trip.count == 0
   trip3 = jiro.trips.create!(
     title: "北海道 雪まつり弾丸",
     destination: "札幌",
+    category: "domestic",
     started_on: Date.new(2026, 2, 6),
     ended_on:   Date.new(2026, 2, 8),
     body: "2泊3日で雪まつりとスープカレー。",

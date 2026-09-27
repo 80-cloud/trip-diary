@@ -15,6 +15,11 @@ module Api
       # 漏らさない汎用メッセージで統一する (email 列挙防止)。
       GENERIC_SIGNUP_ERROR = "入力内容に誤りがあります。各項目をご確認ください".freeze
 
+      # F-GUEST-01: 有効なゲストが上限に達したときのメッセージ
+      GUEST_BUSY_ERROR = "現在混み合っています。しばらくしてから再試行してください".freeze
+      # 初回通知のためにゲストをフォローするデモユーザーの人数
+      DEMO_FOLLOWERS_FOR_GUEST = 2
+
       def signup
         user = User.new(signup_params)
         if user.save
@@ -57,6 +62,22 @@ module Api
         else
           render json: { error: "メールアドレスまたはパスワードが間違っています" }, status: :unauthorized
         end
+      end
+
+      # POST /api/v1/guest_login (F-GUEST-01)
+      # 訪問者ごとに一時ゲストを作り、通常のログインと同じ Cookie を発行する。
+      # ログイン中に呼ばれた場合も、ゲストの Cookie で上書きする。
+      def guest_login
+        # 先に期限切れを削除してから数える (削除前に数えると、期限切れで上限に達したと誤判定する)
+        User.cleanup_expired_guests!
+        if User.active_guests.count >= User::GUEST_MAX_ACTIVE
+          return render(json: { error: GUEST_BUSY_ERROR }, status: :service_unavailable)
+        end
+
+        guest = User.create_guest!
+        follow_guest_by_demo_users(guest)
+        issue_jwt_cookie(guest)
+        render json: { user: user_payload(guest) }, status: :created
       end
 
       def logout
@@ -105,12 +126,21 @@ module Api
         params.permit(:display_name, :bio, :avatar)
       end
 
+      # 初回通知: デモユーザーがゲストをフォローすると、Follow の after_commit で
+      # ゲスト宛ての通知ができる。デモデータの無い環境では何もしない。
+      def follow_guest_by_demo_users(guest)
+        User.demo_users.limit(DEMO_FOLLOWERS_FOR_GUEST).each do |demo|
+          demo.active_follows.create!(followed: guest)
+        end
+      end
+
       def user_payload(user)
         {
           id: user.id,
           email: user.email,
           display_name: user.display_name,
           bio: user.bio,
+          guest: user.guest,
           avatar_url: user.avatar.attached? ? Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: true) : nil
         }
       end

@@ -1,5 +1,5 @@
 # E-M1: ブルートフォース対策 (docs/セキュリティ自己監査.md §2)
-# 未認証経路 (login / signup) を IP ベースでスロットル。
+# 未認証経路 (login / signup / guest_login) を IP ベースでスロットル。
 
 class Rack::Attack
   # メモリストア (Rails.cache が memory_store の場合と一致)。
@@ -14,6 +14,11 @@ class Rack::Attack
   # POST /api/v1/signup: 3 req / 分 / IP (作成系はより厳しめ)
   throttle("signup/ip", limit: 3, period: 60.seconds) do |req|
     req.ip if req.post? && req.path == "/api/v1/signup"
+  end
+
+  # POST /api/v1/guest_login: 5 req / 10 分 / IP (F-GUEST-01。1 回ごとにユーザーを作るため最も厳しめ)
+  throttle("guest_login/ip", limit: 5, period: 10.minutes) do |req|
+    req.ip if req.post? && req.path == "/api/v1/guest_login"
   end
 
   # 429 レスポンス整形 (フィールド名 / 残り時間など機密を漏らさない一般メッセージ)

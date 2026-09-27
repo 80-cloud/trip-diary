@@ -26,6 +26,20 @@ class User < ApplicationRecord
   AVATAR_MAX_SIZE = 2.megabytes
   AVATAR_CONTENT_TYPES = %w[image/jpeg image/png image/gif image/webp].freeze
 
+  # F-GUEST-01: 訪問者ごとの一時ゲスト (docs/公開デモ化計画書.md §5)
+  GUEST_TTL = 24.hours # JWT / Cookie の有効期限 (1 日) と同じ
+  GUEST_MAX_ACTIVE = 200
+  GUEST_CLEANUP_BATCH = 20
+  # .invalid は実在しないことが保証されたドメイン (RFC 2606)。実在の人にメールが届かない
+  GUEST_EMAIL_DOMAIN = "example.invalid".freeze
+  # デモユーザー (demo:seed で作る・誰もログインできない) の見分け方
+  DEMO_EMAIL_DOMAIN = "demo.example.com".freeze
+
+  scope :guests,         -> { where(guest: true) }
+  scope :active_guests,  -> { guests.where("users.created_at > ?", GUEST_TTL.ago) }
+  scope :expired_guests, -> { guests.where("users.created_at <= ?", GUEST_TTL.ago) }
+  scope :demo_users,     -> { where("users.email LIKE ?", "%@#{DEMO_EMAIL_DOMAIN}").order(:id) }
+
   validates :email, presence: true, uniqueness: { case_sensitive: false },
                     format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :display_name, presence: true, length: { in: 1..30 }
@@ -34,6 +48,23 @@ class User < ApplicationRecord
   validate  :avatar_within_limits
 
   before_save { self.email = email.downcase.strip }
+
+  # パスワードは乱数で作って捨てる (利用者には返さない = メールアドレスでのログインはできない)
+  def self.create_guest!
+    create!(
+      guest: true,
+      email: "guest-#{SecureRandom.hex(12)}@#{GUEST_EMAIL_DOMAIN}",
+      password: SecureRandom.base58(32),
+      display_name: format("ゲスト-%04d", SecureRandom.random_number(10_000))
+    )
+  end
+
+  # 期限切れのゲストを destroy で削除し、削除できた人数を返す。
+  # SQL 直の DELETE は dependent: :destroy が動かず孤立レコードが残るため使わない (CLAUDE.md §6)。
+  # 呼び出したリクエストの応答を遅らせないよう、1 回の人数を絞る。
+  def self.cleanup_expired_guests!(limit: GUEST_CLEANUP_BATCH)
+    expired_guests.order(:id).limit(limit).to_a.count(&:destroy)
+  end
 
   # other を相互フォローしている (= 双方が follow 関係) か判定。friends 可視性で使用。
   def mutual_follow?(other)

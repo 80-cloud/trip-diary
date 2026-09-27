@@ -51,6 +51,9 @@ class Trip < ApplicationRecord
   validate :images_size_within_limit
   validate :tag_list_within_limits
 
+  # F-GUEST-01: ゲストの旅行記録は自分だけに表示する。作成・更新の両方で動く
+  before_validation :force_private_for_guest
+
   scope :recent, -> { order(created_at: :desc) }
 
   # visibility (公開範囲) と status (公開状態) を組み合わせた可視性。
@@ -145,6 +148,10 @@ class Trip < ApplicationRecord
   after_save :sync_tags!
 
   private
+
+  def force_private_for_guest
+    self.visibility = "private" if user&.guest?
+  end
 
   def sync_tags!
     return if @tag_list_pending.nil?

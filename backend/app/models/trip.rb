@@ -49,6 +49,7 @@ class Trip < ApplicationRecord
   validate :end_after_start
   validate :images_count_within_limit
   validate :images_size_within_limit
+  validate :guest_image_total_within_limit
   validate :tag_list_within_limits
 
   # F-GUEST-01: ゲストの旅行記録は自分だけに表示する。作成・更新の両方で動く
@@ -167,6 +168,11 @@ class Trip < ApplicationRecord
 
   def force_private_for_guest
     self.visibility = "private" if user&.guest?
+  end
+
+  # images.size は置き換えのときも保存後の枚数を返す (代入済みの添付を数える)
+  def guest_image_total_within_limit
+    user&.validate_guest_image_limit(self, images.size)
   end
 
   def sync_tags!

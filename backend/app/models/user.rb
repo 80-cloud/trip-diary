@@ -34,6 +34,9 @@ class User < ApplicationRecord
   GUEST_EMAIL_DOMAIN = "example.invalid".freeze
   # デモユーザー (demo:seed で作る・誰もログインできない) の見分け方
   DEMO_EMAIL_DOMAIN = "demo.example.com".freeze
+  # 保存容量の無料枠を守るため、ゲストの画像は旅行の画像・チケット・アバターの合計で数える
+  GUEST_IMAGE_LIMIT = 5
+  GUEST_IMAGE_LIMIT_ERROR = "ゲストが保存できる画像は、旅行の画像・チケット・アバターを合わせて #{GUEST_IMAGE_LIMIT} 枚までです".freeze
 
   scope :guests,         -> { where(guest: true) }
   scope :active_guests,  -> { guests.where("users.created_at > ?", GUEST_TTL.ago) }
@@ -46,6 +49,7 @@ class User < ApplicationRecord
   validates :bio, length: { maximum: 500 }
   validates :password, length: { minimum: 6 }, if: -> { password.present? }
   validate  :avatar_within_limits
+  validate  :guest_image_total_within_limit
 
   before_save { self.email = email.downcase.strip }
 
@@ -78,7 +82,31 @@ class User < ApplicationRecord
     active_follows.exists?(followed_id: other.id)
   end
 
+  # ゲストの画像の合計が上限を超えるなら、検査中の記録 (record) にエラーを足す。
+  # record の分は保存予定の数 (pending) で数え、ほかの記録は DB の数で数える。
+  # pending が 0 なら合計は増えないので数えない。
+  def validate_guest_image_limit(record, pending)
+    return unless guest? && pending.positive?
+    return if saved_image_count_except(record) + pending <= GUEST_IMAGE_LIMIT
+    record.errors.add(:base, GUEST_IMAGE_LIMIT_ERROR)
+  end
+
   private
+
+  def guest_image_total_within_limit
+    validate_guest_image_limit(self, avatar.attached? ? 1 : 0)
+  end
+
+  # 旅行の画像・チケットのファイル・アバターのうち、record 以外の保存済みの数 (1 クエリ)
+  def saved_image_count_except(record)
+    attachments = ActiveStorage::Attachment
+    trip_ids = trips.select(:id)
+    attachments.where(record_type: "Trip", name: "images", record_id: trip_ids)
+               .or(attachments.where(record_type: "Ticket", name: "file", record_id: Ticket.where(trip_id: trip_ids).select(:id)))
+               .or(attachments.where(record_type: "User", name: "avatar", record_id: id))
+               .where.not(record_type: record.class.name, record_id: record.id)
+               .count
+  end
 
   def avatar_within_limits
     return unless avatar.attached?

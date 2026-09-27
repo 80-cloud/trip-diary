@@ -50,8 +50,9 @@ module Api
         # N+1 防止: 各 trip の投稿者についての followed_by_me を 1 クエリで先取り
         author_ids = results.map(&:user_id).uniq
         followed_user_ids = current_user ? current_user.followings.where(id: author_ids).pluck(:id).to_set : Set.new
+        comment_counts = Trip.visible_comment_counts(results, viewer: current_user)
         render json: {
-          trips: results.map { |t| trip_summary(t, liked_ids: liked_ids, favorited_ids: favorited_ids, followed_user_ids: followed_user_ids) },
+          trips: results.map { |t| trip_summary(t, liked_ids: liked_ids, comment_counts: comment_counts, favorited_ids: favorited_ids, followed_user_ids: followed_user_ids) },
           next_cursor: next_cursor
         }
       end
@@ -60,8 +61,8 @@ module Api
         liked_ids     = current_user && @trip.liked_by?(current_user) ? Set[@trip.id] : Set.new
         favorited_ids = current_user && current_user.favorites.exists?(trip_id: @trip.id) ? Set[@trip.id] : Set.new
         my_memo       = current_user&.memos&.find_by(trip_id: @trip.id)&.body
-        # N+1 防止: 投稿者 + 全コメント投稿者の followed_by_me を 1 クエリで先取り
-        related_user_ids = ([ @trip.user_id ] + @trip.comments.map(&:user_id)).uniq
+        # N+1 防止: 投稿者 + 見えるコメントの投稿者の followed_by_me を 1 クエリで先取り
+        related_user_ids = ([ @trip.user_id ] + @trip.comments_visible_to(current_user).map(&:user_id)).uniq
         followed_user_ids = current_user ? current_user.followings.where(id: related_user_ids).pluck(:id).to_set : Set.new
         render json: trip_detail(@trip, liked_ids: liked_ids, favorited_ids: favorited_ids, my_memo: my_memo, followed_user_ids: followed_user_ids)
       end
@@ -135,7 +136,7 @@ module Api
         permitted
       end
 
-      def trip_summary(trip, liked_ids:, favorited_ids: Set.new, followed_user_ids: Set.new)
+      def trip_summary(trip, liked_ids:, comment_counts:, favorited_ids: Set.new, followed_user_ids: Set.new)
         {
           id: trip.id,
           title: trip.title,
@@ -147,7 +148,7 @@ module Api
           status: trip.status,
           tags: trip.tags.map(&:name),
           likes_count: trip.likes_count,
-          comments_count: trip.comments_count,
+          comments_count: comment_counts.fetch(trip.id),
           liked_by_me: liked_ids.include?(trip.id),
           favorited_by_me: favorited_ids.include?(trip.id),
           user: user_payload(trip.user, followed_user_ids: followed_user_ids),
@@ -176,11 +177,12 @@ module Api
           else
             [ nil, nil ]
           end
-        trip_summary(trip, liked_ids: liked_ids, favorited_ids: favorited_ids, followed_user_ids: followed_user_ids).merge(
+        comment_counts = Trip.visible_comment_counts([ trip ], viewer: current_user)
+        trip_summary(trip, liked_ids: liked_ids, comment_counts: comment_counts, favorited_ids: favorited_ids, followed_user_ids: followed_user_ids).merge(
           body: trip.body,
           my_memo: my_memo,
           day_entries: trip.day_entries.map { |d| day_entry_payload(d) },
-          comments: trip.comments.order(:created_at).map { |c| comment_payload(c, followed_user_ids: followed_user_ids) },
+          comments: trip.comments_visible_to(current_user).map { |c| comment_payload(c, followed_user_ids: followed_user_ids) },
           image_urls: trip.images.attached? ? trip.images.map { |i| rails_blob_path(i, only_path: true) } : [],
           planned_count: is_owner ? trip.planned_spots.size : nil,
           planned_done_count: is_owner ? trip.planned_spots.count { |s| s.done } : nil,

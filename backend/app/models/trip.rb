@@ -129,6 +129,22 @@ class Trip < ApplicationRecord
     likes.exists?(user_id: user.id)
   end
 
+  # 見る人に見せるコメント件数を旅行ごとに返す ({ trip_id => 件数 })。
+  # ゲストのコメントはそのゲスト本人にだけ見せるので、ほかのゲストの分を 1 クエリで数えて引く。
+  def self.visible_comment_counts(trips, viewer:)
+    hidden = Comment.joins(:user)
+                    .where(trip_id: trips.map(&:id), users: { guest: true })
+                    .where.not(user_id: viewer&.id)
+                    .group(:trip_id).count
+    trips.to_h { |t| [ t.id, t.comments_count - hidden.fetch(t.id, 0) ] }
+  end
+
+  # 見る人に返すコメント (作成順)。件数は visible_comment_counts と同じ条件で数える。
+  def comments_visible_to(viewer)
+    comments.reject { |c| c.user.guest? && c.user_id != viewer&.id }
+            .sort_by { |c| [ c.created_at, c.id ] }
+  end
+
   # フォーム入力 (カンマ区切り文字列 or 配列) を受け、Tag を find_or_create して
   # has_many :tags に同期する。空配列を渡すと全タグを外す。
   def tag_list=(input)

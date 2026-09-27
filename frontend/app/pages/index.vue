@@ -126,16 +126,6 @@ function selectCategory(value) {
   category.value = category.value === value ? "" : value
 }
 
-function tagSize(count, max) {
-  if (!max || max <= 1) return 14
-  return 12 + Math.round((count / max) * 12)
-}
-
-const maxTagCount = computed(() => {
-  if (!popularTags.value || popularTags.value.length === 0) return 1
-  return popularTags.value[0].trips_count || 1
-})
-
 // 案 A: ヒーロー Top 3 (絞り込み無し時のみ・1 大 + 2 小 Bento)
 const featuredTrips = computed(() => {
   if (q.value || category.value || feed.value !== "all") return []
@@ -290,8 +280,7 @@ function formatRange(s, e) {
           v-for="t in popularTags"
           :key="t.id"
           :to="`/tags/${encodeURIComponent(t.name)}`"
-          class="text-brand-600 dark:text-brand-50 hover:underline"
-          :style="{ fontSize: `${tagSize(t.trips_count, maxTagCount)}px` }"
+          class="text-sm text-brand-600 dark:text-brand-50 hover:underline"
         >#{{ t.name }} <span class="text-slate-400 dark:text-slate-500 text-xs">({{ t.trips_count }})</span></NuxtLink>
       </div>
     </section>

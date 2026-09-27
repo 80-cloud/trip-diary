@@ -6,6 +6,7 @@ Rails.application.routes.draw do
       get  "health",  to: "health#show"
       post "signup",  to: "auth#signup"
       post "login",   to: "auth#login"
+      post "guest_login", to: "auth#guest_login"
       delete "logout", to: "auth#logout"
       get   "me",     to: "auth#me"
       patch "me",     to: "auth#update_me"

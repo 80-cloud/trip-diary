@@ -1,0 +1,97 @@
+key: takuya
+display_name: 西村拓也
+bio: 仕事柄、国内外の出張が多め。仕事の前後に 1 時間だけ街を歩いて、その土地の朝ごはんと夜ごはんを楽しむのが習慣です。
+
+trips:
+  - key: tokyo
+    title: 東京出張、東京タワーの見える街で
+    destination: 東京都港区
+    category: business
+    visibility: public
+    started_days_ago: 52
+    days: 3
+    tags: [出張, 街歩き, 絶景]
+    body: |-
+      3 日間の東京出張。打ち合わせの合間に、高層ビルの展望フロアから東京タワーを眺めた。
+      地方に住んでいると、ビルの間から急に東京タワーが見えるだけで少し得した気分になる。
+      朝は早めに起きて、ホテルの周りを 1 時間ほど散歩した。
+    day_entries:
+      - title: 高層ビルから見る東京タワー
+        body: 打ち合わせ先のビルの展望フロアから。晴れた日は遠くの山まで見える。
+      - title: 朝の散歩と定食
+        body: 神社の境内を抜けて、早朝から開いている定食屋へ。焼き魚と味噌汁で仕事前に元気が出た。
+      - title: 帰りの新幹線で振り返り
+        body: 3 日分のメモを整理しながら帰路へ。出張中でも、少し歩くだけで気分が変わる。
+
+  - key: london
+    title: ロンドン出張ついでのパブめぐり
+    destination: イギリス・ロンドン
+    category: gourmet
+    visibility: public
+    started_days_ago: 23
+    days: 5
+    tags: [出張, 食べ歩き, 海外]
+    body: |-
+      1 週間弱のロンドン出張。仕事が終わると、同僚に教わったパブを 1 軒ずつ回った。
+      カウンターで注文して、立ったまま飲む人が多い。知らない人とも自然に話が始まるのが楽しい。
+    day_entries:
+      - title: 昼から賑わう老舗のパブ
+        body: 木のカウンターと古い照明が落ち着く。フィッシュアンドチップスは、衣が軽くて思ったよりさっぱりしていた。
+      - title: 日曜のローストランチ
+        body: 日曜は肉と野菜のローストを食べるのが定番らしい。ヨークシャープディングという軽い焼き菓子が添えてあった。
+    review:
+      rating: 3
+      body: パブの雰囲気は最高。ただ物価が高く、出張の食費は予算を超えがち。昼はパブのランチを使うと少し抑えられる。
+
+  - key: chicago
+    title: シカゴ出張
+    destination: アメリカ・シカゴ
+    category: business
+    visibility: public
+    status: draft
+    started_days_ago: 6
+    days: 3
+    tags: [出張, 海外]
+    body: |-
+      先週のシカゴ出張のメモ。写真を整理してから公開する予定。
+    day_entries:
+      - title: 湖沿いの朝ランニング
+        body: ホテルの前の湖沿いに、長いランニングコースがあった。
+      - title: 高層ビルの展望台
+        body: 夕方の街が一面オレンジ色に染まっていた。
+
+comments:
+  - trip: sakura/arashiyama
+    body: 朝 7 時の竹林、出張の前に寄れたら最高ですね。京都出張のときに早起きしてみます。
+  - trip: sakura/jigokudani
+    body: 温泉と猿の組み合わせ、海外の同僚にも人気だと聞きます。外湯めぐりもいいですね。
+  - trip: kenta/preikestolen
+    body: この断崖の上でのお昼ごはん、きっと格別だったでしょうね。写真で見ても高さが伝わります。
+  - trip: kenta/matterhorn
+    body: 山小屋のスープ、読んでいるだけで温まります。いつかまとまった休みを取って行ってみたいです。
+  - trip: yui/machupicchu
+    body: 列車からの眺め、よさそうですね。高地に慣れる日を取るという話、とても参考になります。
+  - trip: yui/lisbon
+    body: エッグタルトの食べ比べ、出張で行ったときに真似します。老舗のお店、気になります。
+  - trip: mayumi/farm
+    body: 自分で収穫した野菜は、やっぱり特別においしいんでしょうね。直売所で買い物するのも楽しそうです。
+  - trip: mayumi/guam
+    body: 4 時間弱で行ける海、いいですね。帰りの飛行機でゆっくりできたのも何よりです。
+
+likes:
+  - sakura/hakodate
+  - sakura/arashiyama
+  - kenta/iceland
+  - kenta/matterhorn
+  - yui/machupicchu
+  - yui/shirakawago
+  - yui/lisbon
+  - mayumi/guam
+  - mayumi/fuji
+
+favorites:
+  - sakura/hakodate
+  - kenta/matterhorn
+
+follows:
+  - kenta

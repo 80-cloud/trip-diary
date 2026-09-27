@@ -23,11 +23,12 @@ module Api
                     .sorted(params[:sort])
                     .includes(:user, :tags, images_attachments: :blob)
         liked_ids = current_user ? current_user.likes.where(trip_id: trips.map(&:id)).pluck(:trip_id).to_set : Set.new
+        comment_counts = Trip.visible_comment_counts(trips, viewer: current_user)
 
         render json: {
           # 件数は一覧と同じ「見える旅行」で数える (CLAUDE.md §12-5)
           tag: tag_summary(tag, trips_count: trips.size),
-          trips: trips.map { |t| trip_summary(t, liked_ids: liked_ids) }
+          trips: trips.map { |t| trip_summary(t, liked_ids: liked_ids, comment_counts: comment_counts) }
         }
       end
 
@@ -39,7 +40,7 @@ module Api
         { id: tag.id, name: tag.name, trips_count: trips_count }
       end
 
-      def trip_summary(trip, liked_ids:)
+      def trip_summary(trip, liked_ids:, comment_counts:)
         {
           id: trip.id,
           title: trip.title,
@@ -49,7 +50,7 @@ module Api
           category: trip.category,
           tags: trip.tags.map(&:name),
           likes_count: trip.likes_count,
-          comments_count: trip.comments_count,
+          comments_count: comment_counts.fetch(trip.id),
           liked_by_me: liked_ids.include?(trip.id),
           user: { id: trip.user.id, display_name: trip.user.display_name },
           image_url: trip.images.attached? ? Rails.application.routes.url_helpers.rails_blob_path(trip.images.first, only_path: true) : nil,

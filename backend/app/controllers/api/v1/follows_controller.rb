@@ -44,6 +44,8 @@ module Api
           when "followers" then @target.followers
           else                  @target.followings   # デフォルトは following
           end
+        # ゲストは一覧に出さない。見る人がそのゲスト本人の場合だけ残す (Issue #111)
+        list = list.where(guest: false).or(list.where(id: current_user&.id))
         render json: list.order(:id).map { |u| user_summary(u) }
       end
 

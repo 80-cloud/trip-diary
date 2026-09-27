@@ -19,7 +19,8 @@ module Api
         ordered = favorited_trip_ids.map { |id| trip_map[id] }.compact
         liked_ids = current_user.likes.where(trip_id: ordered.map(&:id)).pluck(:trip_id).to_set
         favorited_ids = favorited_trip_ids.to_set
-        render json: ordered.map { |t| trip_summary(t, liked_ids: liked_ids, favorited_ids: favorited_ids) }
+        comment_counts = Trip.visible_comment_counts(ordered, viewer: current_user)
+        render json: ordered.map { |t| trip_summary(t, liked_ids: liked_ids, favorited_ids: favorited_ids, comment_counts: comment_counts) }
       end
 
       # POST /api/v1/trips/:trip_id/favorite (冪等: 既存ならそのまま 200, なければ 201)
@@ -59,7 +60,7 @@ module Api
         @trip = Trip.visible_to(current_user).find(params[:trip_id])
       end
 
-      def trip_summary(trip, liked_ids:, favorited_ids:)
+      def trip_summary(trip, liked_ids:, favorited_ids:, comment_counts:)
         {
           id: trip.id,
           title: trip.title,
@@ -69,7 +70,7 @@ module Api
           category: trip.category,
           tags: trip.tags.map(&:name),
           likes_count: trip.likes_count,
-          comments_count: trip.comments_count,
+          comments_count: comment_counts.fetch(trip.id),
           liked_by_me: liked_ids.include?(trip.id),
           favorited_by_me: favorited_ids.include?(trip.id),
           user: { id: trip.user.id, display_name: trip.user.display_name },

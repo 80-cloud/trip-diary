@@ -57,7 +57,6 @@ module Api
         {
           id: u.id,
           display_name: u.display_name,
-          email: u.email,
           followed_by_me: current_user ? current_user.following?(u) : false
         }
       end

@@ -48,7 +48,7 @@ module Api
           likes_count: trip.likes_count,
           comments_count: trip.comments_count,
           liked_by_me: liked_ids.include?(trip.id),
-          user: { id: trip.user.id, display_name: trip.user.display_name, email: trip.user.email },
+          user: { id: trip.user.id, display_name: trip.user.display_name },
           image_url: trip.images.attached? ? Rails.application.routes.url_helpers.rails_blob_path(trip.images.first, only_path: true) : nil,
           created_at: trip.created_at
         }

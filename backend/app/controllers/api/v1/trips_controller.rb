@@ -235,7 +235,6 @@ module Api
         {
           id: user.id,
           display_name: user.display_name,
-          email: user.email,
           avatar_url: user.avatar.attached? ? rails_blob_path(user.avatar, only_path: true) : nil,
           followed_by_me: followed_user_ids.include?(user.id)
         }

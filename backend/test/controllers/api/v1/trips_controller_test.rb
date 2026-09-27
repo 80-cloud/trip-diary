@@ -246,22 +246,40 @@ class Api::V1::TripsControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     body = JSON.parse(response.body)
     assert_equal 2, body["trips"].size
-    assert body["next_cursor"], "末尾 trip の id が next_cursor として返ること"
-    assert_equal body["trips"].last["id"], body["next_cursor"]
+    last_trip = Trip.find(body["trips"].last["id"])
+    assert_equal Trip.cursor_for(last_trip), body["next_cursor"], "末尾 trip の作成日時と id が next_cursor として返ること"
   end
 
-  test "GET /api/v1/trips?cursor=X は cursor より小さい id を返す" do
-    # まず 1 ページ目
-    get "/api/v1/trips", params: { limit: 2 }
-    first_page = JSON.parse(response.body)
-    cursor = first_page["next_cursor"]
+  # #115: id の順と作成日時の順が食い違う旅行を含めても、抜け・重複なく作成日時の新しい順に返る
+  test "GET /api/v1/trips は next_cursor をたどると全件を 1 回ずつ作成日時の新しい順に返す" do
+    create_public_trip_at(1.day.from_now) # 作成日時が最も新しい
+    create_public_trip_at(1.year.ago)     # id は最も大きいが作成日時が最も古い
+    expected = Trip.visible_to(nil).sorted("recent").pluck(:id)
+    assert_equal expected, fetch_all_trip_ids(limit: 1)
+  end
 
-    # 2 ページ目
-    get "/api/v1/trips", params: { limit: 2, cursor: cursor }
-    second_page = JSON.parse(response.body)
-    second_page["trips"].each do |t|
-      assert t["id"] < cursor, "Trip ##{t['id']} は cursor #{cursor} 未満であること"
+  test "GET /api/v1/trips は作成日時が同じ旅行の間でページが切れても id の大きい順に返す" do
+    same_time = 1.month.ago
+    first = create_public_trip_at(same_time)
+    second = create_public_trip_at(same_time)
+    ids = fetch_all_trip_ids(limit: 1)
+    assert_equal 1, ids.count(first.id)
+    assert_equal 1, ids.count(second.id)
+    assert_equal ids.index(second.id) + 1, ids.index(first.id), "id の大きい旅行が先に返ること"
+  end
+
+  test "GET /api/v1/trips?cursor=形式が正しくない値 は 400" do
+    [ "abc", "123" ].each do |cursor|
+      get "/api/v1/trips", params: { cursor: cursor }
+      assert_response :bad_request
+      assert_equal "cursor の形式が正しくありません", JSON.parse(response.body)["error"]
     end
+  end
+
+  test "GET /api/v1/trips?sort=popular は cursor を指定しても使わない" do
+    get "/api/v1/trips", params: { sort: "popular", cursor: "abc" }
+    assert_response :ok
+    assert_equal Trip.visible_to(nil).count, JSON.parse(response.body)["trips"].size
   end
 
   test "GET /api/v1/trips 全件取得すると最終ページの next_cursor は nil" do
@@ -327,5 +345,30 @@ class Api::V1::TripsControllerTest < ActionDispatch::IntegrationTest
     body = JSON.parse(response.body)
     assert_nil body["planned_count"]
     assert_nil body["planned_done_count"]
+  end
+
+  private
+
+  def create_public_trip_at(created_at)
+    users(:alice).trips.create!(
+      title: "作成日時を指定した旅", destination: "奈良", category: "domestic",
+      started_on: Date.new(2025, 1, 1), ended_on: Date.new(2025, 1, 2),
+      created_at: created_at
+    )
+  end
+
+  # next_cursor を最後までたどり、返った旅行の id を順に集める (100 ページで打ち切り)
+  def fetch_all_trip_ids(limit:)
+    ids = []
+    cursor = nil
+    100.times do
+      get "/api/v1/trips", params: { limit: limit, cursor: cursor }.compact
+      assert_response :ok
+      body = JSON.parse(response.body)
+      ids.concat(body["trips"].map { |t| t["id"] })
+      cursor = body["next_cursor"]
+      break if cursor.nil?
+    end
+    ids
   end
 end

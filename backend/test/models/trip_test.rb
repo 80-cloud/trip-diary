@@ -155,11 +155,34 @@ class TripTest < ActiveSupport::TestCase
     assert_equal Trip.count, Trip.before_cursor("").count
   end
 
-  test ".before_cursor は cursor より小さい id のみ返す" do
-    cursor_id = trips(:alice_kyoto).id
-    Trip.before_cursor(cursor_id).each do |t|
-      assert t.id < cursor_id, "Trip ##{t.id} は cursor #{cursor_id} 未満であること"
+  # #115: id の順と作成日時の順が食い違っても、並び順 (created_at DESC, id DESC) で後ろの旅行だけを返す
+  test ".before_cursor は並び順で cursor の旅行より後ろの旅行だけ返す" do
+    anchor = trips(:alice_kyoto)
+    older = users(:alice).trips.create!(
+      title: "古い旅", destination: "奈良", category: "domestic",
+      started_on: Date.new(2025, 1, 1), ended_on: Date.new(2025, 1, 2),
+      created_at: anchor.created_at - 1.day
+    )
+    result = Trip.before_cursor(Trip.cursor_for(anchor)).to_a
+    assert_includes result, older, "id は大きいが作成日時が古い旅行も返ること"
+    result.each do |t|
+      after_anchor = t.created_at < anchor.created_at ||
+                     (t.created_at == anchor.created_at && t.id < anchor.id)
+      assert after_anchor, "Trip ##{t.id} は並び順で cursor の旅行より後ろであること"
     end
+  end
+
+  test ".cursor_for と .parse_cursor は作成日時 (マイクロ秒) と id を往復で保つ" do
+    trip = trips(:alice_kyoto)
+    created_at, id = Trip.parse_cursor(Trip.cursor_for(trip))
+    assert_equal trip.created_at, created_at
+    assert_equal trip.id, id
+  end
+
+  test ".parse_cursor は形式が正しくない値に nil を返す" do
+    assert_nil Trip.parse_cursor("abc")
+    assert_nil Trip.parse_cursor("123") # 以前の id だけの形式
+    assert_nil Trip.parse_cursor("1-2-3")
   end
 
   # --- F-FOLLOW-04 / friends visibility ---

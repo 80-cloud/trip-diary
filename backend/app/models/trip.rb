@@ -81,12 +81,31 @@ class Trip < ApplicationRecord
     end
   }
 
-  # F-UX-INF-SCROLL: id 降順の cursor pagination。
-  # cursor (= 前ページ末尾の id) より小さい id を返す。
-  # `sorted(:recent)` の `created_at DESC, id DESC` と整合 (autoincrement で id と created_at は単調増加)。
+  # F-UX-INF-SCROLL: `sorted(:recent)` の `created_at DESC, id DESC` と同じ順の cursor pagination。
+  # cursor は「作成日時 (UNIX 時刻のマイクロ秒)-id」の文字列 (前ページ末尾の旅行から作る)。
+  # id だけで絞ると、id の順と作成日時の順が食い違う旅行で抜け・重複が出るため、組で比べる (#115)。
   # popular/title sort では cursor を使わない (offset でも実装可だが本 PR の範囲外)。
+  CURSOR_PATTERN = /\A(\d{1,20})-(\d{1,20})\z/
+
+  def self.cursor_for(trip)
+    "#{(trip.created_at.to_r * 1_000_000).to_i}-#{trip.id}"
+  end
+
+  # [作成日時, id] を返す。形式が正しくなければ nil
+  def self.parse_cursor(cursor)
+    match = CURSOR_PATTERN.match(cursor.to_s)
+    return nil unless match
+
+    micro = match[1].to_i
+    [ Time.zone.at(micro / 1_000_000, micro % 1_000_000, :usec), match[2].to_i ]
+  end
+
   scope :before_cursor, ->(cursor) {
-    cursor.present? ? where("trips.id < ?", cursor.to_i) : all
+    created_at, id = parse_cursor(cursor)
+    return all unless created_at
+
+    where("trips.created_at < :created_at OR (trips.created_at = :created_at AND trips.id < :id)",
+          created_at: created_at, id: id)
   }
 
   scope :by_tag, ->(name) {

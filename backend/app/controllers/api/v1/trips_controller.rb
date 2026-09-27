@@ -33,6 +33,9 @@ module Api
         sort_mode  = params[:sort].to_s
         use_cursor = sort_mode.empty? || sort_mode == "recent"
         limit      = (params[:limit] || DEFAULT_PAGE_LIMIT).to_i.clamp(1, MAX_PAGE_LIMIT)
+        if use_cursor && params[:cursor].present? && Trip.parse_cursor(params[:cursor]).nil?
+          return render(json: { error: "cursor の形式が正しくありません" }, status: :bad_request)
+        end
 
         trips = base.sorted(sort_mode).includes(
           :tags,
@@ -42,7 +45,7 @@ module Api
         trips = trips.before_cursor(params[:cursor]).limit(limit) if use_cursor
 
         results = trips.to_a
-        next_cursor = (use_cursor && results.size == limit) ? results.last.id : nil
+        next_cursor = (use_cursor && results.size == limit) ? Trip.cursor_for(results.last) : nil
 
         ids = results.map(&:id)
         liked_ids     = current_user ? current_user.likes.where(trip_id: ids).pluck(:trip_id).to_set : Set.new

@@ -15,12 +15,17 @@ module Api
       # 漏らさない汎用メッセージで統一する (email 列挙防止)。
       GENERIC_SIGNUP_ERROR = "入力内容に誤りがあります。各項目をご確認ください".freeze
 
+      # P0-9: 公開環境ではサインアップを止める (SIGNUP_ENABLED=false)。理由の詳細は返さない
+      SIGNUP_DISABLED_ERROR = "現在、新規登録は受け付けていません".freeze
+
       # F-GUEST-01: 有効なゲストが上限に達したときのメッセージ
       GUEST_BUSY_ERROR = "現在混み合っています。しばらくしてから再試行してください".freeze
       # 初回通知のためにゲストをフォローするデモユーザーの人数
       DEMO_FOLLOWERS_FOR_GUEST = 2
 
       def signup
+        return render(json: { error: SIGNUP_DISABLED_ERROR }, status: :forbidden) unless signup_enabled?
+
         user = User.new(signup_params)
         if user.save
           issue_jwt_cookie(user)
@@ -117,6 +122,11 @@ module Api
       end
 
       private
+
+      # テストで切り替えられるよう、起動時ではなくリクエストのたびに読む。未設定なら有効
+      def signup_enabled?
+        ENV.fetch("SIGNUP_ENABLED", "true") != "false"
+      end
 
       def signup_params
         params.permit(:email, :password, :display_name)

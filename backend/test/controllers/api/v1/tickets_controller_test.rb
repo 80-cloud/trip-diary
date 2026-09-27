@@ -68,6 +68,15 @@ class Api::V1::TicketsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "DELETE で添付ファイルの記録も消える (Issue #113)" do
+    ticket = @trip.tickets.create!(kind: "train", file: { io: StringIO.new("x"), filename: "a.png", content_type: "image/png" })
+    login_via_api(@owner)
+    assert_difference -> { ActiveStorage::Attachment.where(record_type: "Ticket").count }, -1 do
+      delete "/api/v1/trips/#{@trip.id}/tickets/#{ticket.id}"
+    end
+    assert_response :no_content
+  end
+
   test "trip 詳細 (本人) は tickets を返す" do
     @trip.tickets.create!(kind: "train", reservation_no: "12345")
     login_via_api(@owner)

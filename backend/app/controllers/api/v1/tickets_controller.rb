@@ -25,7 +25,8 @@ module Api
       end
 
       def destroy
-        @trip.tickets.where(id: params[:id]).delete_all
+        # destroy で消す (delete_all はコールバックを通らず、添付ファイルが残るため。Issue #113)
+        @trip.tickets.find_by(id: params[:id])&.destroy
         head :no_content
       end
 

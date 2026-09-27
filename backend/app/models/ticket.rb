@@ -15,6 +15,7 @@ class Ticket < ApplicationRecord
   validates :notes,          length: { maximum: 500 }
   validate :file_within_limits
   validate :at_least_one_field
+  validate :guest_image_total_within_limit
 
   scope :ordered, -> { order(:position, :id) }
 
@@ -35,5 +36,9 @@ class Ticket < ApplicationRecord
     unless ALLOWED_CONTENT_TYPES.include?(file.blob.content_type)
       errors.add(:file, "は画像 (JPEG/PNG/GIF/WebP) または PDF のみアップロードできます")
     end
+  end
+
+  def guest_image_total_within_limit
+    trip&.user&.validate_guest_image_limit(self, file.attached? ? 1 : 0)
   end
 end

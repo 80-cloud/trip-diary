@@ -49,6 +49,16 @@ class Api::V1::PrivacyTest < ActionDispatch::IntegrationTest
     assert_equal 1, body.find { |t| t["name"] == "京都" }["trips_count"]
   end
 
+  # 件数などの派生値も、一覧と同じ条件で絞る (CLAUDE.md §12-5)。
+  test "タグ別ページの件数は、見える旅行の件数と一致する" do
+    trips(:alice_private).update!(tag_list: [ "京都" ])
+
+    get "/api/v1/tags/#{ERB::Util.url_encode('京都')}"
+    assert_response :ok
+    body = JSON.parse(response.body)
+    assert_equal body["trips"].size, body.dig("tag", "trips_count")
+  end
+
   private
 
   # レスポンスの入れ子をすべてたどり、"email" キーが 1 つも無いことを確かめる。

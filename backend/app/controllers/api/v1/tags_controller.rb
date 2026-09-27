@@ -6,7 +6,7 @@ module Api
       def popular
         limit = (params[:limit] || 20).to_i.clamp(1, 100)
         tags = Tag.popular(limit)
-        render json: tags.map { |t| tag_summary(t) }
+        render json: tags.map { |t| tag_summary(t, trips_count: t.public_trips_count) }
       end
 
       # GET /api/v1/tags/:name
@@ -25,15 +25,18 @@ module Api
         liked_ids = current_user ? current_user.likes.where(trip_id: trips.map(&:id)).pluck(:trip_id).to_set : Set.new
 
         render json: {
-          tag: tag_summary(tag),
+          # 件数は一覧と同じ「見える旅行」で数える (CLAUDE.md §12-5)
+          tag: tag_summary(tag, trips_count: trips.size),
           trips: trips.map { |t| trip_summary(t, liked_ids: liked_ids) }
         }
       end
 
       private
 
-      def tag_summary(tag)
-        { id: tag.id, name: tag.name, trips_count: tag.trips_count }
+      # trips_count には呼び出し側で数えた件数を渡す。
+      # tag.trips_count (counter cache) は非公開・下書きの旅行も数えるため返さない (Issue #107)。
+      def tag_summary(tag, trips_count:)
+        { id: tag.id, name: tag.name, trips_count: trips_count }
       end
 
       def trip_summary(trip, liked_ids:)

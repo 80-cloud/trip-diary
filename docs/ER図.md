@@ -7,6 +7,7 @@
 | 0.1 | 2026-05-17 | hideharu-AI | 初版 (Phase1 テーブル + Phase2/3 予定テーブル) |
 | 0.2 | 2026-05-17 | hideharu-AI | 機能一覧 v0.2 拡張に同期。§5 に categories / planned_spots / expenses / budgets / locations (polymorphic) / direct_messages を追加。主要関連・追加インデックス・counter_cache 候補も整理 |
 | 0.3 | 2026-05-17 | hideharu-AI | 機能一覧 v0.3 (機能候補第 2 弾) に同期。§5-5 に favorites / memos / packing_items / tickets / reviews / search_histories / trip_collaborators + 既存テーブル拡張カラム (trips.status, categories.color, users.preferences, expenses.receipt, day_entries.started_at/ended_at, trips.lock_version) を整理。§5-6 統計キャッシュ戦略 / §6-2 第 2 弾削除戦略を追加 |
+| 0.4 | 2026-09-27 | hideharu-AI (Claude Code 補助) | §2-1 users に guest 列と (guest, created_at) の複合インデックスを追加 (F-GUEST-01 / Issue #109) |
 
 ---
 
@@ -77,6 +78,7 @@
 | password_digest | varchar(255) | NO | - | - | BCrypt ハッシュ |
 | display_name | varchar(30) | NO | - | - | 1〜30 文字 |
 | bio | text | YES | NULL | - | 自己紹介 (Phase2) |
+| guest | boolean | NO | false | INDEX (guest, created_at) | ゲストユーザーか (F-GUEST-01)。作成から 24 時間で削除 |
 | created_at | datetime | NO | CURRENT | - | |
 | updated_at | datetime | NO | CURRENT | - | |
 

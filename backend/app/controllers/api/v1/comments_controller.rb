@@ -34,7 +34,7 @@ module Api
       def comment_payload(c)
         {
           id: c.id, body: c.body, created_at: c.created_at,
-          user: { id: c.user.id, display_name: c.user.display_name, email: c.user.email }
+          user: { id: c.user.id, display_name: c.user.display_name }
         }
       end
     end

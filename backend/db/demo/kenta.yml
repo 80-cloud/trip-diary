@@ -1,0 +1,125 @@
+key: kenta
+display_name: 森健太
+bio: 山と写真が好きで、休みをまとめて取っては海外の山へ。重いカメラを背負って歩くのが、いちばんの楽しみ。
+
+trips:
+  - key: matterhorn
+    title: スイス・マッターホルンを眺めて歩く 6 日間
+    destination: スイス・ツェルマット
+    category: outdoor
+    visibility: public
+    started_days_ago: 86
+    days: 6
+    tags: [山歩き, 絶景, 写真, 海外]
+    body: |-
+      ずっと見たかったマッターホルンへ。ツェルマットに 5 泊して、毎日違うルートを歩いた。
+      朝日が当たって山頂だけが赤く染まる時間は、何度見ても息をのむ。
+      天気が変わりやすいので、晴れた日は迷わず高い所へ上がるのがコツだと分かった。
+    day_entries:
+      - title: 登山電車で展望台へ
+        body: 標高 3000 m を超える展望台から、氷河と山並みを一望。空気が薄いので、ゆっくり歩くよう心がけた。
+      - title: 湖に映る逆さマッターホルン
+        body: 早朝のロープウェイで湖まで上がり、風が止むのを待った。水面に山がくっきり映った瞬間、夢中でシャッターを切った。
+      - title: 山小屋までのハイキング
+        body: 片道 4 時間の道のり。山小屋で飲んだスープの温かさが忘れられない。
+    review:
+      rating: 5
+      body: 歩く道の多さと、どこからでも山が見える景色に圧倒された。写真を撮るなら、朝と夕方の時間を空けておくのがおすすめ。
+
+  - key: preikestolen
+    title: ノルウェーの断崖プレーケストーレンへ
+    destination: ノルウェー・スタヴァンゲル
+    category: outdoor
+    visibility: public
+    started_days_ago: 64
+    days: 4
+    tags: [山歩き, 絶景, 海外]
+    body: |-
+      峡湾の上に突き出た、高さ 600 m の断崖を目指した。登山口から片道 2 時間ほど。
+      岩のてっぺんに着くと、真下に青い峡湾がまっすぐ伸びていて、足がすくむほどの高さだった。
+    day_entries:
+      - title: 登山口から岩場を登る
+        body: 前半は石段、後半は岩場。雨上がりで滑りやすく、手を使って登る所もあった。
+      - title: 断崖の上で昼ごはん
+        body: 端に近づくのは怖いので、少し離れた岩に座ってサンドイッチ。峡湾を行く船が小さく見えた。
+
+  - key: iceland
+    title: アイスランドをレンタカーでひとり旅
+    destination: アイスランド南部
+    category: solo
+    visibility: public
+    started_days_ago: 40
+    days: 7
+    tags: [ひとり旅, 絶景, 写真, 海外]
+    body: |-
+      レンタカーで南の海岸沿いを 1 週間かけて走った。滝、氷河、黒い砂浜と、景色が次々に変わる。
+      夜も明るい季節で、時間を気にせず写真を撮り続けられた。
+      ひとりだと、気になった場所で好きなだけ車を止められるのがいい。
+    day_entries:
+      - title: 裏側を歩ける滝
+        body: 滝の裏に回り込める遊歩道があって、水しぶきを浴びながら歩いた。レインウェアは必須。
+      - title: 黒い砂浜と奇岩
+        body: 波が高いので海には近づかないよう注意書きがある。岩の柱が並ぶ景色は、ほかの星のようだった。
+      - title: 氷河湖で氷のかけらを見る
+        body: 湖に浮かぶ氷が青く光っていた。浜に打ち上げられた氷が、朝日を受けて宝石のように見えた。
+    review:
+      rating: 4
+      body: 景色は文句なし。運転の距離が長く、ガソリンスタンドが少ない区間もあるので、早めの給油を心がけたい。
+
+  - key: nepal
+    title: ネパールで山小屋に泊まりながらトレッキング
+    destination: ネパール・アンナプルナ地域
+    category: solo
+    visibility: public
+    started_days_ago: 20
+    days: 8
+    tags: [ひとり旅, 山歩き, 海外]
+    body: |-
+      現地のガイドさんとふたりで、山小屋に泊まりながら 1 週間歩いた。
+      峠に着くたびに、色とりどりの旗が風になびいていて、雲の切れ間から雪をかぶった山が顔を出した。
+    day_entries:
+      - title: 石段の続く村を抜けて
+        body: 1 日に何千段も上り下りする日もあった。すれ違う村の子どもたちが元気に手を振ってくれた。
+      - title: 峠の旗と雲の海
+        body: 旗には祈りの言葉が書かれているそうだ。雲が流れて山が見えた瞬間、ガイドさんと一緒に声を上げた。
+      - title: 山小屋のダルバート
+        body: 豆のスープとごはんのセットは、おかわり自由。歩き疲れた体に染みた。
+
+comments:
+  - trip: sakura/arashiyama
+    body: 竹林を真上に見上げる構図、いいですね。朝 7 時なら光もやわらかくて、写真にはいちばんの時間だと思います。
+  - trip: sakura/jigokudani
+    body: 温泉につかる猿、表情がいいですね。望遠レンズを持って、いつか撮りに行きたい場所です。
+  - trip: sakura/hakodate
+    body: 函館山の夜景、日没前から待つのは正解です。空が青く残っている時間の写真が、いちばんきれいに撮れます。
+  - trip: yui/machupicchu
+    body: 霧の中から遺跡が出てくる瞬間、見てみたいです。山の上なので、高山病は大丈夫でしたか？
+  - trip: yui/prague
+    body: 夕暮れのカレル橋、街灯のシルエットがきれいですね。人の少ない時間を狙ったのでしょうか。
+  - trip: yui/shirakawago
+    body: 展望台から見下ろす合掌造りの村、日本にもこんな景色があるんですね。次の連休の候補にします。
+  - trip: mayumi/guam
+    body: 海に伸びる桟橋、写真映えしますね。子どもと一緒だと、遠浅の海は安心して遊べそうです。
+  - trip: takuya/tokyo
+    body: 高い所から見た東京タワー、久しぶりに見ました。出張の合間に景色を楽しむ余裕、見習いたいです。
+
+likes:
+  - sakura/hakodate
+  - sakura/arashiyama
+  - sakura/jigokudani
+  - yui/machupicchu
+  - yui/shirakawago
+  - yui/lisbon
+  - yui/prague
+  - mayumi/guam
+  - mayumi/fuji
+  - takuya/tokyo
+
+favorites:
+  - sakura/hakodate
+  - yui/machupicchu
+
+follows:
+  - sakura
+  - yui
+  - takuya

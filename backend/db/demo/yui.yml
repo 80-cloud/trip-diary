@@ -1,0 +1,122 @@
+key: yui
+display_name: 青木ゆい
+bio: 世界遺産をめぐるのがライフワーク。これまでに訪れたのは 40 か所ほど。歴史の本を 1 冊持って旅に出ます。
+
+trips:
+  - key: machupicchu
+    title: 霧の中から現れるマチュピチュ
+    destination: ペルー・クスコ州
+    category: heritage
+    visibility: public
+    started_days_ago: 75
+    days: 6
+    tags: [世界遺産, 絶景, 海外, 山歩き]
+    body: |-
+      クスコで高地に体を慣らしてから、列車とバスを乗り継いでマチュピチュへ。
+      朝いちばんは遺跡が霧に包まれていて、少しずつ霧が晴れていく様子はまるで舞台の幕が上がるようでした。
+      石組みの精巧さに、ガイドさんの説明を聞くたびに驚かされました。
+    day_entries:
+      - title: クスコで高地に慣れる
+        body: 標高 3400 m の街。着いた日は無理をせず、コカ茶を飲みながらゆっくり過ごしました。
+      - title: 渓谷を走る列車
+        body: 窓の外を流れる川と山が迫ってくる景色。車内で出た軽食もかわいらしかったです。
+      - title: 朝の遺跡と霧
+        body: 開園と同時に入り、見張り小屋の上から全体を見下ろしました。霧が晴れた瞬間、周りから拍手が起きました。
+    review:
+      rating: 5
+      body: 高地に慣れる日を取っておいて正解でした。朝の霧と、晴れた後の景色の両方が見られるよう、2 回入場するのがおすすめです。
+
+  - key: shirakawago
+    title: 新緑の白川郷で合掌造りの村を歩く
+    destination: 岐阜県大野郡白川村
+    category: heritage
+    visibility: public
+    started_days_ago: 48
+    days: 2
+    tags: [世界遺産, 絶景, 写真]
+    body: |-
+      日本の世界遺産も少しずつ回っています。今回は白川郷へ。
+      展望台から見下ろすと、田んぼの緑の中に合掌造りの屋根が並んでいて、昔話の世界に入り込んだようでした。
+      合掌造りの民宿に泊まり、いろりを囲んで夕ごはんをいただきました。
+    day_entries:
+      - title: 展望台から村を見下ろす
+        body: 集落の北にある展望台まで、坂道を歩いて 20 分ほど。村全体が見渡せて、写真で見ていた景色そのものでした。
+      - title: 合掌造りの民宿に泊まる
+        body: 2 階に上がると、太い梁が縄で組まれているのが見えます。釘を使わない造りだと教えていただきました。
+    review:
+      rating: 4
+      body: 昼は観光の方が多いので、泊まって朝夕の静かな村を歩くのがおすすめです。
+
+  - key: lisbon
+    title: リスボンで黄色い路面電車に乗る
+    destination: ポルトガル・リスボン
+    category: overseas
+    visibility: public
+    started_days_ago: 27
+    days: 5
+    tags: [海外, 食べ歩き, 写真, 街歩き]
+    body: |-
+      坂の多い街を、黄色い路面電車がゆっくり上り下りしていきます。
+      旧市街を走る路線に始発から終点まで乗って、気になった停留所で降りては路地を歩きました。
+      おやつは毎日エッグタルト。お店ごとに焼き加減が違って、食べ比べが楽しかったです。
+    day_entries:
+      - title: 路面電車で旧市街をひと回り
+        body: 車体すれすれに家の壁が迫る細い道を、電車が器用に曲がっていきます。窓からの眺めだけで楽しい。
+      - title: エッグタルトの食べ比べ
+        body: 3 軒を回って、焼きたてが並ぶ老舗がいちばん好きでした。シナモンと粉砂糖をかけるのが地元流だそうです。
+      - title: 展望台から見る赤い屋根
+        body: 夕方の展望台から、赤い屋根と川が見渡せました。どこからか音楽が聞こえてきて、旅の最後にぴったり。
+
+  - key: prague
+    title: プラハ・夕暮れのカレル橋
+    destination: チェコ・プラハ
+    category: overseas
+    visibility: public
+    started_days_ago: 9
+    days: 4
+    tags: [海外, 街歩き, 夜景]
+    body: |-
+      旧市街ごと世界遺産になっている街、プラハへ。
+      昼間は人でいっぱいのカレル橋も、日が沈むころには人が減って、街灯と聖人の像がシルエットになって浮かび上がりました。
+    day_entries:
+      - title: 旧市街広場の天文時計
+        body: 毎正時に人形が動き出す仕掛けを見に、広場に人が集まります。600 年前の時計が今も動いているのが不思議です。
+      - title: 日没前のカレル橋
+        body: 橋の上から見るお城が夕日に染まって、いちばん好きな時間になりました。
+
+comments:
+  - trip: sakura/arashiyama
+    body: 竹林の写真、吸い込まれそうです。朝の静かな時間の空気まで伝わってきますね。
+  - trip: sakura/hakodate
+    body: いか釣りからの海鮮丼、うらやましい。函館の夜景は私もいつか自分の目で見たいです。
+  - trip: kenta/matterhorn
+    body: 逆さマッターホルン、見事です。風が止むまで待った甲斐がありましたね。
+  - trip: kenta/preikestolen
+    body: この高さの断崖に立つなんて、想像しただけで足がすくみます。峡湾の青がきれいですね。
+  - trip: kenta/iceland
+    body: 滝の裏側を歩ける場所があるんですね。アイスランドの景色は、どこを切り取っても絵になります。
+  - trip: mayumi/guam
+    body: 家族でのんびり過ごす海、いいですね。お子さんたちの笑い声が聞こえてきそうです。
+  - trip: mayumi/fuji
+    body: 五重塔と富士山、日本らしい景色の代表ですね。海外の友人にもこの写真を見せたくなります。
+  - trip: takuya/london
+    body: ロンドンのパブ、昼から地元の人でにぎわっていますよね。料理は何を頼みましたか？
+
+likes:
+  - sakura/hakodate
+  - sakura/arashiyama
+  - kenta/iceland
+  - kenta/matterhorn
+  - kenta/preikestolen
+  - mayumi/fuji
+  - mayumi/farm
+  - takuya/tokyo
+
+favorites:
+  - mayumi/fuji
+  - kenta/iceland
+
+follows:
+  - sakura
+  - kenta
+  - mayumi

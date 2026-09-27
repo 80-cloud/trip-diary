@@ -1,0 +1,121 @@
+key: sakura
+display_name: 春野さくら
+bio: 平日は会社員、週末は国内の街と景色をめぐっています。旅の楽しみは朝市と、その土地のおいしいもの。
+
+trips:
+  - key: arashiyama
+    title: 京都・嵐山の竹林を朝いちばんに歩く
+    destination: 京都府京都市右京区
+    category: domestic
+    visibility: public
+    started_days_ago: 80
+    days: 2
+    tags: [週末旅, 京都, 絶景, 写真]
+    body: |-
+      人の少ない時間に竹林を歩きたくて、前の晩から嵐山に泊まりました。
+      朝 7 時の竹林は風の音だけが聞こえて、見上げると空まで竹がまっすぐ伸びていました。
+      昼からは渡月橋のあたりで湯豆腐と甘味。ゆっくり過ごす京都もいいものです。
+    day_entries:
+      - title: 渡月橋のそばの宿に泊まる
+        body: 夕方に着いて、川沿いを散歩。暗くなると観光の人が引いて、川の音がよく聞こえました。
+      - title: 朝 7 時の竹林の小径
+        body: 見上げると竹が空を囲むように伸びていて、写真を何枚撮っても足りません。9 時を過ぎると一気に人が増えました。
+    review:
+      rating: 5
+      body: 早起きして本当によかった旅です。竹林は朝いちばんに、が合言葉。次は紅葉の季節に来たいです。
+
+  - key: jigokudani
+    title: 長野・地獄谷で温泉に入る猿に会う
+    destination: 長野県下高井郡山ノ内町
+    category: domestic
+    visibility: public
+    started_days_ago: 58
+    days: 2
+    tags: [温泉, 動物, 週末旅]
+    body: |-
+      温泉に入る猿がいると聞いて、電車と路線バスを乗り継いで地獄谷へ。
+      駐車場から森の中を 30 分ほど歩くと、湯けむりの向こうで猿たちがくつろいでいました。
+      夜は麓の温泉街で外湯めぐり。猿に負けないくらい、のんびりできました。
+    day_entries:
+      - title: 森の遊歩道を歩いて野猿公苑へ
+        body: 平らな道ですが足元がぬかるむ所もあるので、スニーカーで正解でした。途中の渓谷の景色もきれいです。
+      - title: 麓の温泉街で外湯めぐり
+        body: 宿で借りた鍵で共同浴場をはしご。熱めのお湯が多くて、地元の方に入り方を教わりながら楽しみました。
+
+  - key: chabatake
+    title: 静岡の茶畑を両親と歩く
+    destination: 静岡県島田市・牧之原市
+    category: domestic
+    visibility: friends
+    started_days_ago: 34
+    days: 2
+    tags: [週末旅, 家族旅, カフェ]
+    body: |-
+      お茶好きの両親を誘って、静岡の茶畑へ。高台から見下ろすと、畑の緑が波のように続いていました。
+      家族の写真が多いので、フォローしている人だけに公開しています。
+    day_entries:
+      - title: 高台から茶畑を見下ろす
+        body: 畝がきれいにそろっていて、上から見ると模様のよう。父は写真を撮るのに夢中でした。
+      - title: 茶農家さんのカフェで新茶
+        body: 淹れ方で味がこんなに変わるのかと驚きました。母はお土産の茶葉を 3 種類も買っていました。
+
+  - key: hakodate
+    title: 函館で朝市の海鮮と山の上の夜景
+    destination: 北海道函館市
+    category: gourmet
+    visibility: public
+    started_days_ago: 12
+    days: 2
+    tags: [食べ歩き, 夜景, 北海道, 週末旅]
+    body: |-
+      飛行機で函館へ。朝は朝市で海鮮丼、昼は塩ラーメン、夜はロープウェイで函館山へ上りました。
+      両側を海に挟まれた街の夜景は、写真で見ていたよりずっと明るくて、しばらく言葉が出ませんでした。
+    day_entries:
+      - title: 朝市でいか釣りと海鮮丼
+        body: 釣ったいかをその場でさばいてもらえるお店があって、透きとおった身がこりこり。朝から食べ過ぎました。
+      - title: ロープウェイで函館山の夜景
+        body: 日没の 30 分前に上って、空が暗くなるまで待つのがおすすめ。風が強いので上着を 1 枚持っていくと安心です。
+    review:
+      rating: 5
+      body: 朝市・ラーメン・夜景と、2 日で函館のおいしいところを回れました。次はもう 1 泊して、港町の坂を歩きたいです。
+
+comments:
+  - trip: kenta/iceland
+    body: 滝の裏側まで歩けるなんて知りませんでした。ひとりで運転しながらの旅、景色を独り占めですね。
+  - trip: kenta/nepal
+    body: 色とりどりの旗が雲の中にはためいていて、写真だけで空気の薄さが伝わってきます。体調は大丈夫でしたか？
+  - trip: yui/shirakawago
+    body: 新緑の白川郷、田んぼの緑と合掌造りの屋根がきれい。展望台からの景色、私も見てみたいです。
+  - trip: yui/lisbon
+    body: 黄色い路面電車、坂の街によく似合いますね。エッグタルトの食べ比べの話も聞かせてください。
+  - trip: mayumi/fuji
+    body: 五重塔と富士山を一緒に見られる場所、すてきです。階段がたくさんあると聞きましたが、お子さんは平気でしたか？
+  - trip: mayumi/farm
+    body: 採れたての野菜のランチ、おいしそう。子どもが野菜を喜んで食べてくれるのはうれしいですよね。
+  - trip: takuya/tokyo
+    body: 出張の合間に東京タワーの見える散歩、いいですね。おすすめの朝ごはんのお店があったら教えてください。
+  - trip: takuya/london
+    body: パブの雰囲気が伝わってきます。昼から開いているお店が多いのも、出張の合間にはうれしいですね。
+
+likes:
+  - kenta/matterhorn
+  - kenta/iceland
+  - kenta/nepal
+  - yui/machupicchu
+  - yui/shirakawago
+  - yui/lisbon
+  - yui/prague
+  - mayumi/guam
+  - mayumi/fuji
+  - mayumi/farm
+  - takuya/tokyo
+  - takuya/london
+
+favorites:
+  - yui/shirakawago
+  - mayumi/farm
+
+follows:
+  - kenta
+  - yui
+  - mayumi

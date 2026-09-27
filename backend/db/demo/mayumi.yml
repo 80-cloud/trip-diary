@@ -1,0 +1,98 @@
+key: mayumi
+display_name: 高橋まゆみ
+bio: 小学生と幼稚園の子どもがいる 4 人家族。子どもが楽しめて、大人ものんびりできる旅先を探しています。
+
+trips:
+  - key: guam
+    title: グアムで家族と海
+    destination: グアム
+    category: family
+    visibility: public
+    started_days_ago: 70
+    days: 4
+    tags: [家族旅, 子連れ, 海, 海外]
+    body: |-
+      子どもたちにとって初めての海外。飛行機で 4 時間弱なので、小さい子連れでも行きやすかったです。
+      遠浅の海で魚を見たり、桟橋の先まで歩いたり。毎日が「もう 1 回！」の連続でした。
+    day_entries:
+      - title: ホテルの前の遠浅の海
+        body: ひざくらいの深さでも魚がたくさん泳いでいて、子どもたちは大はしゃぎ。浮き輪とラッシュガードは必須です。
+      - title: 海に伸びる桟橋を散歩
+        body: 夕方、桟橋の先にある東屋まで家族で歩きました。海の色が少しずつ変わっていくのを、みんなで眺めました。
+      - title: 帰りの飛行機はぐっすり
+        body: 遊び疲れて、離陸と同時に 2 人とも夢の中。親もゆっくり映画を見られました。
+
+  - key: fuji
+    title: 富士山と五重塔を家族で見に行く
+    destination: 山梨県富士吉田市
+    category: family
+    visibility: public
+    started_days_ago: 44
+    days: 2
+    tags: [家族旅, 子連れ, 絶景, 富士山]
+    body: |-
+      富士山と五重塔を一緒に見られる公園へ。展望台までは 400 段ほどの階段があります。
+      下の子は途中で抱っこになりましたが、上に着いて振り返ると、五重塔の向こうに富士山がどーん。
+      子どもたちが「本物だ！」と叫んでいたのがかわいかったです。
+    day_entries:
+      - title: 階段を上って展望台へ
+        body: 段数を数えながら上ると、子どもも頑張れました。途中にベンチがあるので、休み休み行けます。
+      - title: 麓の湖のほとりで一泊
+        body: 宿の窓から富士山が見える部屋にしました。翌朝、子どもたちが真っ先にカーテンを開けていました。
+    review:
+      rating: 5
+      body: 階段はありますが、子連れでも十分楽しめました。朝の早い時間は空気が澄んでいて、富士山がくっきり見えます。
+
+  - key: farm
+    title: 那須の農園レストランで野菜ランチ
+    destination: 栃木県那須郡那須町
+    category: gourmet
+    visibility: public
+    started_days_ago: 16
+    days: 1
+    tags: [家族旅, 子連れ, 食べ歩き]
+    body: |-
+      野菜嫌いの上の子のために、畑の中にあるレストランへ。
+      自分で収穫した野菜を目の前で料理してもらえて、いつもは残すにんじんまで完食しました。
+    day_entries:
+      - title: 畑で野菜を収穫
+        body: 大きな大根を抜くのに親子で綱引き状態。土のにおいも、子どもたちにはいい体験になったようです。
+      - title: 採れたて野菜のランチ
+        body: 野菜の甘さに大人もびっくり。帰りに直売所で、夕ごはん用の野菜をたくさん買いました。
+
+comments:
+  - trip: sakura/jigokudani
+    body: 温泉に入るお猿さん、子どもたちに見せたら大喜びでした。遊歩道は小さな子でも歩けそうですか？
+  - trip: sakura/hakodate
+    body: 函館の朝市、子どもたちもいか釣りできるかな。夜景と合わせて、家族旅行の候補にします。
+  - trip: kenta/matterhorn
+    body: こんな景色の中を歩けたら、きっと気持ちいいでしょうね。写真を見ているだけで空気がきれいです。
+  - trip: kenta/nepal
+    body: 1 週間も山を歩くなんてすごいです。子どもたちが大きくなったら、家族でいつか行ってみたいです。
+  - trip: yui/machupicchu
+    body: 霧の遺跡、神秘的ですね。子どもが歴史に興味を持ち始めたので、この写真を見せてあげたいです。
+  - trip: yui/prague
+    body: 夕暮れの橋、絵本の中みたいです。天文時計の人形、子どもが見たら喜びそう。
+  - trip: yui/lisbon
+    body: 路面電車に乗るだけで楽しそう。乗り物好きの息子が知ったら、行きたいと言い出しそうです。
+  - trip: takuya/tokyo
+    body: 高い所から見る東京タワー、子どもと一緒に見に行きたくなりました。展望台は混んでいましたか？
+
+likes:
+  - sakura/hakodate
+  - sakura/jigokudani
+  - kenta/iceland
+  - kenta/nepal
+  - yui/machupicchu
+  - yui/shirakawago
+  - yui/lisbon
+  - yui/prague
+  - takuya/london
+
+favorites:
+  - yui/lisbon
+  - sakura/arashiyama
+
+follows:
+  - sakura
+  - yui

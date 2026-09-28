@@ -28,7 +28,7 @@ export default defineConfig({
         "node_modules/**",
         "app/**/*.d.ts"
       ],
-      all: true,
+      // coverage.all は Vitest 4 で廃止。include に合うファイルは、テストが無くても集計に入る
       // 閾値は Phase 1 では 0% (生成確認のみ)。
       // PR #C のテスト計画書で段階目標 (Phase 2 ≥ 25% / Phase 3 ≥ 50%) を確定する。
       thresholds: { lines: 0, functions: 0, branches: 0, statements: 0 }

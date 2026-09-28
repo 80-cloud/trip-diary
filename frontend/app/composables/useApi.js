@@ -1,3 +1,6 @@
+import { useAuthStore } from "~/composables/useAuthStore.js"
+import { useNotificationsStore } from "~/composables/useNotificationsStore.js"
+
 export function useApi() {
   const config = useRuntimeConfig()
   const base = config.public.apiBase
@@ -16,8 +19,21 @@ export function useApi() {
     return opts
   }
 
+  // ログインが切れた (401) ときは、画面のログイン状態と通知を空にする。
+  // fetched は true のままにして、GET /me を取り直さない。
+  function clearSession() {
+    useAuthStore().user = null
+    useNotificationsStore().reset()
+  }
+
   async function request(path, options = {}) {
-    return await $fetch(path, buildOptions(options.method || "GET", options))
+    try {
+      return await $fetch(path, buildOptions(options.method || "GET", options))
+    } catch (error) {
+      if (error?.statusCode === 401) clearSession()
+      // 各画面のエラー表示はそのまま使うので、元のエラーを投げ直す
+      throw error
+    }
   }
 
   return {

@@ -87,7 +87,7 @@ Ruby on Rails 8.1 (API) + Nuxt 4 + MySQL 8 で作っています。
 | 種別 | 件数 | カバレッジ |
 |---|---|---|
 | Backend (Minitest) | 319 件 | Line 93.86% / Branch 79.38% |
-| Frontend (Vitest) | 25 件 | 全体 Line 5.93% / composables Line 52.41% |
+| Frontend (Vitest) | 34 件 | 全体 Line 6.83% / composables Line 59.02% |
 | E2E (Playwright) | smoke 1 件 | — |
 | 性能 (k6) | シナリオ 6 種 | — |
 

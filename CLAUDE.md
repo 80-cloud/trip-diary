@@ -55,7 +55,7 @@
 | フロントエンド | Nuxt 4 + Vue 3 + Tailwind CSS (**TypeScript 不採用 = 純 JS**) |
 | データベース | MySQL 8.x (Docker コンテナ) |
 | 本番デプロイ | (Phase3) AWS EC2 + RDS (無料枠) |
-| 作業ディレクトリ | /Users/macmini/Desktop/TripDiary |
+| 作業ディレクトリ | /Users/macmini/Desktop/Cursor/TripDiary |
 | 提出先 | スクール講師 (Claude Code 利用は推奨されている) |
 | 学習姿勢 | 「習う → 慣れる → マスター」 ([docs/学習ロードマップ.md](docs/学習ロードマップ.md)) |
 
@@ -171,7 +171,7 @@ trip-diary は recipe-board / sns-board と**同時起動可能**にするため
 - DB の本番データに対する UPDATE/DELETE
 - `--no-verify` でフック迂回
 - **テスト / perf データのクリーンアップを SQL 直 `DELETE` で行う** (必ず `bin/rails runner script/...` 経由で ActiveRecord callback (`dependent: :destroy` 等) を発火させる)
-- **PR body / commit message / Issue 本文に修練城の禁止コマンド文字列を含める** (ハードウォール正規表現は本文も走査するため、`gh pr create` / `gh issue create` 自体が block される)
+- **PR body / commit message / Issue 本文に、Claude Code のフックが止める禁止コマンドの文字列を含める** (フックはコマンドの行に書いた本文も検査するため、`gh pr create` / `gh issue create` 自体が止められる。本文は `git commit -F <ファイル>` / `--body-file <ファイル>` で渡し、禁止コマンドに触れるときは「Terraform の破壊系コマンド」のように一般化して書く)
 
 > **B (cleanup)** の根拠: B34 (PR #81) で `DELETE FROM users` だけで子 12 テーブルの orphan が残った。`dependent: :destroy` は AR 経由でのみ発火するため、テスト/perf データ削除は `bin/rails runner script/cleanup_test_users.rb` 等を必ず経由する。
 >

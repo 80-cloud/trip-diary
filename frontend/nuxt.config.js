@@ -16,7 +16,9 @@ export default defineNuxtConfig({
   devServer: { port: 3011 },
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || "http://localhost:3010/api/v1"
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || "http://localhost:3010/api/v1",
+      // ビルド時に真偽値にする (未設定なら有効)。公開環境では "false" でビルドする
+      signupEnabled: process.env.NUXT_PUBLIC_SIGNUP_ENABLED !== "false"
     }
   }
 })

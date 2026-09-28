@@ -2,11 +2,13 @@
 import { useAuthStore } from "~/composables/useAuthStore.js"
 import { useDarkMode } from "~/composables/useDarkMode.js"
 import { useNotificationsStore } from "~/composables/useNotificationsStore.js"
+import { useSignupEnabled } from "~/composables/useSignupEnabled.js"
 
 const auth = useAuthStore()
 const notifications = useNotificationsStore()
 const router = useRouter()
 const { isDark, toggle: toggleDark } = useDarkMode()
+const signupEnabled = useSignupEnabled()
 
 onMounted(() => {
   if (!auth.fetched) auth.fetchMe()
@@ -85,14 +87,19 @@ function fullImageUrl(path) {
             >ログアウト</button>
           </template>
           <template v-else-if="auth.fetched">
+            <GuestLoginButton />
             <NuxtLink to="/login" class="text-sm text-slate-700 dark:text-slate-200 hover:underline">ログイン</NuxtLink>
-            <NuxtLink to="/signup" class="text-sm bg-brand-500 text-white px-3 py-1.5 rounded">サインアップ</NuxtLink>
+            <NuxtLink v-if="signupEnabled" to="/signup" class="text-sm bg-brand-500 text-white px-3 py-1.5 rounded">サインアップ</NuxtLink>
           </template>
           <template v-else>
             <span class="text-xs text-slate-400 dark:text-slate-500">読み込み中…</span>
           </template>
         </nav>
       </div>
+      <div
+        v-if="auth.user?.guest"
+        class="bg-amber-50 dark:bg-amber-900/40 border-t border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-100 text-xs text-center py-1.5"
+      >ゲストモード: 24 時間後にデータは削除されます</div>
     </header>
 
     <!-- 右固定カテゴリショートカット (デスクトップのみ / lg 以上) -->

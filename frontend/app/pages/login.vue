@@ -1,12 +1,14 @@
 <script setup>
 import { useAuthStore } from "~/composables/useAuthStore.js"
+import { useSignupEnabled } from "~/composables/useSignupEnabled.js"
 
 const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
+const signupEnabled = useSignupEnabled()
 
-const email = ref("taro@example.com")
-const password = ref("password")
+const email = ref("")
+const password = ref("")
 const error = ref(null)
 const submitting = ref(false)
 
@@ -53,17 +55,14 @@ async function submit() {
       </button>
     </form>
 
-    <p class="text-center text-sm mt-6 text-slate-500 dark:text-slate-400">
+    <div class="mt-6 border-t border-slate-200 dark:border-slate-700 pt-6">
+      <GuestLoginButton block />
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center">ゲストのデータは 24 時間後に削除されます</p>
+    </div>
+
+    <p v-if="signupEnabled" class="text-center text-sm mt-6 text-slate-500 dark:text-slate-400">
       アカウントをお持ちでない方は
       <NuxtLink to="/signup" class="text-brand-600 dark:text-brand-50 underline">サインアップ</NuxtLink>
     </p>
-    <div class="mt-6 text-xs text-slate-400 dark:text-slate-500 border-t border-slate-200 dark:border-slate-700 pt-4">
-      <p>シードユーザー (開発用):</p>
-      <ul class="list-disc list-inside mt-1">
-        <li>taro@example.com / password</li>
-        <li>hanako@example.com / password</li>
-        <li>jiro@example.com / password</li>
-      </ul>
-    </div>
   </div>
 </template>

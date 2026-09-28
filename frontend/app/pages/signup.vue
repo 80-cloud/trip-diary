@@ -1,8 +1,10 @@
 <script setup>
 import { useAuthStore } from "~/composables/useAuthStore.js"
+import { useSignupEnabled } from "~/composables/useSignupEnabled.js"
 
 const auth = useAuthStore()
 const router = useRouter()
+const signupEnabled = useSignupEnabled()
 
 const email = ref("")
 const password = ref("")
@@ -28,7 +30,13 @@ async function submit() {
   <div class="max-w-md mx-auto bg-white dark:bg-slate-800 p-8 rounded-lg border border-slate-200 dark:border-slate-700 mt-12">
     <h1 class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6 text-center">サインアップ</h1>
 
-    <form class="space-y-4" @submit.prevent="submit">
+    <div v-if="!signupEnabled" class="space-y-4 text-center">
+      <p class="text-sm text-slate-700 dark:text-slate-200">現在、新規登録は受け付けていません。</p>
+      <GuestLoginButton block />
+      <p class="text-xs text-slate-500 dark:text-slate-400">ゲストのデータは 24 時間後に削除されます</p>
+    </div>
+
+    <form v-else class="space-y-4" @submit.prevent="submit">
       <div>
         <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">表示名</label>
         <input

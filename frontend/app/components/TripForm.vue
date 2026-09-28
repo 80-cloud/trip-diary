@@ -1,12 +1,14 @@
 <script setup>
 import { CATEGORY_OPTIONS } from "~/composables/useCategories.js"
 import ImageCropperModal from "~/components/ImageCropperModal.vue"
+import { useAuthStore } from "~/composables/useAuthStore.js"
 
 const props = defineProps({
   initial: { type: Object, default: null },
   errors: { type: Array, default: () => [] }
 })
 const emit = defineEmits(["submit"])
+const auth = useAuthStore()
 
 const title = ref(props.initial?.title || "")
 const destination = ref(props.initial?.destination || "")
@@ -244,6 +246,7 @@ function submit(statusOverride) {
           <option value="friends">フォロワーのみ (Phase 2)</option>
           <option value="private">非公開 (自分のみ)</option>
         </select>
+        <p v-if="auth.user?.guest" class="text-xs text-amber-700 dark:text-amber-300 mt-1">ゲストの記録は自分だけに表示されます</p>
       </div>
     </div>
 

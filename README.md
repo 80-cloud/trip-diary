@@ -31,6 +31,8 @@ Ruby on Rails 8.1 (API) + Nuxt 4 + MySQL 8 で作っています。
 
 ![旅行の詳細](docs/screenshots/02-trip-detail.png)
 
+![計画と持ち物のチェックリスト](docs/screenshots/04-plan.png)
+
 ---
 
 ## 30 秒で試す
@@ -47,7 +49,7 @@ Ruby on Rails 8.1 (API) + Nuxt 4 + MySQL 8 で作っています。
 - ゲストの旅行は「自分だけ」に固定され、ほかの人には見えません
 - 画像は、旅行の画像・チケット・アバターを合わせて 5 枚までです
 
-![ゲストの新規作成画面](docs/screenshots/03-guest.png)
+![ゲストで入った直後の通知](docs/screenshots/03-guest.png)
 
 ---
 

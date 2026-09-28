@@ -111,10 +111,11 @@ jobs:
           # schedule トリガ時は inputs.scenario が未定義のため smoke 固定
           SCENARIO: ${{ inputs.scenario || 'smoke' }}
         run: |
-          k6 run "k6/scenarios/${SCENARIO}.js"
+          mkdir -p k6/results
+          k6 run --summary-export "k6/results/${SCENARIO}-summary.json" "k6/scenarios/${SCENARIO}.js"
 
       - name: Install mysql client
-        # ubuntu-latest は mysql client がデフォルトで入らないバージョンがあるため明示 install
+        # ランナーのイメージによっては mysql client が入っていないため明示 install
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends mysql-client

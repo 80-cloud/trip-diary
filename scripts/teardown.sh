@@ -15,7 +15,7 @@
 #   --skip-confirm   2 段階確認を skip (CI / 自動化用、対話なし)。本番では使わない
 #
 # 注意:
-#   - Claude Code / 修練城ハードウォールから直接実行不可 (terraform destroy をブロック)。
+#   - Claude Code からは直接実行できない (フックが Terraform の破壊系コマンドを止める)。
 #     **ユーザーが手動でターミナルから実行する想定**。
 #   - tfstate bucket "trip-diary-tfstate" 自体は対象外 (手動削除)。
 #     再 apply 時に同じ tfstate を使いたい場合は残置推奨。

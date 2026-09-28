@@ -23,7 +23,7 @@ env:
 jobs:
   backend:
     name: backend (rails test)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     defaults:
       run:
@@ -57,7 +57,7 @@ jobs:
       SECRET_KEY_BASE: ci_dummy_secret_key_base_at_least_30_chars_long_for_safety_padding_padding
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -91,7 +91,7 @@ jobs:
       # 失敗時もカバレッジ artifact を残し、PR レビュー時に詳細を確認できるようにする
       - name: Upload coverage artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backend-coverage
           path: backend/coverage/
@@ -101,11 +101,11 @@ jobs:
     # 静的解析 + 依存脆弱性スキャン専用 job (DB / Minitest / build は不要)。
     # backend / frontend と並列に走るので CI 総時間は伸ばさない。
     name: security (brakeman + bundle-audit + npm audit)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -127,31 +127,31 @@ jobs:
         run: bundle exec bundle-audit check --update
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
-      # production 依存のみ対象 (dev は CI 環境固有なのでブロック対象外)
+      # 開発用の依存も対象にする (テスト用ツールの既知の脆弱性にも気づけるように)
       # high 以上で fail (moderate/low はノイズが多い)
       - name: npm audit (frontend 依存脆弱性)
         working-directory: frontend
-        run: npm audit --omit=dev --audit-level=high
+        run: npm audit --audit-level=high
 
   frontend:
     name: frontend (vitest + build)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults:
       run:
         working-directory: frontend
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           # frontend/package.json engines >=22.12.0 と揃える
           node-version: '22'

@@ -41,7 +41,7 @@ env:
 jobs:
   perf:
     name: ${{ inputs.scenario || 'smoke' }} @ ${{ inputs.target_env || 'local' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     services:
@@ -75,7 +75,7 @@ jobs:
       JWT_SECRET: ci_dummy_jwt_secret_at_least_32_bytes_long_xxxxxxxxxxxxxx
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -149,7 +149,7 @@ jobs:
 
       - name: Upload k6 results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: k6-results-${{ inputs.scenario || 'smoke' }}-${{ github.run_id }}
           path: performance-tests/k6/results/*

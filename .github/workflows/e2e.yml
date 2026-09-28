@@ -28,7 +28,7 @@ env:
 jobs:
   e2e:
     name: e2e (playwright)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
 
     services:
@@ -62,7 +62,7 @@ jobs:
       E2E_SCENARIO: ${{ github.event_name == 'pull_request' && 'smoke' || (inputs.scenario || 'full') }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -72,7 +72,7 @@ jobs:
           working-directory: backend
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: 'npm'
@@ -143,7 +143,7 @@ jobs:
 
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report-${{ github.run_id }}
           path: e2e/playwright-report/
@@ -151,7 +151,7 @@ jobs:
 
       - name: Upload Playwright traces (on failure)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-test-results-${{ github.run_id }}
           path: e2e/test-results/

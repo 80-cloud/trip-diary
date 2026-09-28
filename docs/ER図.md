@@ -8,6 +8,7 @@
 | 0.2 | 2026-05-17 | hideharu-AI | 機能一覧 v0.2 拡張に同期。§5 に categories / planned_spots / expenses / budgets / locations (polymorphic) / direct_messages を追加。主要関連・追加インデックス・counter_cache 候補も整理 |
 | 0.3 | 2026-05-17 | hideharu-AI | 機能一覧 v0.3 (機能候補第 2 弾) に同期。§5-5 に favorites / memos / packing_items / tickets / reviews / search_histories / trip_collaborators + 既存テーブル拡張カラム (trips.status, categories.color, users.preferences, expenses.receipt, day_entries.started_at/ended_at, trips.lock_version) を整理。§5-6 統計キャッシュ戦略 / §6-2 第 2 弾削除戦略を追加 |
 | 0.4 | 2026-09-27 | hideharu-AI (Claude Code 補助) | §2-1 users に guest 列と (guest, created_at) の複合インデックスを追加 (F-GUEST-01 / Issue #109) |
+| 0.5 | 2026-09-28 | hideharu-AI (Claude Code 補助) | §6-1 のユーザー削除の方針の注記を直した (#128) |
 
 ---
 
@@ -235,7 +236,7 @@
 
 ### 6-1. Phase 1 (現状)
 - `Trip` 削除時は `day_entries` / `comments` / `likes` / `active_storage_attachments` を CASCADE で削除
-- `User` 削除時は その人の `trips` も CASCADE 削除 (※ 講師方針が「ユーザー削除なし」なら Phase2 で軟削除へ変更可)
+- `User` 削除時は その人の `trips` も CASCADE 削除 (※ 退会機能を作る場合は、軟削除への変更を検討する)
 - カウンタ (likes_count / comments_count) は Rails `counter_cache` で自動更新。整合性は Phase3 で月次バッチで再計算
 
 ### 6-2. Phase 2-4 追加テーブルの削除戦略 (§5 / §5-5 と連動)

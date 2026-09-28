@@ -1,6 +1,6 @@
 # performance-tests/ — trip-diary on-demand パフォーマンステスト
 
-要件定義書 §4-1 / 承認済みロードマップ Pivot-4 準拠。
+要件定義書 §4-1 に準拠。
 
 このディレクトリは **任意タイミングで実行する** パフォーマンステスト基盤。`ci.yml` (毎 PR) には統合せず、別 workflow (`.github/workflows/perf.yml`) で `workflow_dispatch` (手動) + `schedule` (月次) で実行する。
 
@@ -8,9 +8,9 @@
 
 | Layer | ツール | 対象 | 実装状態 |
 |---|---|---|---|
-| **A. API 負荷** | k6 (protocol) | Rails REST API | ✅ smoke + timeline + **trip_create + trip_detail + like + soak** (PR-H 完了) / image_upload は別 Issue |
-| B. ブラウザ E2E | k6 browser (Chromium) | Nuxt UI 実操作 | 📅 PR-I (Web Vitals 計測) |
-| C. Frontend 単発 | Lighthouse CLI | 主要ページ Web Vitals | 📅 PR-J (4 page audit) |
+| **A. API 負荷** | k6 (protocol) | Rails REST API | ✅ smoke + timeline + **trip_create + trip_detail + like + soak** (PR #93 で追加) / image_upload は別 Issue |
+| B. ブラウザ E2E | k6 browser (Chromium) | Nuxt UI 実操作 | 📅 未着手 (Web Vitals 計測) |
+| C. Frontend 単発 | Lighthouse CLI | 主要ページ Web Vitals | 📅 未着手 (4 page audit) |
 | D. N+1 回帰 | Bullet gem (development) | ActiveRecord クエリ | ✅ 既に組込済 (PR #32 / Rails dev mode で自動検出) |
 
 ## SLO (要件定義書 §4-1)
@@ -18,19 +18,19 @@
 | 操作 | 目標 | scenario | 状態 |
 |---|---|---|---|
 | **タイムライン取得** (`GET /api/v1/trips`) | **p95 < 2.0 秒** | `timeline.js` | ✅ PR #71 |
-| **trip 詳細** (`GET /api/v1/trips/:id`) | **p95 < 1.0 秒** | `trip_detail.js` | ✅ PR-H |
-| **trip 作成** (`POST /api/v1/trips`) | **p95 < 0.5 秒** | `trip_create.js` | ✅ PR-H |
-| **いいね追加/取消** (`POST/DEL /api/v1/trips/:id/like`) | **p95 < 0.3 秒** | `like.js` | ✅ PR-H |
-| **30 分 soak (mixed)** | failure < 1% / 各 SLO 維持 | `soak.js` | ✅ PR-H |
+| **trip 詳細** (`GET /api/v1/trips/:id`) | **p95 < 1.0 秒** | `trip_detail.js` | ✅ PR #93 |
+| **trip 作成** (`POST /api/v1/trips`) | **p95 < 0.5 秒** | `trip_create.js` | ✅ PR #93 |
+| **いいね追加/取消** (`POST/DEL /api/v1/trips/:id/like`) | **p95 < 0.3 秒** | `like.js` | ✅ PR #93 |
+| **30 分 soak (mixed)** | failure < 1% / 各 SLO 維持 | `soak.js` | ✅ PR #93 |
 | 画像アップロード | p95 < 3.0 秒 | (未実装 / 別 Issue) | 📅 ActiveStorage direct_uploads 設計検討 |
 
 ## 前提
 
 | 必須 | 入手 |
 |---|---|
-| k6 v0.50+ (本 PR は v2.0+ で動作確認) | `brew install k6` |
+| k6 v0.50+ (v2.0+ で動作確認) | `brew install k6` |
 | Docker Desktop (MySQL container 用) | `brew install --cask docker` |
-| Rails (port 3010) / MySQL (port 3316) 起動済 | `/start-servers` skill 推奨 |
+| Rails (port 3010) / MySQL (port 3316) 起動済 | 起動手順は [README の「ローカルで動かす」](../README.md#ローカルで動かす) |
 
 ### VU > 3 で実行する場合の必須セットアップ
 
@@ -99,7 +99,7 @@ K6_DURATION=30s npm run perf:soak
 | 変数 | デフォルト | 用途 |
 |---|---|---|
 | `K6_BASE_URL` | `http://localhost:3010` | Rails API ベース URL |
-| `K6_FRONTEND_URL` | `http://localhost:3011` | Nuxt URL (k6 browser / Lighthouse 用 / 本 PR は未使用) |
+| `K6_FRONTEND_URL` | `http://localhost:3011` | Nuxt URL (k6 browser / Lighthouse 用 / 現在は未使用) |
 | `K6_RUN_ID` | 自動生成 | テストデータ識別子。指定すると seed と cleanup が同 ID を共有 |
 | `K6_VUS` | scenario 依存 | 仮想ユーザ数の上書き |
 | `K6_DURATION` | scenario 依存 | 実行時間の上書き |
@@ -137,5 +137,5 @@ K6_DURATION=30s npm run perf:soak
 ## 関連ドキュメント
 
 - [要件定義書.md §4-1](../docs/要件定義書.md) (SLO の根拠)
-- [テスト計画書.md](../docs/テスト計画書.md) (perf 全体方針 / Pivot-5 で改訂予定)
+- [テスト計画書.md](../docs/テスト計画書.md) (perf 全体方針)
 - [機能一覧.md F-PERF-01](../docs/機能一覧.md) (Phase 3 スコープ)

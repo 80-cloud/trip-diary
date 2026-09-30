@@ -50,5 +50,9 @@ module Backend
 
     config.time_zone = "Tokyo"
     config.active_record.default_timezone = :local
+
+    # ビルド済みの画面のひな形の置き場 (Issue #145)。public の外に置く。
+    # public のファイルは 1 年キャッシュされるので、公開し直しても古い画面が読まれ続けてしまう。
+    config.x.frontend_index = Rails.root.join("frontend_shell/index.html")
   end
 end

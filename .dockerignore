@@ -1,0 +1,38 @@
+# ビルドの文脈はリポジトリの直下 (Issue #145)。Dockerfile は backend/Dockerfile。
+# Dockerfile が使うのは backend と frontend だけ。それ以外と、秘密の値・作業用のファイルは送らない。
+# (文脈を直下に変えたので、backend/.dockerignore は読まれない。その内容もここに移した)
+
+# 秘密の値 (パスワードなど)
+**/.env*
+backend/config/master.key
+backend/config/credentials/*.key
+
+# Git・CI・Docker・エディター
+.git
+**/.gitignore
+**/.github
+**/.dockerignore
+backend/Dockerfile*
+backend/.devcontainer
+.claude
+**/.DS_Store
+
+# アプリに使わないもの
+db
+docs
+e2e
+infra
+scripts
+performance-tests
+Untitled
+
+# 手元で作られるファイル (イメージの中で作り直す)
+**/node_modules
+frontend/.nuxt
+frontend/.output
+frontend/dist
+**/coverage
+backend/.bundle
+backend/log
+backend/tmp
+backend/storage

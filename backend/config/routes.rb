@@ -56,4 +56,9 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  # 公開環境では、画面の URL に画面のひな形を返す (Issue #145)。
+  # どの URL を受け持つかは FrontendController.matches? で決める。
+  root "frontend#show"
+  get "*path", to: "frontend#show", format: false, constraints: FrontendController
 end

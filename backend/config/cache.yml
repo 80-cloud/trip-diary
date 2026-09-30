@@ -11,6 +11,6 @@ development:
 test:
   <<: *default
 
+# 公開環境でも別の DB を指定しない。アプリ本体の DB を使う (Issue #146)。
 production:
-  database: cache
   <<: *default

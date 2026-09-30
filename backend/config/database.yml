@@ -17,21 +17,9 @@ test:
   <<: *default
   database: trip_diary_test
 
+# 公開環境では DB を 1 つにまとめ、キャッシュとジョブのテーブルもここに置く (Issue #146)。
 production:
-  primary: &primary_production
-    <<: *default
-    database: <%= ENV.fetch("MYSQL_DATABASE") { "trip_diary_prod" } %>
-    username: <%= ENV.fetch("MYSQL_USER") { "trip" } %>
-    password: <%= ENV["MYSQL_PASSWORD"] %>
-  cache:
-    <<: *primary_production
-    database: <%= ENV.fetch("MYSQL_DATABASE_CACHE") { "trip_diary_prod_cache" } %>
-    migrations_paths: db/cache_migrate
-  queue:
-    <<: *primary_production
-    database: <%= ENV.fetch("MYSQL_DATABASE_QUEUE") { "trip_diary_prod_queue" } %>
-    migrations_paths: db/queue_migrate
-  cable:
-    <<: *primary_production
-    database: <%= ENV.fetch("MYSQL_DATABASE_CABLE") { "trip_diary_prod_cable" } %>
-    migrations_paths: db/cable_migrate
+  <<: *default
+  database: <%= ENV.fetch("MYSQL_DATABASE") { "trip_diary_prod" } %>
+  username: <%= ENV.fetch("MYSQL_USER") { "trip" } %>
+  password: <%= ENV["MYSQL_PASSWORD"] %>

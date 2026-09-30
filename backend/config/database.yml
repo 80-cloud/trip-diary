@@ -7,6 +7,7 @@ default: &default
   port: <%= ENV.fetch("MYSQL_PORT") { 3316 } %>
   username: <%= ENV.fetch("MYSQL_USER") { "root" } %>
   password: <%= ENV.fetch("MYSQL_PASSWORD") { "" } %>
+  ssl_mode: <%= ENV["MYSQL_SSL_MODE"] %>
 
 development:
   <<: *default

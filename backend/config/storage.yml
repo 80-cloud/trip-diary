@@ -6,14 +6,12 @@ local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
 
-# F-S3-01 / Issue #55: 本番 (Phase 3 ECS Fargate) では IAM Role 経由で S3 にアクセスする。
-# 静的キー (access_key_id / secret_access_key) は持たない (sns-board と同方針 / infra/iam.tf 参照)。
-# ECS Task Definition の task_role に s3:PutObject / GetObject / DeleteObject を付与済み。
-# region / bucket は SSM Parameter Store から環境変数で注入 (S3_REGION / S3_BUCKET)。
-amazon:
-  service: S3
-  region: <%= ENV["S3_REGION"] || "ap-northeast-1" %>
-  bucket: <%= ENV["S3_BUCKET"] %>
+# 公開環境の画像の置き場 (Issue #149)。
+# 接続情報は環境変数 CLOUDINARY_URL を gem が読むため、ここには書かない。
+# folder は Cloudinary での保存名の頭に付き、このアプリのファイルを 1 か所にまとめる。
+cloudinary:
+  service: Cloudinary
+  folder: trip-diary
 
 # Remember not to checkin your GCS keyfile to a repository
 # google:

@@ -43,9 +43,10 @@ gem "rack-attack"
 gem "dotenv-rails", groups: [ :development, :test ]
 
 group :production do
-  # F-S3-01 / Issue #55: Active Storage の本番サービスを S3 に切替 (storage.yml :amazon)。
-  # 認証は ECS task role 経由 (静的キー不要 / sns-board と同方針)。
-  gem "aws-sdk-s3", require: false
+  # 公開環境の画像の置き場 (config/storage.yml の cloudinary・Issue #149)。
+  # 接続情報は環境変数 CLOUDINARY_URL を gem が読む。読み込むと Active Storage の
+  # 保存名の作り方を差し替えるため、開発とテスト (Disk) では読み込まない。
+  gem "cloudinary", "~> 2.4"
 end
 
 group :development do

@@ -61,7 +61,7 @@ Ruby on Rails 8.1 (API) + Nuxt 4 + MySQL 8 で作っています。
 | フロントエンド | Nuxt 4 / Vue 3 / Tailwind CSS (JavaScript。TypeScript は使っていない) |
 | DB | MySQL 8 (開発は Docker) |
 | 認証 | JWT を HttpOnly Cookie に入れる方式 |
-| 画像 | Active Storage (開発: ディスク / 過去の本番: S3) |
+| 画像 | Active Storage (開発: ディスク / 公開環境: Cloudinary / 過去の本番: S3) |
 | テスト | Minitest / Vitest / Playwright (E2E) / k6 (性能) |
 | CI | GitHub Actions (lint・テスト・ビルド・脆弱性・E2E・月次の性能テスト) |
 
@@ -100,7 +100,7 @@ Ruby on Rails 8.1 (API) + Nuxt 4 + MySQL 8 で作っています。
 
 ## インフラ
 
-- **現行**: 無料で公開し続けられる構成へ移行中です (Render・TiDB Cloud・Cloudflare R2 を予定)
+- **現行**: 無料で公開し続けられる構成へ移行中です (Render・TiDB Cloud・Cloudinary を予定)
 - **過去の本番構成 (2026-05)**: AWS の ECS Fargate + RDS + ALB + CloudFront + S3 を Terraform で構築し、公開していました
 - **移行の理由**: 常時公開すると月に約 30 ドルかかるため、公開デモを月額 0 円で続けられる構成に切り替えます
 

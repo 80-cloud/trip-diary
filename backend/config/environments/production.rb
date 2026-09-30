@@ -18,10 +18,9 @@ Rails.application.configure do
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
 
-  # F-S3-01 / Issue #55: 本番は Active Storage を S3 に切替 (config/storage.yml :amazon)。
-  # :local だと ECS task の揮発ストレージに保存され deploy 毎に消失するため。
-  # IAM Role 経由で認証 (静的キー不要 / infra/iam.tf 参照)。
-  config.active_storage.service = :amazon
+  # 画像は Cloudinary に置く (config/storage.yml の cloudinary・Issue #149)。
+  # :local だと、公開先の再起動や再デプロイでファイルが消えるため。
+  config.active_storage.service = :cloudinary
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   config.assume_ssl = true

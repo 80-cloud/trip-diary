@@ -50,6 +50,9 @@ Rails.application.configure do
   # Replace the default in-process and non-durable queuing backend for Active Job.
   # ジョブのテーブルは、アプリ本体の DB に置く (Issue #146)。
   config.active_job.queue_adapter = :solid_queue
+  # TiDB は FOR UPDATE SKIP LOCKED に対応していない。鍵をかけない読み取りになり、
+  # 主キーを取り出さない形では失敗する (Issue #156)。普通の FOR UPDATE を使う。
+  config.solid_queue.use_skip_locked = false
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).

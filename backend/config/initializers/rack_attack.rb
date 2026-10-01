@@ -6,40 +6,21 @@ class Rack::Attack
   # 単一インスタンス前提。production で複数インスタンスにする際は Redis backend に切替。
   Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
 
-  # P0-10 / Issue #151: 回数制限で数える訪問者の IP。
-  # 公開環境 (Render) は X-Forwarded-For の先頭を訪問者の IP にするため、TRUST_FIRST_FORWARDED_IP=1
-  # のときだけ先頭を使う。Rack の req.ip は末尾側から選ぶので、中継の IP が公開の IP だと全訪問者の
-  # 合計で数えてしまう。中継の無い環境で先頭を信じると、ヘッダーを偽って制限をすり抜けられるため既定では使わない。
-  def self.client_ip(req)
-    if ENV["TRUST_FIRST_FORWARDED_IP"] == "1"
-      first = req.get_header("HTTP_X_FORWARDED_FOR").to_s.split(",").first.to_s.strip
-      return first if ip_address?(first)
-    end
-    req.ip
-  end
-
-  def self.ip_address?(value)
-    return false if value.empty? || value.include?("/")
-
-    IPAddr.new(value)
-    true
-  rescue IPAddr::InvalidAddressError
-    false
-  end
+  # 訪問者の IP (req.ip) は、公開環境の中継の後ろでも訪問者ごとになるよう client_ip.rb で決める (P0-10 / Issue #158)。
 
   # POST /api/v1/login: 5 req / 分 / IP
   throttle("login/ip", limit: 5, period: 60.seconds) do |req|
-    Rack::Attack.client_ip(req) if req.post? && req.path == "/api/v1/login"
+    req.ip if req.post? && req.path == "/api/v1/login"
   end
 
   # POST /api/v1/signup: 3 req / 分 / IP (作成系はより厳しめ)
   throttle("signup/ip", limit: 3, period: 60.seconds) do |req|
-    Rack::Attack.client_ip(req) if req.post? && req.path == "/api/v1/signup"
+    req.ip if req.post? && req.path == "/api/v1/signup"
   end
 
   # POST /api/v1/guest_login: 5 req / 10 分 / IP (F-GUEST-01。1 回ごとにユーザーを作るため最も厳しめ)
   throttle("guest_login/ip", limit: 5, period: 10.minutes) do |req|
-    Rack::Attack.client_ip(req) if req.post? && req.path == "/api/v1/guest_login"
+    req.ip if req.post? && req.path == "/api/v1/guest_login"
   end
 
   # 429 レスポンス整形 (フィールド名 / 残り時間など機密を漏らさない一般メッセージ)

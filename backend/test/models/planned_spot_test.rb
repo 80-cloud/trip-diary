@@ -60,4 +60,28 @@ class PlannedSpotTest < ActiveSupport::TestCase
     b = PlannedSpot.create!(trip: @trip, title: "B", position: 1)
     assert_equal [ b, a ], @trip.planned_spots.ordered.to_a
   end
+
+  # Issue #160: 日記に昇格したスポットがあっても、旅行と日記を消せる
+  test "昇格したスポットがある旅行を消すと、日記とスポットも消える" do
+    spot = PlannedSpot.create!(trip: @trip, title: "嵐山")
+    spot.update!(done: true)
+    day_id = spot.reload.day_entry_id
+    @trip.destroy!
+    assert_not PlannedSpot.exists?(spot.id)
+    assert_not DayEntry.exists?(day_id)
+  end
+
+  test "昇格元の日記だけを消すと、スポットは残り day_entry_id が nil になる" do
+    spot = PlannedSpot.create!(trip: @trip, title: "伏見稲荷")
+    spot.update!(done: true)
+    spot.reload.day_entry.destroy!
+    assert_nil spot.reload.day_entry_id
+  end
+
+  test "DB の外部キーでも、日記が消えるとスポットの day_entry_id が nil になる" do
+    spot = PlannedSpot.create!(trip: @trip, title: "南禅寺")
+    spot.update!(done: true)
+    DayEntry.where(id: spot.reload.day_entry_id).delete_all
+    assert_nil spot.reload.day_entry_id
+  end
 end

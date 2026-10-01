@@ -95,6 +95,24 @@ class Api::V1::GuestLoginTest < ActionDispatch::IntegrationTest
     assert_no_orphans
   end
 
+  # Issue #160: 日記に昇格したスポットがあっても、後片付けでゲストログインが止まらない
+  test "期限切れのゲストの旅行に日記へ昇格したスポットがあっても、ゲストログインは 201 で片付けられる" do
+    expired = User.create_guest!
+    expired_trip = expired.trips.create!(TRIP_PARAMS)
+    spot = expired_trip.planned_spots.create!(title: "時計台")
+    spot.update!(done: true)
+    assert spot.reload.day_entry_id.present?
+
+    travel 25.hours
+    post "/api/v1/guest_login"
+    assert_response :created
+
+    assert_not User.exists?(expired.id)
+    assert_not Trip.exists?(expired_trip.id)
+    assert_not PlannedSpot.exists?(spot.id)
+    assert_no_orphans
+  end
+
   test "有効なゲストが 200 人いると 503 を返し、ユーザーは増えない" do
     insert_guests(User::GUEST_MAX_ACTIVE, created_at: Time.current)
 

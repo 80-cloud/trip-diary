@@ -1,0 +1,44 @@
+name: Uptime (hourly)
+
+# 公開デモの死活監視 (Issue #153 / 公開デモ化計画書 P1-6・§8-1)。
+# - 毎時 17 分に動かす (GitHub の定期実行は毎時 0 分ごろが混み、遅れや取りこぼしがある)
+# - 公開 URL はリポジトリの変数 UPTIME_URL に入れる (末尾の / は付けない)。変数が無いあいだはジョブを飛ばす
+# - 失敗の知らせは、この cron の行を最後に変えた人に GitHub から届く
+# - public リポジトリでは、60 日間活動が無いと定期実行が止まる (計画書 §8-1 の運用)
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  uptime:
+    if: vars.UPTIME_URL
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      UPTIME_URL: ${{ vars.UPTIME_URL }}
+    steps:
+      # Render Free は停止から起きるまで約 1 分かかる。1 回 90 秒まで待ち、4 回まで繰り返す。
+      # JSON の status まで見るので、起動中の画面を正常と取り違えない。
+      - name: 健康チェック (/api/v1/health の status が ok)
+        run: |
+          for i in 1 2 3 4; do
+            body=$(curl -sS --max-time 90 "$UPTIME_URL/api/v1/health" || true)
+            if [ "$(printf "%s" "$body" | jq -r .status 2>/dev/null)" = ok ]; then
+              echo "health ok (${i} 回目)"
+              exit 0
+            fi
+            echo "health ng (${i} 回目)"
+            sleep 30
+          done
+          exit 1
+
+      # 健康チェックは DB を見ないため、DB を読む旅行一覧も確かめる
+      - name: DB まで届いているか (/api/v1/trips が 200)
+        run: |
+          code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 90 "$UPTIME_URL/api/v1/trips" || true)
+          echo "trips HTTP ${code}"
+          [ "$code" = 200 ]

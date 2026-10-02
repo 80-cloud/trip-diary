@@ -135,9 +135,31 @@ jobs:
 
       # 開発用の依存も対象にする (テスト用ツールの既知の脆弱性にも気づけるように)
       # high 以上で fail (moderate/low はノイズが多い)
+      # npm audit には勧告を個別に除外する機能が無いため、JSON を jq で読んで判定する (Issue #163)
+      # ALLOW: 修正版が無く、開発サーバー (nuxt dev → listhen) だけが読み込む node-forge の勧告。
+      #   公開環境のイメージは静的ファイルだけを配り、node_modules は入らない (2026-10-02 確認)。
+      #   修正版が出て audit に出なくなったら警告が出るので、この 3 行と ALLOW を外す
       - name: npm audit (frontend 依存脆弱性)
         working-directory: frontend
-        run: npm audit --audit-level=high
+        env:
+          ALLOW: https://github.com/advisories/GHSA-86w9-cpqp-85rv
+          NG_FILTER: >-
+            [.vulnerabilities[].via[] | objects | select(.severity == "high" or .severity == "critical") | .url]
+            | unique | map(select(. != $allow)) | .[]
+          HAS_ALLOW: >-
+            [.vulnerabilities[].via[] | objects | .url] | index($allow)
+        run: |
+          npm audit || true
+          npm audit --json > "$RUNNER_TEMP/audit.json" || true
+          ng=$(jq -r --arg allow "$ALLOW" "$NG_FILTER" "$RUNNER_TEMP/audit.json")
+          if ! jq -e --arg allow "$ALLOW" "$HAS_ALLOW" "$RUNNER_TEMP/audit.json" > /dev/null; then
+            echo "::warning::許可している $ALLOW が audit に出なくなった。ci.yml の ALLOW を外す"
+          fi
+          if [ -n "$ng" ]; then
+            echo "許可リストに無い high 以上の勧告:"
+            echo "$ng"
+            exit 1
+          fi
 
   frontend:
     name: frontend (vitest + build)

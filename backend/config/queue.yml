@@ -16,3 +16,12 @@ test:
 
 production:
   <<: *default
+  # Render Free では見回りが外への通信の大半を占めるため、本番だけ間隔を広げる (Issue #165)
+  dispatchers:
+    - polling_interval: 5
+      batch_size: 500
+  workers:
+    - queues: "*"
+      threads: 3
+      processes: <%= ENV.fetch("JOB_CONCURRENCY", 1) %>
+      polling_interval: 2

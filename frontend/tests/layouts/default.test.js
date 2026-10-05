@@ -50,6 +50,11 @@ describe("layouts/default.vue", () => {
     expect(spans).toContain("hidden sm:inline")
   })
 
+  it("hides the signup link on narrow screens", () => {
+    const link = links.find((e) => attr(e, "to") === "/signup")
+    expect(attr(link, "class")).toContain("hidden sm:inline-block")
+  })
+
   it("names the favorites link", () => {
     const link = links.find((e) => attr(e, "to") === "/favorites")
     expect(attr(link, "aria-label")).toBe("お気に入り")

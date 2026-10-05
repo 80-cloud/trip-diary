@@ -32,7 +32,26 @@ const selects = elements(root, "select")
 const category = selects.find((e) => directive(e, "model") === "category")
 const visibility = selects.find((e) => directive(e, "model") === "visibility")
 
+const FIELDS = {
+  title: "trip-title",
+  destination: "trip-destination",
+  startedOn: "trip-started-on",
+  endedOn: "trip-ended-on",
+  body: "trip-body",
+  tagInput: "trip-tags",
+}
+
 describe("components/TripForm.vue", () => {
+  it("links each input to its label", () => {
+    const labels = elements(root, "label").map((e) => attr(e, "for"))
+    const fields = [...elements(root, "input"), ...elements(root, "textarea")]
+    for (const [model, id] of Object.entries(FIELDS)) {
+      const field = fields.find((e) => directive(e, "model") === model)
+      expect(attr(field, "id"), model).toBe(id)
+      expect(labels, model).toContain(id)
+    }
+  })
+
   it("links each select to its label", () => {
     const labels = elements(root, "label").map((e) => attr(e, "for"))
     expect(attr(category, "id")).toBe("trip-category")

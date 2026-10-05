@@ -55,7 +55,7 @@ v-model="email" type="email" required
 v-model="password" type="password" required minlength="6"
           class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
       </div>
-      <ul v-if="errors.length" class="text-sm text-rose-600 list-disc list-inside">
+      <ul v-if="errors.length" class="text-sm text-rose-600 dark:text-rose-400 list-disc list-inside">
         <li v-for="err in errors" :key="err">{{ err }}</li>
       </ul>
       <button

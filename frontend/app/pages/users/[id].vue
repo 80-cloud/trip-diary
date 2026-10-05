@@ -169,7 +169,7 @@ async function saveProfile() {
             <span v-if="editAvatarFile" class="text-xs text-slate-600 dark:text-slate-300 truncate">{{ editAvatarFile.name }}</span>
           </div>
         </div>
-        <p v-if="editError" class="text-sm text-rose-600">{{ editError }}</p>
+        <p v-if="editError" class="text-sm text-rose-600 dark:text-rose-400">{{ editError }}</p>
         <div class="flex items-center gap-2 justify-end">
           <button type="button" class="text-sm text-slate-500 dark:text-slate-400 hover:underline" @click="editing = false">キャンセル</button>
           <button

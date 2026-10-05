@@ -46,7 +46,7 @@ async function submit() {
           class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-brand-200 dark:focus:ring-brand-900/60"
         >
       </div>
-      <p v-if="error" class="text-sm text-rose-600">{{ error }}</p>
+      <p v-if="error" class="text-sm text-rose-600 dark:text-rose-400">{{ error }}</p>
       <button
         type="submit" :disabled="submitting"
         class="w-full bg-brand-600 text-white py-2 rounded font-medium hover:bg-brand-700 disabled:opacity-50"

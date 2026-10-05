@@ -461,7 +461,7 @@ async function toggleFollow() {
 <template>
   <div v-if="pending" class="text-center py-12 text-slate-500 dark:text-slate-400">読み込み中…</div>
   <NotFoundMessage v-else-if="error?.statusCode === 404" />
-  <div v-else-if="error" class="text-center py-12 text-rose-600">旅行記録を読み込めませんでした。時間を置いて、もう一度お試しください。</div>
+  <div v-else-if="error" class="text-center py-12 text-rose-600 dark:text-rose-400">旅行記録を読み込めませんでした。時間を置いて、もう一度お試しください。</div>
 
   <article v-else-if="trip" class="space-y-6">
     <NuxtLink to="/" class="text-sm text-brand-600 dark:text-brand-50 hover:underline">← 一覧に戻る</NuxtLink>
@@ -515,7 +515,7 @@ async function toggleFollow() {
           </div>
           <div v-if="isOwner()" class="flex gap-2 shrink-0">
             <NuxtLink :to="`/trips/${trip.id}/edit`" class="text-sm bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-100 px-3 py-1.5 rounded hover:bg-slate-300 dark:hover:bg-slate-600">編集</NuxtLink>
-            <button type="button" class="text-sm bg-rose-500 text-white px-3 py-1.5 rounded hover:bg-rose-600" @click="deleteTrip">削除</button>
+            <button type="button" class="text-sm bg-rose-600 text-white px-3 py-1.5 rounded hover:bg-rose-700" @click="deleteTrip">削除</button>
           </div>
         </div>
 
@@ -530,7 +530,7 @@ async function toggleFollow() {
         <button
           :class="[
             'px-3 py-1.5 rounded text-sm flex items-center gap-1 border',
-            trip.liked_by_me ? 'bg-rose-50 border-rose-300 text-rose-600 dark:bg-rose-950 dark:border-rose-700 dark:text-rose-200' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
+            trip.liked_by_me ? 'bg-rose-50 border-rose-300 text-rose-700 dark:bg-rose-950 dark:border-rose-700 dark:text-rose-200' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
           ]"
           @click="toggleLike"
         >
@@ -549,7 +549,7 @@ async function toggleFollow() {
         </button>
         <span class="text-sm text-slate-500 dark:text-slate-400">💬 {{ trip.comments_count }} コメント</span>
         </div>
-        <p v-if="actionError" class="mt-2 text-sm text-rose-600">{{ actionError }}</p>
+        <p v-if="actionError" class="mt-2 text-sm text-rose-600 dark:text-rose-400">{{ actionError }}</p>
       </div>
     </header>
 
@@ -572,7 +572,7 @@ async function toggleFollow() {
           <input :id="`plan-done-${spot.id}`" type="checkbox" :checked="spot.done" :aria-label="`${spot.title} を済みにする`" class="rounded" @change="toggleSpotDone(spot)" >
           <span :class="['flex-1 text-sm', spot.done ? 'line-through text-slate-500 dark:text-slate-400' : 'text-slate-700 dark:text-slate-200']">{{ spot.title }}</span>
           <span v-if="spot.day_entry_id" class="text-[10px] px-1.5 py-0.5 rounded bg-brand-100 dark:bg-brand-700 text-brand-700 dark:text-brand-50">記録に追加済</span>
-          <button type="button" class="text-xs text-rose-500 hover:underline" @click="deleteSpot(spot)">削除</button>
+          <button type="button" class="text-xs text-rose-600 dark:text-rose-400 hover:underline" @click="deleteSpot(spot)">削除</button>
         </li>
         <li v-if="trip.planned_spots.length === 0" class="text-xs text-slate-500 dark:text-slate-400">まだ計画はありません</li>
       </ul>
@@ -583,7 +583,7 @@ id="plan-new-title" v-model="newSpotTitle" maxlength="80" placeholder="新しい
           class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm" >
         <button type="submit" class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700">追加</button>
       </form>
-      <p v-if="planError" class="text-xs text-rose-600 mt-2">{{ planError }}</p>
+      <p v-if="planError" class="text-xs text-rose-600 dark:text-rose-400 mt-2">{{ planError }}</p>
       <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">✓ にすると自動で「日別の出来事」に追加されます</p>
     </section>
 
@@ -594,7 +594,7 @@ id="plan-new-title" v-model="newSpotTitle" maxlength="80" placeholder="新しい
         <li v-for="item in trip.packing_items" :key="item.id" class="flex items-center gap-2">
           <input :id="`packing-done-${item.id}`" type="checkbox" :checked="item.packed" :aria-label="`${item.body} を詰めた`" class="rounded" @change="toggleItemPacked(item)" >
           <span :class="['flex-1 text-sm', item.packed ? 'line-through text-slate-500 dark:text-slate-400' : 'text-slate-700 dark:text-slate-200']">{{ item.body }}</span>
-          <button type="button" class="text-xs text-rose-500 hover:underline" @click="deleteItem(item)">削除</button>
+          <button type="button" class="text-xs text-rose-600 dark:text-rose-400 hover:underline" @click="deleteItem(item)">削除</button>
         </li>
         <li v-if="trip.packing_items.length === 0" class="text-xs text-slate-500 dark:text-slate-400">まだ持ち物はありません</li>
       </ul>
@@ -605,7 +605,7 @@ id="packing-new-body" v-model="newItemBody" maxlength="80" placeholder="新し�
           class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm" >
         <button type="submit" class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700">追加</button>
       </form>
-      <p v-if="packError" class="text-xs text-rose-600 mt-2">{{ packError }}</p>
+      <p v-if="packError" class="text-xs text-rose-600 dark:text-rose-400 mt-2">{{ packError }}</p>
     </section>
 
     <!-- F-TICKET-01: チケット (本人のみ表示・編集) -->
@@ -620,7 +620,7 @@ id="packing-new-body" v-model="newItemBody" maxlength="80" placeholder="新し�
             <p v-if="t.notes" class="text-xs text-slate-500 dark:text-slate-400">{{ t.notes }}</p>
             <a v-if="t.file_url" :href="fileUrlFull(t.file_url)" target="_blank" rel="noopener" class="text-xs text-slate-500 dark:text-slate-400 underline">添付ファイル</a>
           </div>
-          <button type="button" class="text-xs text-rose-500 hover:underline shrink-0" @click="deleteTicket(t)">削除</button>
+          <button type="button" class="text-xs text-rose-600 dark:text-rose-400 hover:underline shrink-0" @click="deleteTicket(t)">削除</button>
         </li>
         <li v-if="trip.tickets.length === 0" class="text-xs text-slate-500 dark:text-slate-400">まだチケットはありません</li>
       </ul>
@@ -654,7 +654,7 @@ id="ticket-file-input" type="file" accept="image/*,application/pdf" class="absol
           <span v-if="newTicketFile" class="text-xs text-slate-600 dark:text-slate-300 truncate">{{ newTicketFile.name }}</span>
         </div>
         <button type="submit" class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700">追加</button>
-        <p v-if="ticketError" class="text-xs text-rose-600">{{ ticketError }}</p>
+        <p v-if="ticketError" class="text-xs text-rose-600 dark:text-rose-400">{{ ticketError }}</p>
       </form>
     </section>
 
@@ -683,9 +683,9 @@ id="review-body" v-model="reviewDraft.body" rows="3" maxlength="2000" placeholde
           class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm"/>
         <div class="flex items-center gap-2">
           <button type="submit" :disabled="reviewSaving" class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700 disabled:opacity-50">{{ reviewSaving ? "保存中…" : (trip.review ? "更新" : "保存") }}</button>
-          <button v-if="trip.review" type="button" class="text-xs text-rose-500 hover:underline" @click="deleteReview">レビューを削除</button>
+          <button v-if="trip.review" type="button" class="text-xs text-rose-600 dark:text-rose-400 hover:underline" @click="deleteReview">レビューを削除</button>
         </div>
-        <p v-if="reviewError" class="text-xs text-rose-600">{{ reviewError }}</p>
+        <p v-if="reviewError" class="text-xs text-rose-600 dark:text-rose-400">{{ reviewError }}</p>
       </form>
     </section>
 
@@ -717,16 +717,16 @@ type="submit" :disabled="budgetSaving"
             class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700 disabled:opacity-50">
             {{ budgetSaving ? "保存中…" : (trip.budget ? "予算を更新" : "予算を保存") }}
           </button>
-          <button v-if="trip.budget" type="button" class="text-xs text-rose-500 hover:underline" @click="deleteBudget">予算を削除</button>
+          <button v-if="trip.budget" type="button" class="text-xs text-rose-600 dark:text-rose-400 hover:underline" @click="deleteBudget">予算を削除</button>
         </div>
-        <p v-if="budgetError" class="text-xs text-rose-600">{{ budgetError }}</p>
+        <p v-if="budgetError" class="text-xs text-rose-600 dark:text-rose-400">{{ budgetError }}</p>
       </form>
 
       <!-- 進捗バー: planned vs actual -->
       <div v-if="trip.budget && Number(trip.budget.planned_amount) > 0" class="mb-4">
         <div class="flex justify-between text-xs text-slate-600 dark:text-slate-400 mb-1">
           <span>支出 {{ trip.receipts_total }} / 予算 {{ trip.budget.planned_amount }} {{ trip.budget.currency }}</span>
-          <span :class="spendingPercent() >= 100 ? 'text-rose-500 font-bold' : ''">{{ spendingPercent() }}%</span>
+          <span :class="spendingPercent() >= 100 ? 'text-rose-600 dark:text-rose-400 font-bold' : ''">{{ spendingPercent() }}%</span>
         </div>
         <div class="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">
           <div
@@ -772,7 +772,7 @@ id="receipt-description" v-model="newReceipt.description" type="text" maxlength=
         <button
 type="submit"
           class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700">レシートを追加</button>
-        <p v-if="receiptError" class="text-xs text-rose-600">{{ receiptError }}</p>
+        <p v-if="receiptError" class="text-xs text-rose-600 dark:text-rose-400">{{ receiptError }}</p>
       </form>
 
       <!-- レシート一覧 -->
@@ -787,7 +787,7 @@ v-for="r in trip.receipts" :key="r.id"
             <span v-if="r.spent_on" class="text-xs text-slate-500 dark:text-slate-400">{{ r.spent_on }}</span>
             <span v-if="r.description" class="text-xs text-slate-600 dark:text-slate-300 truncate">{{ r.description }}</span>
           </div>
-          <button type="button" class="text-xs text-rose-500 hover:underline shrink-0" @click="deleteReceipt(r)">削除</button>
+          <button type="button" class="text-xs text-rose-600 dark:text-rose-400 hover:underline shrink-0" @click="deleteReceipt(r)">削除</button>
         </li>
         <li v-if="!trip.receipts.length" class="text-xs text-slate-500 dark:text-slate-400">まだレシートはありません</li>
       </ul>
@@ -830,7 +830,7 @@ v-for="r in trip.receipts" :key="r.id"
             <p class="text-sm font-medium text-slate-700 dark:text-slate-200">@{{ c.user.display_name }}</p>
             <p class="text-sm text-slate-600 dark:text-slate-300 mt-0.5 whitespace-pre-wrap">{{ c.body }}</p>
           </div>
-          <button v-if="auth.user && c.user.id === auth.user.id" type="button" class="text-xs text-rose-500 hover:underline shrink-0" @click="deleteComment(c.id)">削除</button>
+          <button v-if="auth.user && c.user.id === auth.user.id" type="button" class="text-xs text-rose-600 dark:text-rose-400 hover:underline shrink-0" @click="deleteComment(c.id)">削除</button>
         </li>
         <li v-if="!trip.comments.length" class="text-sm text-slate-500 dark:text-slate-400">まだコメントはありません。</li>
       </ul>
@@ -840,7 +840,7 @@ v-for="r in trip.receipts" :key="r.id"
         <input
           id="comment-body" v-model="newComment" type="text" maxlength="140" required
           placeholder="コメントを書く (140 文字以内)"
-          class="flex-1 border border-slate-300 rounded px-3 py-2 text-sm"
+          class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm"
         >
         <button type="submit" :disabled="submitting" class="bg-brand-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50">
           投稿

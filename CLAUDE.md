@@ -16,8 +16,8 @@
 5. **ポート**: Rails 3010 / Nuxt 3011 / MySQL 3316 (競合時は kill して正規ポートで起動)
 6. **AI 操作禁止**: `terraform destroy` / `terraform apply -auto-approve` / `aws *delete*` / `rm -rf` 等は人間承認必須
 7. **`.env` などの機密情報を絶対にコミットしない** (`git status` で必ず事前確認)
-8. **テストファースト**: Phase 2 以降は Issue の受け入れ条件 → テスト → 実装の順で書く (Phase 1 既存実装は smoke のみ後追い済 / 詳細 §11)
-9. **Vue/Nuxt 規約**: `ref(route.query.x)` はリバース同期 watch 必須 / ヘルパー 3+ ファイル重複は composable 抽出 / submit でない `<button>` は `type="button"` 明示 / `useAsyncData` は必要なら `{deep:true}` / 権限ガードは派生集計値にも適用 / 未使用 `catch` 変数は `_e` prefix / `@click` で async action は handler 関数経由 / Headlessui `Menu` open 検知は slot prop 経由 / Vue 3 で `@nuxt/eslint` 導入時は `vue/no-multiple-template-root: off` 必須 (詳細 §12)
+8. **テストファースト**: Phase 2 以降は Issue の受け入れ条件 → テスト → 実装の順で書く (Phase 1 の実装にも後からテストを足した。件数は [docs/テスト計画書.md](docs/テスト計画書.md) §4 / 詳細 §11)
+9. **Vue/Nuxt 規約**: `ref(route.query.x)` はリバース同期 watch 必須 / ヘルパー 3+ ファイル重複は composable 抽出 / submit でない `<button>` は `type="button"` 明示 / `useAsyncData` は必要なら `{deep:true}` / 権限ガードは派生集計値にも適用 / 未使用 `catch` 変数は `_e` prefix / `@click` で async action は handler 関数経由 / Headlessui `Menu` open 検知は slot prop 経由 / Vue 3 で `@nuxt/eslint` 導入時は `vue/no-multiple-template-root: off` 必須 / 文字の色は WCAG AA (灰色は `text-slate-500 dark:text-slate-400`・白字は `bg-brand-600`) / 入力欄は label の `for` と `id`・アイコンだけは `aria-label` / 狭い幅で文字を隠しても名前は変えない / 本人だけに出る画面も DevTools の Issues を見る (詳細 §12)
 
 ### Jidoka 発動条件 (作業中に頭をよぎったら止まる)
 
@@ -273,7 +273,7 @@ git pull origin main          # 直前 PR がマージ済の場合、ローカ�
 
 ### 11-4. Phase 1 既存実装の扱い
 
-Phase 1 (認証 / Trip CRUD / コメント / いいね / 画像) は **smoke テストのみ後追い済** (現状 4 件・auth controller の E-H1/E-H2 回帰含む)。
+Phase 1 (認証 / Trip CRUD / コメント / いいね / 画像) は、実装のあとからテストを足した (auth controller の E-H1/E-H2 の回帰を含む)。今の件数は [docs/テスト計画書.md](docs/テスト計画書.md) §4 を見る (ここに件数を書くと古くなるため)。
 Phase 2 以降の新機能・改修は本書 §11-2 のテストファースト運用に従うこと。
 
 ### 11-5. セキュリティチェック (PR テンプレと連動)
@@ -293,7 +293,7 @@ PR 作成時は `.github/pull_request_template.md` のセキュリティチェ�
 
 **Why**: 既存コードが大量に warning/error を吐く状態でいきなり blocking すると、CI 真っ赤 → 他作業が止まる。3 段に分けると、PR ごとに緑を維持しながら品質を段階的に上げられる。
 
-**実証**: PR #77 (rubocop) / PR #79 (ESLint grandfather) / PR #87 (ESLint blocking 化) の 3 PR で実証済。
+**実証**: PR #77 (rubocop) / PR #79 (ESLint grandfather) / PR #87 (ESLint blocking 化) の 3 PR で実証済。E2E も同じ形で ③ に進めた (PR #180 で `continue-on-error` を外した)。
 
 ---
 
@@ -455,3 +455,58 @@ export default withNuxt({
 **Why**: Vue 3 は `<template>` 直下に複数要素 (fragment) を置けるが、Vue 2 では root 要素 1 個が必須。`@nuxt/eslint` の default config は Vue 2 互換 rule を含むため、Vue 3 で off にしないと既存コードが大量 fire する。
 
 **How to apply**: `@nuxt/eslint` を新規導入する際は `vue/no-multiple-template-root: off` を最初から入れる。他にも Vue 3 で不要な rule (`vue/no-template-shadow` 等) があれば随時 off。発見契機: PR #79 ESLint 導入 (B31)。
+
+### 12-10. 文字の色は WCAG AA (4.5:1) に届く組み合わせにする
+
+```vue
+<!-- ❌ 白の背景で 2.56:1 (text-slate-400) / 白字との比が 4.10:1 (bg-brand-500) -->
+<p class="text-slate-400">まだ旅行はありません</p>
+<button type="button" class="bg-brand-500 text-white">保存</button>
+
+<!-- ✅ 白の背景で 4.76:1 / 白字との比が 5.93:1 -->
+<p class="text-slate-500 dark:text-slate-400">まだ旅行はありません</p>
+<button type="button" class="bg-brand-600 text-white hover:bg-brand-700">保存</button>
+```
+
+**Why**: #177 で、Lighthouse の Accessibility が 96 だった原因がこの 2 つの組み合わせだった。ダークの背景 (slate-800) では、逆に `text-slate-500` が 3.07:1 で届かず、`text-slate-400` なら 5.71:1 になる。
+
+**How to apply**: 灰色の文字は `text-slate-500 dark:text-slate-400`、白字のボタンは `bg-brand-600` (hover は `bg-brand-700`) にする。`frontend/tests/style/contrast.test.js` が app の全部の `.vue` を読み、届かない組み合わせを見つける。例外は、進み具合の棒 (`h-full bg-brand-500`) と 📷 の枠 (`text-slate-300 dark:text-slate-500`) の 2 つだけ。
+
+### 12-11. 入力欄は label の `for` と `id` でつなぎ、アイコンだけの要素には `aria-label`
+
+```vue
+<!-- ❌ placeholder だけで、label とつながっていない -->
+<input v-model="newSpotTitle" placeholder="新しい計画 (例: 金閣寺)">
+
+<!-- ✅ 見た目を変えずに名前を付ける (label は sr-only で画面に出さない) -->
+<label for="plan-new-title" class="sr-only">新しい計画</label>
+<input id="plan-new-title" v-model="newSpotTitle" placeholder="新しい計画 (例: 金閣寺)">
+
+<!-- ✅ 繰り返す欄は、番号を入れた重ならない id にする -->
+<label :for="`day-${d._idx}-title`" class="sr-only">Day {{ d._idx + 1 }} のタイトル</label>
+<input :id="`day-${d._idx}-title`" v-model="dayEntries[d._idx].title">
+```
+
+**Why**: placeholder は label の代わりにならない。#176 (作成画面)・#189 (出来事の欄)・#196 (旅行の詳細) で、Chrome DevTools の Issues に「No label associated with a form field」と「A form field element should have an id or name attribute」が出ていた。
+
+**How to apply**: 入力欄・選択欄・複数行の欄には、必ず `id` を付けて label とつなぐ (label で包むか、チェックボックスのように項目ごとの名前が要るものは `aria-label`)。アイコンだけのボタンとリンク (★・🚪 など) には `aria-label` を付ける。画面ごとに「すべての入力欄に id と名前がある」をテストで守る (手本は `frontend/tests/pages/tripDetail.test.js` の `gives every form field an id and a name`)。
+
+### 12-12. 狭い幅で文字を隠しても、名前 (`aria-label`) は変えない
+
+```vue
+<!-- ✅ 640px 未満は「+」だけを見せるが、名前はどの幅でも「新しい旅行記録」 -->
+<NuxtLink :to="newTripTo" aria-label="新しい旅行記録" class="bg-brand-600 text-white">
+  <span class="sm:hidden">+</span>
+  <span class="hidden sm:inline">+ 新しい旅行記録</span>
+</NuxtLink>
+```
+
+**Why**: #176 でスマホの幅のヘッダーを短くしたとき、E2E (Playwright) は「ログアウト」などの名前でボタンを押している。幅によって名前が変わると、iPhone の E2E だけが落ちる。
+
+**How to apply**: 見せる文字を幅で切り替えるときは、外側の要素に `aria-label` で名前を 1 つ付け、どの幅でも同じにする。名前を変える PR では、ブランチで E2E の full (Chromium・WebKit・iPhone 14) を流す。
+
+### 12-13. ログインした本人にだけ出る画面も、DevTools の Issues を見る
+
+**Why**: #196 で、自分の旅行の詳細にだけ出る入力欄 (計画・持ち物・チケット・予算など) が、label とつながっていなかった。Lighthouse を公開環境のログイン前のトップと 404 でしか流していなかったため、それまで気づかなかった。
+
+**How to apply**: 画面を変える PR では、ゲストで入って自分の旅行を作り、計画と持ち物を 1 つずつ足した状態の詳細も、DevTools の Issues が 0 件かを見る (項目があるときだけ出る欄があるため)。公開環境のゲストログインは 10 分に 5 回までなので、確かめるときは入る回数を控える。

@@ -60,6 +60,12 @@ describe("components/TripForm.vue", () => {
     expect(labels).toContain("trip-visibility")
   })
 
+  it("points every label to a field", () => {
+    for (const label of elements(root, "label")) {
+      expect(attr(label, "for")).toBeTruthy()
+    }
+  })
+
   it("stacks category and visibility on narrow screens", () => {
     const grid = parentOf(root, parentOf(root, category))
     expect(attr(grid, "class")).toContain("grid-cols-1 sm:grid-cols-2")

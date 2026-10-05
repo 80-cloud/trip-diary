@@ -24,6 +24,11 @@ describe("colors in app/**/*.vue", () => {
     expect(found(/(^|[\s"`[])text-slate-400/)).toEqual([])
   })
 
+  it("gives slate-500 text a lighter color in dark mode (3.07:1)", () => {
+    const uses = lines.filter((line) => /(^|[ "`[])text-slate-500( |"|$)/.test(line.text) && !/dark:text-slate-400/.test(line.text))
+    expect(uses.map((line) => line.at)).toEqual([])
+  })
+
   it("does not use slate-500 text on a dark background (3.07:1)", () => {
     // 画像が無いときの 📷 の枠 (文字ではない飾り) だけは slate-500 のまま
     const uses = lines.filter((line) => /dark:text-slate-500/.test(line.text) && !/text-slate-300 dark:text-slate-500/.test(line.text))

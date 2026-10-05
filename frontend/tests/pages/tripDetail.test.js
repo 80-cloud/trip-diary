@@ -12,6 +12,23 @@ function elements(node, tag) {
   return found.concat((node.children || []).flatMap((child) => elements(child, tag)))
 }
 
+function attr(node, name) {
+  return node.props.find((p) => p.type === 6 && p.name === name)?.value?.content
+}
+
+function bound(node, name) {
+  return node.props.find((p) => p.type === 7 && p.name === "bind" && p.arg?.content === name)?.exp?.content
+}
+
+function ancestors(node, target, path = []) {
+  if (node === target) return path
+  for (const child of node.children || []) {
+    const found = ancestors(child, target, [...path, node])
+    if (found) return found
+  }
+  return null
+}
+
 describe("pages/trips/[id]/index.vue", () => {
   it("shows the not found message for 404", () => {
     const message = elements(root, "NotFoundMessage")[0]
@@ -21,6 +38,21 @@ describe("pages/trips/[id]/index.vue", () => {
 
   it("does not show the raw error message", () => {
     expect(parse(source).descriptor.template.content).not.toContain("error.message")
+  })
+
+  // 自分の旅行の詳細に並ぶ入力欄に、id と名前を付ける (Issue #196)
+  it("gives every form field an id and a name", () => {
+    const fields = ["input", "select", "textarea"].flatMap((tag) => elements(root, tag))
+    const labels = elements(root, "label").map((e) => attr(e, "for") || bound(e, "for")).filter(Boolean)
+    expect(fields.length).toBeGreaterThan(0)
+    for (const field of fields) {
+      const id = attr(field, "id") || bound(field, "id")
+      const where = `${field.tag} (${field.loc.start.line} 行目)`
+      expect(id, where).toBeTruthy()
+      const wrapped = ancestors(root, field).some((e) => e.tag === "label")
+      const named = attr(field, "aria-label") || bound(field, "aria-label")
+      expect(labels.includes(id) || wrapped || Boolean(named), where).toBe(true)
+    }
   })
 
   // 追加が終わったら、前に選んだファイル名を残さない (Issue #188)

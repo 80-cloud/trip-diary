@@ -87,12 +87,13 @@ Ruby on Rails 8.1 (API) + Nuxt 4 + MySQL 8 で作っています。
 | 種別 | 件数 | カバレッジ |
 |---|---|---|
 | Backend (Minitest) | 363 件 | Line 94.78% / Branch 79.64% |
-| Frontend (Vitest) | 63 件 | 全体 Line 7.26% / composables Line 62.01% |
-| E2E (Playwright) | smoke 1 件 | — |
+| Frontend (Vitest) | 75 件 | 全体 Line 7.43% / composables Line 62.87% |
+| E2E (Playwright) | smoke 1 件 (PR は Chromium、main は Chromium・WebKit・iPhone 14) | — |
 | 性能 (k6) | シナリオ 6 種 | — |
 
-- 数字は 2026-10-05 時点の実測です
-- Frontend の単体テストは composables とストアのほか、トップの画面と設定の静的な確認 (見出し・入力欄の名前・OGP) が対象です。画面の部品には単体テストが無く、E2E と手動の確認手順 ([docs/テスト計画書.md](docs/テスト計画書.md) §8) で確かめています
+- 数字は 2026-10-06 時点の実測です
+- Frontend の単体テストは composables とストアのほか、画面のテンプレートの構造 (トップ・ヘッダー・作成画面・旅行の詳細・エラーの画面の見出しと入力欄の名前、全部の画面の文字と背景の色の組み合わせ) と設定 (OGP) が対象です。画面の動きは、E2E と手動の確認手順 ([docs/テスト計画書.md](docs/テスト計画書.md) §8) で確かめています
+- 公開環境の 6 画面 (ログイン前のトップ・旅行の詳細・404、ゲストで入ったあとのトップ・作成画面・自分の旅行の詳細) で、Lighthouse の Accessibility が 100 です (スマホと PC、ライトとダークの 4 通り。2026-10-06 時点)
 - CI では rubocop・ESLint・Minitest・Vitest・Nuxt のビルド・brakeman・bundle-audit・npm audit をすべての PR で実行しています
 - セキュリティは [docs/セキュリティ自己監査.md](docs/セキュリティ自己監査.md) の観点で PR ごとに確認しています
 

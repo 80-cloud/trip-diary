@@ -29,9 +29,11 @@ describe("pages/index.vue", () => {
     expect(attr(search, "aria-label")).toBeTruthy()
   })
 
-  it("names the sort select with aria-label", () => {
+  it("names the sort select with id, name and aria-label", () => {
     const selects = elements(root, "select")
     expect(selects).toHaveLength(1)
+    expect(attr(selects[0], "id")).toBeTruthy()
+    expect(attr(selects[0], "name")).toBeTruthy()
     expect(attr(selects[0], "aria-label")).toBeTruthy()
   })
 })

@@ -243,7 +243,7 @@ function formatRange(s, e) {
         placeholder="タイトル / 場所 / タグで検索"
         class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm"
       >
-      <select v-model="sort" aria-label="並び替え" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm">
+      <select id="trip-sort" v-model="sort" name="sort" aria-label="並び替え" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm">
         <option value="recent">新着順</option>
         <option value="popular">人気順 (いいね数)</option>
         <option value="title">タイトル順</option>

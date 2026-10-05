@@ -458,8 +458,9 @@ async function toggleFollow() {
 </script>
 
 <template>
-  <div v-if="pending" class="text-center py-12 text-slate-500">読み込み中…</div>
-  <div v-else-if="error" class="text-center py-12 text-rose-600">エラー: {{ error.message }}</div>
+  <div v-if="pending" class="text-center py-12 text-slate-500 dark:text-slate-400">読み込み中…</div>
+  <NotFoundMessage v-else-if="error?.statusCode === 404" />
+  <div v-else-if="error" class="text-center py-12 text-rose-600">旅行記録を読み込めませんでした。時間を置いて、もう一度お試しください。</div>
 
   <article v-else-if="trip" class="space-y-6">
     <NuxtLink to="/" class="text-sm text-brand-600 dark:text-brand-50 hover:underline">← 一覧に戻る</NuxtLink>
@@ -831,7 +832,7 @@ v-for="r in trip.receipts" :key="r.id"
           投稿
         </button>
       </form>
-      <p v-else class="text-sm text-slate-500">
+      <p v-else class="text-sm text-slate-500 dark:text-slate-400">
         コメントするには <NuxtLink :to="`/login?redirect=${route.fullPath}`" class="text-brand-600 dark:text-brand-50 underline">ログイン</NuxtLink> してください。
       </p>
     </section>

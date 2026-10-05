@@ -29,7 +29,7 @@ function fullImageUrl(path) {
 
     <div v-if="pending" class="text-center py-12 text-slate-500 dark:text-slate-400">読み込み中…</div>
     <div v-else-if="error && error.statusCode === 404" class="bg-white dark:bg-slate-800 rounded-lg p-8 text-center border border-slate-200 dark:border-slate-700 mt-4">
-      <p class="text-slate-500">「#{{ name }}」というタグは存在しません。</p>
+      <p class="text-slate-500 dark:text-slate-400">「#{{ name }}」というタグは存在しません。</p>
     </div>
     <div v-else-if="error" class="text-center py-12 text-rose-600">エラー: {{ error.message }}</div>
 
@@ -47,7 +47,7 @@ function fullImageUrl(path) {
       </header>
 
       <div v-if="data.trips.length === 0" class="bg-white dark:bg-slate-800 rounded-lg p-8 text-center border border-slate-200 dark:border-slate-700">
-        <p class="text-slate-500">該当する旅行記録がありません (非公開かもしれません)。</p>
+        <p class="text-slate-500 dark:text-slate-400">該当する旅行記録がありません (非公開かもしれません)。</p>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

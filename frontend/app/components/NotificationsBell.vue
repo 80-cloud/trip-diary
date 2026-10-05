@@ -94,8 +94,8 @@ function formatTime(iso) {
         >すべて既読</button>
       </div>
 
-      <div v-if="store.loading" class="px-3 py-6 text-center text-sm text-slate-500">読み込み中…</div>
-      <div v-else-if="store.notifications.length === 0" class="px-3 py-6 text-center text-sm text-slate-500">通知はありません</div>
+      <div v-if="store.loading" class="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">読み込み中…</div>
+      <div v-else-if="store.notifications.length === 0" class="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">通知はありません</div>
 
       <MenuItem
         v-for="n in store.notifications"

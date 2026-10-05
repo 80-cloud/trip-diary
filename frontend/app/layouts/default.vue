@@ -100,7 +100,7 @@ function fullImageUrl(path) {
           <template v-else-if="auth.fetched">
             <GuestLoginButton class="shrink-0" />
             <NuxtLink to="/login" class="text-sm text-slate-700 dark:text-slate-200 hover:underline shrink-0 whitespace-nowrap">ログイン</NuxtLink>
-            <NuxtLink v-if="signupEnabled" to="/signup" class="text-sm bg-brand-500 text-white px-3 py-1.5 rounded shrink-0 whitespace-nowrap">サインアップ</NuxtLink>
+            <NuxtLink v-if="signupEnabled" to="/signup" class="hidden sm:inline-block text-sm bg-brand-500 text-white px-3 py-1.5 rounded shrink-0 whitespace-nowrap">サインアップ</NuxtLink>
           </template>
           <template v-else>
             <span class="text-xs text-slate-400 dark:text-slate-500 shrink-0 whitespace-nowrap">読み込み中…</span>

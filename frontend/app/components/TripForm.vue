@@ -185,26 +185,26 @@ function submit(statusOverride) {
   <!-- enter キーでの暴発を避けるため form 自体の submit はバインドしない -->
   <form class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700 space-y-4 max-w-3xl" @submit.prevent>
     <div>
-      <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">タイトル *</label>
-      <input v-model="title" required maxlength="80" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
+      <label for="trip-title" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">タイトル *</label>
+      <input id="trip-title" v-model="title" required maxlength="80" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
     </div>
     <div>
-      <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">行き先 *</label>
-      <input v-model="destination" required maxlength="80" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
+      <label for="trip-destination" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">行き先 *</label>
+      <input id="trip-destination" v-model="destination" required maxlength="80" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
     </div>
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">開始日 *</label>
-        <input v-model="startedOn" type="date" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
+        <label for="trip-started-on" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">開始日 *</label>
+        <input id="trip-started-on" v-model="startedOn" type="date" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
       </div>
       <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">終了日 *</label>
-        <input v-model="endedOn" type="date" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
+        <label for="trip-ended-on" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">終了日 *</label>
+        <input id="trip-ended-on" v-model="endedOn" type="date" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
       </div>
     </div>
     <div>
-      <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">本文 (任意・5000 文字以内)</label>
-      <textarea v-model="body" rows="4" maxlength="5000" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2"/>
+      <label for="trip-body" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">本文 (任意・5000 文字以内)</label>
+      <textarea id="trip-body" v-model="body" rows="4" maxlength="5000" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2"/>
     </div>
     <div>
       <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
@@ -251,9 +251,9 @@ function submit(statusOverride) {
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">タグ (任意・カンマ区切り)</label>
+      <label for="trip-tags" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">タグ (任意・カンマ区切り)</label>
       <input
-        v-model="tagInput" maxlength="200" placeholder="例: 京都, 紅葉, 寺"
+        id="trip-tags" v-model="tagInput" maxlength="200" placeholder="例: 京都, 紅葉, 寺"
         class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2"
       >
       <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">複数指定するときは「,」または「、」で区切ってください</p>

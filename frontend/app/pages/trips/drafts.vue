@@ -32,7 +32,7 @@ function fullImageUrl(path) {
     <div v-else-if="error" class="text-center py-12 text-rose-600">エラー: {{ error.message }}</div>
     <div v-else-if="drafts.length === 0" class="bg-white dark:bg-slate-800 rounded-lg p-8 text-center border border-slate-200 dark:border-slate-700">
       <p class="text-slate-500 dark:text-slate-400 mb-4">下書きはまだありません。</p>
-      <NuxtLink to="/trips/new" class="inline-block bg-brand-500 text-white px-4 py-2 rounded">+ 新しい旅行記録</NuxtLink>
+      <NuxtLink to="/trips/new" class="inline-block bg-brand-600 text-white px-4 py-2 rounded">+ 新しい旅行記録</NuxtLink>
     </div>
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

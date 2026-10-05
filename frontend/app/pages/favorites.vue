@@ -26,7 +26,7 @@ function fullImageUrl(path) {
     <div v-else-if="error" class="text-center py-12 text-rose-600">エラー: {{ error.message }}</div>
     <div v-else-if="!trips || trips.length === 0" class="bg-white dark:bg-slate-800 rounded-lg p-8 text-center border border-slate-200 dark:border-slate-700">
       <p class="text-slate-500 dark:text-slate-400">お気に入りした旅行記録はまだありません。</p>
-      <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">気になる旅行記録の ☆ ボタンを押すとここに集まります。</p>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">気になる旅行記録の ☆ ボタンを押すとここに集まります。</p>
     </div>
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

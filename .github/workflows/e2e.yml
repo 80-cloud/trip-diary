@@ -131,9 +131,6 @@ jobs:
 
       - name: Run E2E (${{ env.E2E_SCENARIO }})
         working-directory: e2e
-        # Issue #68 (Playwright Chromium hydrate timing) が open のうちは
-        # continue-on-error: true で blocking 回避。解決後に削除して blocking 化する。
-        continue-on-error: true
         run: |
           if [ "${E2E_SCENARIO}" = "full" ]; then
             npm run e2e:full

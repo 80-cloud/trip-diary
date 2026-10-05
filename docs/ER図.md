@@ -9,6 +9,7 @@
 | 0.3 | 2026-05-17 | hideharu-AI | 機能一覧 v0.3 (機能候補第 2 弾) に同期。§5-5 に favorites / memos / packing_items / tickets / reviews / search_histories / trip_collaborators + 既存テーブル拡張カラム (trips.status, categories.color, users.preferences, expenses.receipt, day_entries.started_at/ended_at, trips.lock_version) を整理。§5-6 統計キャッシュ戦略 / §6-2 第 2 弾削除戦略を追加 |
 | 0.4 | 2026-09-27 | hideharu-AI (Claude Code 補助) | §2-1 users に guest 列と (guest, created_at) の複合インデックスを追加 (F-GUEST-01 / Issue #109) |
 | 0.5 | 2026-09-28 | hideharu-AI (Claude Code 補助) | §6-1 のユーザー削除の方針の注記を直した (#128) |
+| 0.6 | 2026-10-05 | hideharu-AI (Claude Code 補助) | §6-1 と §6-3 のカウンタの整合性を今の実装に合わせた。月次の再計算は行わず、計画の件数とフォロー数は列を作らずに数える (#174) |
 
 ---
 
@@ -237,7 +238,7 @@
 ### 6-1. Phase 1 (現状)
 - `Trip` 削除時は `day_entries` / `comments` / `likes` / `active_storage_attachments` を CASCADE で削除
 - `User` 削除時は その人の `trips` も CASCADE 削除 (※ 退会機能を作る場合は、軟削除への変更を検討する)
-- カウンタ (likes_count / comments_count) は Rails `counter_cache` で自動更新。整合性は Phase3 で月次バッチで再計算
+- カウンタ (likes_count / comments_count) は Rails `counter_cache` で自動更新。月次の再計算は今は行わない (ずれを見つけたら `reset_counters` で直す。要件定義書 §9 の R-03)。コメントの件数は、見る人に合わせてゲストのコメントを引いて返す
 
 ### 6-2. Phase 2-4 追加テーブルの削除戦略 (§5 / §5-5 と連動)
 
@@ -256,8 +257,9 @@
 | `Expense` 削除時 | `expenses.receipt` (ActiveStorage) を purge | 添付ファイルの孤児化を防ぐ |
 
 ### 6-3. 追加 counter_cache の整合性
-- `trips.planned_spots_count` / `trips.visited_spots_count` (計画進捗バー) → counter_cache + Phase 3 で月次再計算
-- `users.followers_count` / `users.following_count` → 同上
+- 計画の件数と完了数 (計画進捗バー) は、カウンタの列を作らず、旅行の詳細を返すたびに `planned_spots` を数える (件数が少ないため)
+- フォロー数・フォロワー数の列 (`users.followers_count` / `users.following_count`) も作っていない
+- タグの `tags.trips_count` は `counter_cache` で更新するが、非公開と下書きの旅行も数えるため画面には返さず、件数はその都度数える
 - `notifications` の未読数はキャッシュせず、`WHERE read_at IS NULL` のクエリで都度算出 (件数小)
 
 ---

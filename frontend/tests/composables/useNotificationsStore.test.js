@@ -24,6 +24,22 @@ describe("useNotificationsStore", () => {
     expect(store.unreadCount).toBe(0)
   })
 
+  // 件数を取る前の「0 件未読」を読み上げないため、取れたかどうかを持つ (Issue #187)
+  it("fetchUnreadCount() の前は件数を取れていない扱い、成功したら取れた扱いにする", async () => {
+    globalThis.__apiMocks.get.mockResolvedValue({ unread_count: 2 })
+    const store = useNotificationsStore()
+    expect(store.countLoaded).toBe(false)
+    await store.fetchUnreadCount()
+    expect(store.countLoaded).toBe(true)
+  })
+
+  it("fetchUnreadCount() が失敗したら、件数を取れていない扱いのまま", async () => {
+    globalThis.__apiMocks.get.mockRejectedValue(new Error("401"))
+    const store = useNotificationsStore()
+    await store.fetchUnreadCount()
+    expect(store.countLoaded).toBe(false)
+  })
+
   it("fetchList() は notifications と unread_count を取得し fetched フラグを立てる", async () => {
     const fakeList = [
       { id: 1, verb: "liked",     read_at: null, actor: { id: 2, display_name: "Bob" } },

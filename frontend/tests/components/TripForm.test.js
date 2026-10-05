@@ -52,6 +52,18 @@ describe("components/TripForm.vue", () => {
     }
   })
 
+  // 「+ 出来事を追加」で出る欄も、重ならない id で label とつなぐ (Issue #189)
+  it("links each day entry field to its label", () => {
+    const labels = elements(root, "label").map((e) => directive(e, "bind", "for"))
+    const fields = [...elements(root, "input"), ...elements(root, "textarea")]
+    for (const key of ["title", "happened_on", "body"]) {
+      const field = fields.find((e) => directive(e, "model") === `dayEntries[d._idx].${key}`)
+      const id = directive(field, "bind", "id")
+      expect(id, key).toContain("d._idx")
+      expect(labels, key).toContain(id)
+    }
+  })
+
   it("links each select to its label", () => {
     const labels = elements(root, "label").map((e) => attr(e, "for"))
     expect(attr(category, "id")).toBe("trip-category")
@@ -62,7 +74,7 @@ describe("components/TripForm.vue", () => {
 
   it("points every label to a field", () => {
     for (const label of elements(root, "label")) {
-      expect(attr(label, "for")).toBeTruthy()
+      expect(attr(label, "for") || directive(label, "bind", "for")).toBeTruthy()
     }
   })
 

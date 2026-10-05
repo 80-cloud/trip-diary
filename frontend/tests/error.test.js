@@ -32,6 +32,11 @@ describe("app/error.vue", () => {
     expect(scriptSetup.content).toMatch(/=== 404/)
   })
 
+  // SPA のため HTTP は 200 を返すので、404 の画面は検索エンジンに登録させない (Issue #194)
+  it("asks search engines not to index the not found page", () => {
+    expect(scriptSetup.content).toContain(`notFound.value ? [{ name: "robots", content: "noindex" }] : []`)
+  })
+
   it("links back to the top on other errors", () => {
     const links = elements(root, "NuxtLink").filter((e) => attr(e, "to") === "/")
     expect(links.length).toBeGreaterThan(0)

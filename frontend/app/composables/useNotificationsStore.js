@@ -7,6 +7,7 @@ export const useNotificationsStore = defineStore("notifications", {
   state: () => ({
     notifications: [],
     unreadCount: 0,
+    countLoaded: false,    // 件数を API から取れたか (取る前に 0 件と読み上げないため)
     fetched: false,        // 一覧を一度でも取得したか
     loading: false
   }),
@@ -16,9 +17,11 @@ export const useNotificationsStore = defineStore("notifications", {
       try {
         const data = await api.get("/notifications/unread_count")
         this.unreadCount = data.unread_count
+        this.countLoaded = true
       } catch (_e) {
         // 未ログイン (401) など — silently 0 のまま
         this.unreadCount = 0
+        this.countLoaded = false
       }
       return this.unreadCount
     },
@@ -29,6 +32,7 @@ export const useNotificationsStore = defineStore("notifications", {
         const data = await api.get("/notifications")
         this.notifications = data.notifications
         this.unreadCount = data.unread_count
+        this.countLoaded = true
         this.fetched = true
       } catch (_e) {
         this.notifications = []

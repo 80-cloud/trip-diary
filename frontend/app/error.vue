@@ -8,7 +8,9 @@ const props = defineProps({
 const notFound = computed(() => (props.error.status ?? props.error.statusCode) === 404)
 
 useHead({
-  title: computed(() => (notFound.value ? "ページが見つかりません" : "エラーが発生しました") + " — trip-diary")
+  title: computed(() => (notFound.value ? "ページが見つかりません" : "エラーが発生しました") + " — trip-diary"),
+  // SPA のため HTTP は 200 を返すので、404 の画面は検索エンジンに登録させない (Issue #194)
+  meta: computed(() => (notFound.value ? [{ name: "robots", content: "noindex" }] : []))
 })
 </script>
 

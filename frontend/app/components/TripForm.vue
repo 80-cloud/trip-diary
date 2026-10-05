@@ -266,14 +266,17 @@ function submit(statusOverride) {
           <span class="text-xs text-slate-500 dark:text-slate-400">Day {{ d._idx + 1 }}</span>
           <button type="button" class="text-xs text-rose-500 hover:underline" @click="removeDay(d._idx)">削除</button>
         </div>
+        <label :for="`day-${d._idx}-title`" class="sr-only">Day {{ d._idx + 1 }} のタイトル</label>
         <input
-v-model="dayEntries[d._idx].title" placeholder="タイトル *" required maxlength="80"
+:id="`day-${d._idx}-title`" v-model="dayEntries[d._idx].title" placeholder="タイトル *" required maxlength="80"
           class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-2 py-1 text-sm" >
         <div class="flex gap-2">
-          <input v-model="dayEntries[d._idx].happened_on" type="date" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" >
+          <label :for="`day-${d._idx}-date`" class="sr-only">Day {{ d._idx + 1 }} の日付</label>
+          <input :id="`day-${d._idx}-date`" v-model="dayEntries[d._idx].happened_on" type="date" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" >
         </div>
+        <label :for="`day-${d._idx}-body`" class="sr-only">Day {{ d._idx + 1 }} のメモ</label>
         <textarea
-v-model="dayEntries[d._idx].body" rows="2" placeholder="メモ (任意)"
+:id="`day-${d._idx}-body`" v-model="dayEntries[d._idx].body" rows="2" placeholder="メモ (任意)"
           class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-2 py-1 text-sm"/>
       </div>
       <button type="button" class="mt-3 text-sm text-brand-600 dark:text-brand-50 hover:underline" @click="addDay">+ 出来事を追加</button>

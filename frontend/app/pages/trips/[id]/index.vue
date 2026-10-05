@@ -241,6 +241,7 @@ async function addTicket() {
     trip.value.tickets.push(created)
     newTicket.value = { kind: "train", reservation_no: "", url: "", notes: "" }
     newTicketFile.value = null
+    if (ticketInputEl.value) ticketInputEl.value.value = ""
   } catch (e) {
     ticketError.value = e.data?.errors?.join(", ") || "チケット追加に失敗しました"
   }

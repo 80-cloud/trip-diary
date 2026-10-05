@@ -207,7 +207,7 @@ function submit(statusOverride) {
       <textarea id="trip-body" v-model="body" rows="4" maxlength="5000" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2"/>
     </div>
     <div>
-      <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+      <label for="trip-images-input" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
         画像 (任意・最大 {{ MAX_IMAGES }} 枚・各 {{ MAX_SIZE_MB }}MB 以下)
       </label>
       <!-- ネイティブ file input は Safari (iPad) で `hidden` でも稀にレイアウト残りや

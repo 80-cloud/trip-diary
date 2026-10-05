@@ -6,6 +6,9 @@ import { useNotificationsStore } from "~/composables/useNotificationsStore.js"
 const store = useNotificationsStore()
 const router = useRouter()
 
+// 件数を取る前は「通知」とだけ名乗り、「0 件未読」と読み上げない (Issue #187)
+const bellLabel = computed(() => (store.countLoaded ? `通知 (${store.unreadCount} 件未読)` : "通知"))
+
 // マウント時は count のみ取得 (転送量最小)
 onMounted(() => {
   store.fetchUnreadCount()
@@ -69,7 +72,7 @@ function formatTime(iso) {
   <Menu as="div" class="relative">
     <MenuButton
       type="button"
-      :aria-label="`通知 (${store.unreadCount} 件未読)`"
+      :aria-label="bellLabel"
       class="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
       @click="handleOpen"
     >

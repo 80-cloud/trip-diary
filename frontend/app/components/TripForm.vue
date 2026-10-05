@@ -227,7 +227,7 @@ function submit(statusOverride) {
         </span>
       </div>
       <p v-if="localError" class="text-xs text-rose-600 mt-1">{{ localError }}</p>
-      <p v-if="props.initial?.image_urls?.length" class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+      <p v-if="props.initial?.image_urls?.length" class="text-xs text-slate-500 dark:text-slate-400 mt-1">
         ※ 既存の画像は新しく選択した画像で置き換わります
       </p>
     </div>
@@ -290,7 +290,7 @@ v-model="dayEntries[d._idx].body" rows="2" placeholder="メモ (任意)"
         @click="submit('draft')"
       >下書きとして保存</button>
       <button
-        type="button" class="bg-brand-500 text-white px-6 py-2 rounded font-medium hover:bg-brand-600"
+        type="button" class="bg-brand-600 text-white px-6 py-2 rounded font-medium hover:bg-brand-700"
         @click="submit('published')"
       >公開して保存</button>
     </div>

@@ -134,7 +134,7 @@ async function saveProfile() {
             >プロフィールを編集</button>
           </div>
           <p v-if="profileBio" class="text-sm text-slate-600 dark:text-slate-300 mt-2 whitespace-pre-wrap">{{ profileBio }}</p>
-          <p v-else-if="isSelf && !editing" class="text-xs text-slate-400 dark:text-slate-500 mt-2">自己紹介はまだ未設定です</p>
+          <p v-else-if="isSelf && !editing" class="text-xs text-slate-500 dark:text-slate-400 mt-2">自己紹介はまだ未設定です</p>
         </div>
       </div>
 
@@ -174,7 +174,7 @@ async function saveProfile() {
           <button type="button" class="text-sm text-slate-500 dark:text-slate-400 hover:underline" @click="editing = false">キャンセル</button>
           <button
 type="submit" :disabled="editSaving"
-            class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600 disabled:opacity-50">
+            class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700 disabled:opacity-50">
             {{ editSaving ? "保存中…" : "保存" }}
           </button>
         </div>
@@ -212,7 +212,7 @@ type="submit" :disabled="editSaving"
     <!-- 装飾見出し: 投稿した旅行記録 (投稿が 1 件以上ある時のみ) -->
     <div v-if="trips.length > 0" class="flex items-center gap-3 mb-4 mt-2">
       <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
-      <span class="text-xs tracking-[0.3em] text-slate-400 dark:text-slate-500 inline-flex items-center gap-1.5"><span>✈️</span><span>TRAVEL LOGS</span></span>
+      <span class="text-xs tracking-[0.3em] text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5"><span>✈️</span><span>TRAVEL LOGS</span></span>
       <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
     </div>
 

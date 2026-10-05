@@ -49,7 +49,7 @@ async function submit() {
       <p v-if="error" class="text-sm text-rose-600">{{ error }}</p>
       <button
         type="submit" :disabled="submitting"
-        class="w-full bg-brand-500 text-white py-2 rounded font-medium hover:bg-brand-600 disabled:opacity-50"
+        class="w-full bg-brand-600 text-white py-2 rounded font-medium hover:bg-brand-700 disabled:opacity-50"
       >
         {{ submitting ? "ログイン中…" : "ログイン" }}
       </button>

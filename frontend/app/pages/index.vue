@@ -256,7 +256,7 @@ function formatRange(s, e) {
         type="button"
         :class="[
           'text-xs px-3 py-1.5 rounded-full border',
-          category === '' ? 'bg-brand-500 text-white border-brand-500' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
+          category === '' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
         ]"
         @click="category = ''"
       >すべて</button>
@@ -266,7 +266,7 @@ function formatRange(s, e) {
         type="button"
         :class="[
           'text-xs px-3 py-1.5 rounded-full border inline-flex items-center gap-1.5',
-          category === opt.value ? 'bg-brand-500 text-white border-brand-500' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
+          category === opt.value ? 'bg-brand-600 text-white border-brand-600' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
         ]"
         @click="selectCategory(opt.value)"
       ><span>{{ opt.icon }}</span><span>{{ opt.label }}</span></button>
@@ -275,7 +275,7 @@ function formatRange(s, e) {
     <!-- 装飾見出し: 人気タグ -->
     <div v-if="popularTags && popularTags.length" class="flex items-center gap-3 mb-3 mt-2">
       <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
-      <span class="text-xs tracking-[0.3em] text-slate-400 dark:text-slate-500 inline-flex items-center gap-1.5"><span>🏷️</span><span>POPULAR TAGS</span></span>
+      <span class="text-xs tracking-[0.3em] text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5"><span>🏷️</span><span>POPULAR TAGS</span></span>
       <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
     </div>
     <section v-if="popularTags && popularTags.length" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 mb-6">
@@ -285,7 +285,7 @@ function formatRange(s, e) {
           :key="t.id"
           :to="`/tags/${encodeURIComponent(t.name)}`"
           class="text-sm text-brand-600 dark:text-brand-50 hover:underline"
-        >#{{ t.name }} <span class="text-slate-400 dark:text-slate-500 text-xs">({{ t.trips_count }})</span></NuxtLink>
+        >#{{ t.name }} <span class="text-slate-500 dark:text-slate-400 text-xs">({{ t.trips_count }})</span></NuxtLink>
       </div>
     </section>
 
@@ -293,7 +293,7 @@ function formatRange(s, e) {
     <template v-if="sectionedView && popularBatch.length">
       <div class="flex items-center gap-3 mb-4 mt-2">
         <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
-        <span class="text-xs tracking-[0.3em] text-slate-400 dark:text-slate-500 inline-flex items-center gap-1.5"><span>⚡</span><span>POPULAR TRIPS</span></span>
+        <span class="text-xs tracking-[0.3em] text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5"><span>⚡</span><span>POPULAR TRIPS</span></span>
         <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -331,7 +331,7 @@ function formatRange(s, e) {
     <!-- 装飾見出し: 🕘 最近の旅 (or 検索/絞り込み時は TRAVEL LOGS) -->
     <div class="flex items-center gap-3 mb-4 mt-2">
       <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"/>
-      <span class="text-xs tracking-[0.3em] text-slate-400 dark:text-slate-500 inline-flex items-center gap-1.5">
+      <span class="text-xs tracking-[0.3em] text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5">
         <span>{{ sectionedView ? '🕘' : '📖' }}</span>
         <span>{{ sectionedView ? 'RECENT TRIPS' : 'TRAVEL LOGS' }}</span>
       </span>
@@ -342,7 +342,7 @@ function formatRange(s, e) {
     <div v-else-if="error" class="text-center py-12 text-rose-600">エラー: {{ error.message }}</div>
     <div v-else-if="trips.length === 0" class="bg-white dark:bg-slate-800 rounded-lg p-8 text-center border border-slate-200 dark:border-slate-700">
       <p class="text-slate-500 dark:text-slate-400 mb-4">該当する旅行記録がありません。</p>
-      <NuxtLink to="/trips/new" class="inline-block bg-brand-500 text-white px-4 py-2 rounded">+ 新しい旅行記録</NuxtLink>
+      <NuxtLink to="/trips/new" class="inline-block bg-brand-600 text-white px-4 py-2 rounded">+ 新しい旅行記録</NuxtLink>
     </div>
 
     <template v-else>
@@ -378,10 +378,10 @@ function formatRange(s, e) {
       </div>
 
       <!-- 無限スクロール sentinel: next_cursor がある間だけ DOM に出す -->
-      <div v-if="nextCursor" ref="sentinel" class="h-10 mt-4 flex items-center justify-center text-xs text-slate-400 dark:text-slate-500">
+      <div v-if="nextCursor" ref="sentinel" class="h-10 mt-4 flex items-center justify-center text-xs text-slate-500 dark:text-slate-400">
         {{ loadingMore ? "読み込み中…" : "次を読み込み中…" }}
       </div>
-      <div v-else class="text-center mt-6 text-xs text-slate-400 dark:text-slate-500">— ここまで —</div>
+      <div v-else class="text-center mt-6 text-xs text-slate-500 dark:text-slate-400">— ここまで —</div>
     </template>
   </div>
 </template>

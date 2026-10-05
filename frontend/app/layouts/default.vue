@@ -62,7 +62,7 @@ function fullImageUrl(path) {
             <NuxtLink
               :to="newTripTo"
               aria-label="新しい旅行記録"
-              class="bg-brand-500 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-brand-600 shrink-0 whitespace-nowrap"
+              class="bg-brand-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-brand-700 shrink-0 whitespace-nowrap"
             >
               <span class="sm:hidden">+</span>
               <span class="hidden sm:inline">+ 新しい旅行記録</span>
@@ -100,10 +100,10 @@ function fullImageUrl(path) {
           <template v-else-if="auth.fetched">
             <GuestLoginButton class="shrink-0" />
             <NuxtLink to="/login" class="text-sm text-slate-700 dark:text-slate-200 hover:underline shrink-0 whitespace-nowrap">ログイン</NuxtLink>
-            <NuxtLink v-if="signupEnabled" to="/signup" class="hidden sm:inline-block text-sm bg-brand-500 text-white px-3 py-1.5 rounded shrink-0 whitespace-nowrap">サインアップ</NuxtLink>
+            <NuxtLink v-if="signupEnabled" to="/signup" class="hidden sm:inline-block text-sm bg-brand-600 text-white px-3 py-1.5 rounded shrink-0 whitespace-nowrap">サインアップ</NuxtLink>
           </template>
           <template v-else>
-            <span class="text-xs text-slate-400 dark:text-slate-500 shrink-0 whitespace-nowrap">読み込み中…</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 shrink-0 whitespace-nowrap">読み込み中…</span>
           </template>
         </nav>
       </div>
@@ -133,7 +133,7 @@ function fullImageUrl(path) {
         :key="cat.label"
         :to="{ path: '/', query: cat.value ? { category: cat.value } : {} }"
         :title="cat.label"
-        class="group w-14 h-14 flex flex-col items-center justify-center rounded-xl hover:bg-brand-500 hover:text-white transition"
+        class="group w-14 h-14 flex flex-col items-center justify-center rounded-xl hover:bg-brand-600 hover:text-white transition"
       >
         <span class="text-xl">{{ cat.icon }}</span>
         <span class="text-[9px] mt-0.5 text-slate-600 dark:text-slate-300 group-hover:text-white tracking-tighter">{{ cat.label }}</span>

@@ -497,7 +497,7 @@ async function toggleFollow() {
                   'text-[10px] px-2 py-0.5 rounded border',
                   trip.user.followed_by_me
                     ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600'
-                    : 'bg-brand-500 text-white border-brand-500'
+                    : 'bg-brand-600 text-white border-brand-600'
                 ]"
                 @click="toggleFollow"
               >{{ trip.user.followed_by_me ? "フォロー中" : "+ フォロー" }}</button>
@@ -568,20 +568,20 @@ async function toggleFollow() {
       <ul class="space-y-2 mb-3">
         <li v-for="spot in trip.planned_spots" :key="spot.id" class="flex items-center gap-2">
           <input type="checkbox" :checked="spot.done" class="rounded" @change="toggleSpotDone(spot)" >
-          <span :class="['flex-1 text-sm', spot.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200']">{{ spot.title }}</span>
+          <span :class="['flex-1 text-sm', spot.done ? 'line-through text-slate-500 dark:text-slate-400' : 'text-slate-700 dark:text-slate-200']">{{ spot.title }}</span>
           <span v-if="spot.day_entry_id" class="text-[10px] px-1.5 py-0.5 rounded bg-brand-100 dark:bg-brand-700 text-brand-700 dark:text-brand-50">記録に追加済</span>
           <button type="button" class="text-xs text-rose-500 hover:underline" @click="deleteSpot(spot)">削除</button>
         </li>
-        <li v-if="trip.planned_spots.length === 0" class="text-xs text-slate-400 dark:text-slate-500">まだ計画はありません</li>
+        <li v-if="trip.planned_spots.length === 0" class="text-xs text-slate-500 dark:text-slate-400">まだ計画はありません</li>
       </ul>
       <form class="flex gap-2" @submit.prevent="addSpot">
         <input
 v-model="newSpotTitle" maxlength="80" placeholder="新しい計画 (例: 金閣寺)"
           class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm" >
-        <button type="submit" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600">追加</button>
+        <button type="submit" class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700">追加</button>
       </form>
       <p v-if="planError" class="text-xs text-rose-600 mt-2">{{ planError }}</p>
-      <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">✓ にすると自動で「日別の出来事」に追加されます</p>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">✓ にすると自動で「日別の出来事」に追加されます</p>
     </section>
 
     <!-- F-PACK-01: 持ち物チェックリスト (本人のみ表示・編集) -->
@@ -590,16 +590,16 @@ v-model="newSpotTitle" maxlength="80" placeholder="新しい計画 (例: 金閣�
       <ul class="space-y-2 mb-3">
         <li v-for="item in trip.packing_items" :key="item.id" class="flex items-center gap-2">
           <input type="checkbox" :checked="item.packed" class="rounded" @change="toggleItemPacked(item)" >
-          <span :class="['flex-1 text-sm', item.packed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200']">{{ item.body }}</span>
+          <span :class="['flex-1 text-sm', item.packed ? 'line-through text-slate-500 dark:text-slate-400' : 'text-slate-700 dark:text-slate-200']">{{ item.body }}</span>
           <button type="button" class="text-xs text-rose-500 hover:underline" @click="deleteItem(item)">削除</button>
         </li>
-        <li v-if="trip.packing_items.length === 0" class="text-xs text-slate-400 dark:text-slate-500">まだ持ち物はありません</li>
+        <li v-if="trip.packing_items.length === 0" class="text-xs text-slate-500 dark:text-slate-400">まだ持ち物はありません</li>
       </ul>
       <form class="flex gap-2" @submit.prevent="addItem">
         <input
 v-model="newItemBody" maxlength="80" placeholder="新しい持ち物 (例: 歯ブラシ)"
           class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm" >
-        <button type="submit" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600">追加</button>
+        <button type="submit" class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700">追加</button>
       </form>
       <p v-if="packError" class="text-xs text-rose-600 mt-2">{{ packError }}</p>
     </section>
@@ -618,7 +618,7 @@ v-model="newItemBody" maxlength="80" placeholder="新しい持ち物 (例: 歯�
           </div>
           <button type="button" class="text-xs text-rose-500 hover:underline shrink-0" @click="deleteTicket(t)">削除</button>
         </li>
-        <li v-if="trip.tickets.length === 0" class="text-xs text-slate-400 dark:text-slate-500">まだチケットはありません</li>
+        <li v-if="trip.tickets.length === 0" class="text-xs text-slate-500 dark:text-slate-400">まだチケットはありません</li>
       </ul>
       <form class="space-y-2" @submit.prevent="addTicket">
         <div class="flex gap-2">
@@ -645,7 +645,7 @@ id="ticket-file-input" type="file" accept="image/*,application/pdf" class="absol
           >ファイルを選択 (画像 / PDF)</label>
           <span v-if="newTicketFile" class="text-xs text-slate-600 dark:text-slate-300 truncate">{{ newTicketFile.name }}</span>
         </div>
-        <button type="submit" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600">追加</button>
+        <button type="submit" class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700">追加</button>
         <p v-if="ticketError" class="text-xs text-rose-600">{{ ticketError }}</p>
       </form>
     </section>
@@ -661,7 +661,7 @@ id="ticket-file-input" type="file" accept="image/*,application/pdf" class="absol
         <p class="text-amber-500 text-lg">{{ "★".repeat(trip.review.rating) }}<span class="text-slate-300 dark:text-slate-600">{{ "★".repeat(5 - trip.review.rating) }}</span></p>
         <p v-if="trip.review.body" class="text-slate-700 dark:text-slate-200 mt-2 whitespace-pre-wrap">{{ trip.review.body }}</p>
       </div>
-      <p v-else-if="!trip.review && !isOwner()" class="text-xs text-slate-400 dark:text-slate-500">まだレビューはありません</p>
+      <p v-else-if="!trip.review && !isOwner()" class="text-xs text-slate-500 dark:text-slate-400">まだレビューはありません</p>
 
       <!-- 編集 (本人のみ) -->
       <form v-if="isOwner()" class="space-y-2" @submit.prevent="saveReview">
@@ -673,7 +673,7 @@ id="ticket-file-input" type="file" accept="image/*,application/pdf" class="absol
 v-model="reviewDraft.body" rows="3" maxlength="2000" placeholder="振り返り (2000 字以内 / 任意)"
           class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm"/>
         <div class="flex items-center gap-2">
-          <button type="submit" :disabled="reviewSaving" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600 disabled:opacity-50">{{ reviewSaving ? "保存中…" : (trip.review ? "更新" : "保存") }}</button>
+          <button type="submit" :disabled="reviewSaving" class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700 disabled:opacity-50">{{ reviewSaving ? "保存中…" : (trip.review ? "更新" : "保存") }}</button>
           <button v-if="trip.review" type="button" class="text-xs text-rose-500 hover:underline" @click="deleteReview">レビューを削除</button>
         </div>
         <p v-if="reviewError" class="text-xs text-rose-600">{{ reviewError }}</p>
@@ -705,7 +705,7 @@ v-model="reviewDraft.body" rows="3" maxlength="2000" placeholder="振り返り (
           </label>
           <button
 type="submit" :disabled="budgetSaving"
-            class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600 disabled:opacity-50">
+            class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700 disabled:opacity-50">
             {{ budgetSaving ? "保存中…" : (trip.budget ? "予算を更新" : "予算を保存") }}
           </button>
           <button v-if="trip.budget" type="button" class="text-xs text-rose-500 hover:underline" @click="deleteBudget">予算を削除</button>
@@ -758,7 +758,7 @@ v-model="newReceipt.description" type="text" maxlength="200" placeholder="メモ
         </div>
         <button
 type="submit"
-          class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-600">レシートを追加</button>
+          class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700">レシートを追加</button>
         <p v-if="receiptError" class="text-xs text-rose-600">{{ receiptError }}</p>
       </form>
 
@@ -776,7 +776,7 @@ v-for="r in trip.receipts" :key="r.id"
           </div>
           <button type="button" class="text-xs text-rose-500 hover:underline shrink-0" @click="deleteReceipt(r)">削除</button>
         </li>
-        <li v-if="!trip.receipts.length" class="text-xs text-slate-400 dark:text-slate-500">まだレシートはありません</li>
+        <li v-if="!trip.receipts.length" class="text-xs text-slate-500 dark:text-slate-400">まだレシートはありません</li>
       </ul>
     </section>
 
@@ -791,7 +791,7 @@ v-for="r in trip.receipts" :key="r.id"
       <div class="mt-2 flex items-center justify-between">
         <span v-if="memoMsg" class="text-xs text-slate-500 dark:text-slate-400">{{ memoMsg }}</span>
         <button
-          :disabled="memoSaving" class="bg-brand-500 text-white px-4 py-1.5 rounded text-sm disabled:opacity-50 hover:bg-brand-600 ml-auto"
+          :disabled="memoSaving" class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm disabled:opacity-50 hover:bg-brand-700 ml-auto"
           @click="saveMemo"
         >{{ memoSaving ? "保存中…" : (memoDraft ? "メモを保存" : "メモを削除") }}</button>
       </div>
@@ -818,7 +818,7 @@ v-for="r in trip.receipts" :key="r.id"
           </div>
           <button v-if="auth.user && c.user.id === auth.user.id" type="button" class="text-xs text-rose-500 hover:underline shrink-0" @click="deleteComment(c.id)">削除</button>
         </li>
-        <li v-if="!trip.comments.length" class="text-sm text-slate-400">まだコメントはありません。</li>
+        <li v-if="!trip.comments.length" class="text-sm text-slate-500 dark:text-slate-400">まだコメントはありません。</li>
       </ul>
 
       <form v-if="auth.user" class="flex gap-2" @submit.prevent="submitComment">
@@ -827,7 +827,7 @@ v-for="r in trip.receipts" :key="r.id"
           placeholder="コメントを書く (140 文字以内)"
           class="flex-1 border border-slate-300 rounded px-3 py-2 text-sm"
         >
-        <button type="submit" :disabled="submitting" class="bg-brand-500 text-white px-4 py-2 rounded text-sm disabled:opacity-50">
+        <button type="submit" :disabled="submitting" class="bg-brand-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50">
           投稿
         </button>
       </form>

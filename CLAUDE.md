@@ -54,7 +54,7 @@
 | バックエンド | Ruby 3.4.9 + Ruby on Rails 8.1 (API モード) |
 | フロントエンド | Nuxt 4 + Vue 3 + Tailwind CSS (**TypeScript 不採用 = 純 JS**) |
 | データベース | MySQL 8.x (Docker コンテナ) |
-| 公開環境 | 2026-05 に AWS (ECS Fargate + RDS) で公開し、同月に撤収した。無料構成へ移す準備中 ([docs/公開デモ化計画書.md](docs/公開デモ化計画書.md)) |
+| 公開環境 | https://trip-diary-wpaf.onrender.com (2026-10〜。Render・TiDB Cloud Starter・Cloudinary の無料構成で公開中。構成は [docs/インフラ構成.md](docs/インフラ構成.md) §0、運用は [docs/ログ・監視・障害対応設計書.md](docs/ログ・監視・障害対応設計書.md) §7)。2026-05 に AWS (ECS Fargate + RDS) で公開し、同月に撤収した |
 | 作業ディレクトリ | /Users/macmini/Desktop/Cursor/TripDiary |
 | 学習姿勢 | 「習う → 慣れる → マスター」 ([docs/学習ロードマップ.md](docs/学習ロードマップ.md)) |
 

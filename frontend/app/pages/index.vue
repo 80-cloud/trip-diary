@@ -160,6 +160,7 @@ function formatRange(s, e) {
 
 <template>
   <div>
+    <h1 class="sr-only">みんなの旅行記録</h1>
     <!-- 案 A+: Bento ヒーロー (Top 3) - 1 大 + 2 小 -->
     <section v-if="heroTrip" class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3">
       <!-- メインヒーロー (左 2/3) -->
@@ -234,12 +235,15 @@ function formatRange(s, e) {
     <!-- 検索 + ソート -->
     <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 mb-4 flex flex-col md:flex-row md:items-center gap-3">
       <input
+        id="trip-search"
         v-model.lazy="q"
+        name="q"
         type="search" maxlength="80"
+        aria-label="旅行を検索"
         placeholder="タイトル / 場所 / タグで検索"
         class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm"
       >
-      <select v-model="sort" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm">
+      <select v-model="sort" aria-label="並び替え" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm">
         <option value="recent">新着順</option>
         <option value="popular">人気順 (いいね数)</option>
         <option value="title">タイトル順</option>

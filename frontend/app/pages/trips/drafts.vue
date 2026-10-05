@@ -29,7 +29,7 @@ function fullImageUrl(path) {
     <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-4 mb-4">下書き一覧</h1>
 
     <div v-if="pending" class="text-center py-12 text-slate-500 dark:text-slate-400">読み込み中…</div>
-    <div v-else-if="error" class="text-center py-12 text-rose-600">エラー: {{ error.message }}</div>
+    <div v-else-if="error" class="text-center py-12 text-rose-600 dark:text-rose-400">エラー: {{ error.message }}</div>
     <div v-else-if="drafts.length === 0" class="bg-white dark:bg-slate-800 rounded-lg p-8 text-center border border-slate-200 dark:border-slate-700">
       <p class="text-slate-500 dark:text-slate-400 mb-4">下書きはまだありません。</p>
       <NuxtLink to="/trips/new" class="inline-block bg-brand-600 text-white px-4 py-2 rounded">+ 新しい旅行記録</NuxtLink>

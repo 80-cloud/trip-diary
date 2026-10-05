@@ -31,7 +31,7 @@ function fullImageUrl(path) {
     <div v-else-if="error && error.statusCode === 404" class="bg-white dark:bg-slate-800 rounded-lg p-8 text-center border border-slate-200 dark:border-slate-700 mt-4">
       <p class="text-slate-500 dark:text-slate-400">「#{{ name }}」というタグは存在しません。</p>
     </div>
-    <div v-else-if="error" class="text-center py-12 text-rose-600">エラー: {{ error.message }}</div>
+    <div v-else-if="error" class="text-center py-12 text-rose-600 dark:text-rose-400">エラー: {{ error.message }}</div>
 
     <template v-else-if="data">
       <header class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6 my-4 flex items-center justify-between gap-4">

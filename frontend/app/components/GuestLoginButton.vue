@@ -19,8 +19,8 @@ const buttonClass = computed(() => [
   props.block ? "w-full py-2" : "text-sm px-3 py-1.5 whitespace-nowrap"
 ])
 const errorClass = computed(() => (props.block
-  ? "text-sm text-rose-600 mt-2"
-  : "absolute right-0 top-full mt-1 w-64 text-xs text-rose-600 bg-white dark:bg-slate-800 border border-rose-200 rounded px-2 py-1 shadow"))
+  ? "text-sm text-rose-600 dark:text-rose-400 mt-2"
+  : "absolute right-0 top-full mt-1 w-64 text-xs text-rose-600 dark:text-rose-400 bg-white dark:bg-slate-800 border border-rose-200 rounded px-2 py-1 shadow"))
 
 async function handleGuestLogin() {
   if (submitting.value) return

@@ -226,7 +226,7 @@ function submit(statusOverride) {
           {{ selectedFiles.map((f) => f.name).join(", ") }}
         </span>
       </div>
-      <p v-if="localError" class="text-xs text-rose-600 mt-1">{{ localError }}</p>
+      <p v-if="localError" class="text-xs text-rose-600 dark:text-rose-400 mt-1">{{ localError }}</p>
       <p v-if="props.initial?.image_urls?.length" class="text-xs text-slate-500 dark:text-slate-400 mt-1">
         ※ 既存の画像は新しく選択した画像で置き換わります
       </p>
@@ -264,7 +264,7 @@ function submit(statusOverride) {
       <div v-for="d in visibleDayEntries" :key="d.id || `new-${d._idx}`" class="bg-slate-50 dark:bg-slate-700/40 p-3 rounded mt-2 space-y-2">
         <div class="flex items-center justify-between">
           <span class="text-xs text-slate-500 dark:text-slate-400">Day {{ d._idx + 1 }}</span>
-          <button type="button" class="text-xs text-rose-500 hover:underline" @click="removeDay(d._idx)">削除</button>
+          <button type="button" class="text-xs text-rose-600 dark:text-rose-400 hover:underline" @click="removeDay(d._idx)">削除</button>
         </div>
         <label :for="`day-${d._idx}-title`" class="sr-only">Day {{ d._idx + 1 }} のタイトル</label>
         <input
@@ -282,7 +282,7 @@ function submit(statusOverride) {
       <button type="button" class="mt-3 text-sm text-brand-600 dark:text-brand-50 hover:underline" @click="addDay">+ 出来事を追加</button>
     </fieldset>
 
-    <ul v-if="errors.length" class="text-sm text-rose-600 list-disc list-inside">
+    <ul v-if="errors.length" class="text-sm text-rose-600 dark:text-rose-400 list-disc list-inside">
       <li v-for="err in errors" :key="err">{{ err }}</li>
     </ul>
 

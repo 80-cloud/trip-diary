@@ -569,7 +569,7 @@ async function toggleFollow() {
       <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-3">計画スポット <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(自分にだけ見えます)</span></h2>
       <ul class="space-y-2 mb-3">
         <li v-for="spot in trip.planned_spots" :key="spot.id" class="flex items-center gap-2">
-          <input type="checkbox" :checked="spot.done" class="rounded" @change="toggleSpotDone(spot)" >
+          <input :id="`plan-done-${spot.id}`" type="checkbox" :checked="spot.done" :aria-label="`${spot.title} を済みにする`" class="rounded" @change="toggleSpotDone(spot)" >
           <span :class="['flex-1 text-sm', spot.done ? 'line-through text-slate-500 dark:text-slate-400' : 'text-slate-700 dark:text-slate-200']">{{ spot.title }}</span>
           <span v-if="spot.day_entry_id" class="text-[10px] px-1.5 py-0.5 rounded bg-brand-100 dark:bg-brand-700 text-brand-700 dark:text-brand-50">記録に追加済</span>
           <button type="button" class="text-xs text-rose-500 hover:underline" @click="deleteSpot(spot)">削除</button>
@@ -577,8 +577,9 @@ async function toggleFollow() {
         <li v-if="trip.planned_spots.length === 0" class="text-xs text-slate-500 dark:text-slate-400">まだ計画はありません</li>
       </ul>
       <form class="flex gap-2" @submit.prevent="addSpot">
+        <label for="plan-new-title" class="sr-only">新しい計画</label>
         <input
-v-model="newSpotTitle" maxlength="80" placeholder="新しい計画 (例: 金閣寺)"
+id="plan-new-title" v-model="newSpotTitle" maxlength="80" placeholder="新しい計画 (例: 金閣寺)"
           class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm" >
         <button type="submit" class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700">追加</button>
       </form>
@@ -591,15 +592,16 @@ v-model="newSpotTitle" maxlength="80" placeholder="新しい計画 (例: 金閣�
       <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-3">持ち物チェックリスト <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(自分にだけ見えます)</span></h2>
       <ul class="space-y-2 mb-3">
         <li v-for="item in trip.packing_items" :key="item.id" class="flex items-center gap-2">
-          <input type="checkbox" :checked="item.packed" class="rounded" @change="toggleItemPacked(item)" >
+          <input :id="`packing-done-${item.id}`" type="checkbox" :checked="item.packed" :aria-label="`${item.body} を詰めた`" class="rounded" @change="toggleItemPacked(item)" >
           <span :class="['flex-1 text-sm', item.packed ? 'line-through text-slate-500 dark:text-slate-400' : 'text-slate-700 dark:text-slate-200']">{{ item.body }}</span>
           <button type="button" class="text-xs text-rose-500 hover:underline" @click="deleteItem(item)">削除</button>
         </li>
         <li v-if="trip.packing_items.length === 0" class="text-xs text-slate-500 dark:text-slate-400">まだ持ち物はありません</li>
       </ul>
       <form class="flex gap-2" @submit.prevent="addItem">
+        <label for="packing-new-body" class="sr-only">新しい持ち物</label>
         <input
-v-model="newItemBody" maxlength="80" placeholder="新しい持ち物 (例: 歯ブラシ)"
+id="packing-new-body" v-model="newItemBody" maxlength="80" placeholder="新しい持ち物 (例: 歯ブラシ)"
           class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-1.5 text-sm" >
         <button type="submit" class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700">追加</button>
       </form>
@@ -624,18 +626,22 @@ v-model="newItemBody" maxlength="80" placeholder="新しい持ち物 (例: 歯�
       </ul>
       <form class="space-y-2" @submit.prevent="addTicket">
         <div class="flex gap-2">
-          <select v-model="newTicket.kind" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm">
+          <label for="ticket-kind" class="sr-only">チケットの種類</label>
+          <select id="ticket-kind" v-model="newTicket.kind" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm">
             <option v-for="(label, key) in KIND_LABELS" :key="key" :value="key">{{ label }}</option>
           </select>
+          <label for="ticket-reservation-no" class="sr-only">予約番号</label>
           <input
-v-model="newTicket.reservation_no" maxlength="80" placeholder="予約番号"
+id="ticket-reservation-no" v-model="newTicket.reservation_no" maxlength="80" placeholder="予約番号"
             class="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" >
         </div>
+        <label for="ticket-url" class="sr-only">チケットの URL</label>
         <input
-v-model="newTicket.url" maxlength="500" placeholder="URL (任意)"
+id="ticket-url" v-model="newTicket.url" maxlength="500" placeholder="URL (任意)"
           class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" >
+        <label for="ticket-notes" class="sr-only">チケットのメモ</label>
         <input
-v-model="newTicket.notes" maxlength="500" placeholder="メモ (任意)"
+id="ticket-notes" v-model="newTicket.notes" maxlength="500" placeholder="メモ (任意)"
           class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" >
         <input
 id="ticket-file-input" type="file" accept="image/*,application/pdf" class="absolute w-0 h-0 opacity-0 pointer-events-none -z-10"
@@ -667,12 +673,13 @@ id="ticket-file-input" type="file" accept="image/*,application/pdf" class="absol
 
       <!-- 編集 (本人のみ) -->
       <form v-if="isOwner()" class="space-y-2" @submit.prevent="saveReview">
-        <label class="block text-xs text-slate-600 dark:text-slate-400">5 段階評価</label>
-        <select v-model.number="reviewDraft.rating" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm">
+        <label for="review-rating" class="block text-xs text-slate-600 dark:text-slate-400">5 段階評価</label>
+        <select id="review-rating" v-model.number="reviewDraft.rating" class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm">
           <option v-for="r in [1, 2, 3, 4, 5]" :key="r" :value="r">{{ r }} {{ "★".repeat(r) }}</option>
         </select>
+        <label for="review-body" class="sr-only">振り返り</label>
         <textarea
-v-model="reviewDraft.body" rows="3" maxlength="2000" placeholder="振り返り (2000 字以内 / 任意)"
+id="review-body" v-model="reviewDraft.body" rows="3" maxlength="2000" placeholder="振り返り (2000 字以内 / 任意)"
           class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm"/>
         <div class="flex items-center gap-2">
           <button type="submit" :disabled="reviewSaving" class="bg-brand-600 text-white px-4 py-1.5 rounded text-sm hover:bg-brand-700 disabled:opacity-50">{{ reviewSaving ? "保存中…" : (trip.review ? "更新" : "保存") }}</button>
@@ -695,13 +702,13 @@ v-model="reviewDraft.body" rows="3" maxlength="2000" placeholder="振り返り (
           <label class="block text-xs text-slate-600 dark:text-slate-400">
             予算
             <input
-              v-model.number="budgetDraft.planned_amount" type="number" min="0" step="1"
+              id="budget-planned-amount" v-model.number="budgetDraft.planned_amount" type="number" min="0" step="1"
               class="block w-32 mt-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm"
             >
           </label>
           <label class="block text-xs text-slate-600 dark:text-slate-400">
             通貨
-            <select v-model="budgetDraft.currency" class="block mt-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm">
+            <select id="budget-currency" v-model="budgetDraft.currency" class="block mt-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm">
               <option v-for="c in CURRENCIES" :key="c" :value="c">{{ c }}</option>
             </select>
           </label>
@@ -743,19 +750,23 @@ type="submit" :disabled="budgetSaving"
       <!-- レシート追加 form -->
       <form class="space-y-2 border-t border-slate-200 dark:border-slate-700 pt-3" @submit.prevent="addReceipt">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <label for="receipt-amount" class="sr-only">金額</label>
           <input
-v-model.number="newReceipt.amount" type="number" min="1" step="1" required placeholder="金額"
+id="receipt-amount" v-model.number="newReceipt.amount" type="number" min="1" step="1" required placeholder="金額"
             class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" >
+          <label for="receipt-category" class="sr-only">支出のカテゴリ</label>
           <select
-v-model="newReceipt.category"
+id="receipt-category" v-model="newReceipt.category"
             class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm">
             <option v-for="c in RECEIPT_CATEGORIES" :key="c.value" :value="c.value">{{ c.label }}</option>
           </select>
+          <label for="receipt-spent-on" class="sr-only">支出の日付</label>
           <input
-v-model="newReceipt.spent_on" type="date"
+id="receipt-spent-on" v-model="newReceipt.spent_on" type="date"
             class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" >
+          <label for="receipt-description" class="sr-only">レシートのメモ</label>
           <input
-v-model="newReceipt.description" type="text" maxlength="200" placeholder="メモ (任意)"
+id="receipt-description" v-model="newReceipt.description" type="text" maxlength="200" placeholder="メモ (任意)"
             class="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-2 py-1 text-sm" >
         </div>
         <button
@@ -785,8 +796,9 @@ v-for="r in trip.receipts" :key="r.id"
     <!-- F-MEMO-01: 個人メモ (本人のみ表示・本人のみ参照可) -->
     <section v-if="auth.user" class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">
       <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-2">個人メモ <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(自分にだけ見えます)</span></h2>
+      <label for="trip-memo" class="sr-only">個人メモ</label>
       <textarea
-        v-model="memoDraft" rows="3" maxlength="2000"
+        id="trip-memo" v-model="memoDraft" rows="3" maxlength="2000"
         placeholder="この旅行について自分用のメモ (2000 字以内)"
         class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-slate-100 rounded px-3 py-2 text-sm"
       />
@@ -824,8 +836,9 @@ v-for="r in trip.receipts" :key="r.id"
       </ul>
 
       <form v-if="auth.user" class="flex gap-2" @submit.prevent="submitComment">
+        <label for="comment-body" class="sr-only">コメント</label>
         <input
-          v-model="newComment" type="text" maxlength="140" required
+          id="comment-body" v-model="newComment" type="text" maxlength="140" required
           placeholder="コメントを書く (140 文字以内)"
           class="flex-1 border border-slate-300 rounded px-3 py-2 text-sm"
         >

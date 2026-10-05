@@ -185,29 +185,29 @@ function submit(statusOverride) {
   <!-- enter キーでの暴発を避けるため form 自体の submit はバインドしない -->
   <form class="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700 space-y-4 max-w-3xl" @submit.prevent>
     <div>
-      <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">タイトル *</label>
-      <input v-model="title" required maxlength="80" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
+      <label for="trip-title" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">タイトル *</label>
+      <input id="trip-title" v-model="title" required maxlength="80" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
     </div>
     <div>
-      <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">行き先 *</label>
-      <input v-model="destination" required maxlength="80" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
+      <label for="trip-destination" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">行き先 *</label>
+      <input id="trip-destination" v-model="destination" required maxlength="80" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
     </div>
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">開始日 *</label>
-        <input v-model="startedOn" type="date" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
+        <label for="trip-started-on" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">開始日 *</label>
+        <input id="trip-started-on" v-model="startedOn" type="date" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
       </div>
       <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">終了日 *</label>
-        <input v-model="endedOn" type="date" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
+        <label for="trip-ended-on" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">終了日 *</label>
+        <input id="trip-ended-on" v-model="endedOn" type="date" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2" >
       </div>
     </div>
     <div>
-      <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">本文 (任意・5000 文字以内)</label>
-      <textarea v-model="body" rows="4" maxlength="5000" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2"/>
+      <label for="trip-body" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">本文 (任意・5000 文字以内)</label>
+      <textarea id="trip-body" v-model="body" rows="4" maxlength="5000" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2"/>
     </div>
     <div>
-      <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+      <label for="trip-images-input" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
         画像 (任意・最大 {{ MAX_IMAGES }} 枚・各 {{ MAX_SIZE_MB }}MB 以下)
       </label>
       <!-- ネイティブ file input は Safari (iPad) で `hidden` でも稀にレイアウト残りや
@@ -231,29 +231,29 @@ function submit(statusOverride) {
         ※ 既存の画像は新しく選択した画像で置き換わります
       </p>
     </div>
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">カテゴリ *</label>
-        <select v-model="category" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2">
+        <label for="trip-category" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">カテゴリ *</label>
+        <select id="trip-category" v-model="category" required class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2">
           <option value="" disabled>選択してください</option>
           <option v-for="opt in CATEGORY_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
         </select>
       </div>
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">公開範囲</label>
-        <select v-model="visibility" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2">
+      <div v-if="!auth.user?.guest">
+        <label for="trip-visibility" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">公開範囲</label>
+        <select id="trip-visibility" v-model="visibility" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2">
           <option value="public">公開 (全員)</option>
           <option value="friends">フォロワーのみ (Phase 2)</option>
           <option value="private">非公開 (自分のみ)</option>
         </select>
-        <p v-if="auth.user?.guest" class="text-xs text-amber-700 dark:text-amber-300 mt-1">ゲストの記録は自分だけに表示されます</p>
       </div>
+      <p v-else class="text-xs text-amber-700 dark:text-amber-300 sm:self-end">ゲストの記録は自分だけに表示されます</p>
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">タグ (任意・カンマ区切り)</label>
+      <label for="trip-tags" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">タグ (任意・カンマ区切り)</label>
       <input
-        v-model="tagInput" maxlength="200" placeholder="例: 京都, 紅葉, 寺"
+        id="trip-tags" v-model="tagInput" maxlength="200" placeholder="例: 京都, 紅葉, 寺"
         class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded px-3 py-2"
       >
       <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">複数指定するときは「,」または「、」で区切ってください</p>
@@ -283,8 +283,8 @@ v-model="dayEntries[d._idx].body" rows="2" placeholder="メモ (任意)"
       <li v-for="err in errors" :key="err">{{ err }}</li>
     </ul>
 
-    <div class="flex items-center justify-end gap-2 border-t border-slate-200 dark:border-slate-700 pt-4">
-      <NuxtLink to="/" class="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:underline">キャンセル</NuxtLink>
+    <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 border-t border-slate-200 dark:border-slate-700 pt-4">
+      <NuxtLink to="/" class="text-center px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:underline">キャンセル</NuxtLink>
       <button
         type="button" class="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-2 rounded font-medium hover:bg-slate-300 dark:hover:bg-slate-600"
         @click="submit('draft')"

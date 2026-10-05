@@ -16,7 +16,7 @@ const submitting = ref(false)
 const wrapperClass = computed(() => (props.block ? "w-full" : "relative"))
 const buttonClass = computed(() => [
   "border border-brand-500 text-brand-600 dark:text-brand-50 rounded font-medium hover:bg-brand-50 dark:hover:bg-slate-700 disabled:opacity-50",
-  props.block ? "w-full py-2" : "text-sm px-3 py-1.5"
+  props.block ? "w-full py-2" : "text-sm px-3 py-1.5 whitespace-nowrap"
 ])
 const errorClass = computed(() => (props.block
   ? "text-sm text-rose-600 mt-2"
@@ -40,7 +40,12 @@ async function handleGuestLogin() {
 <template>
   <div :class="wrapperClass">
     <button type="button" :disabled="submitting" :class="buttonClass" @click="handleGuestLogin">
-      {{ submitting ? "準備中…" : "ゲストとして試す (登録不要)" }}
+      <template v-if="submitting">準備中…</template>
+      <template v-else-if="block">ゲストとして試す (登録不要)</template>
+      <template v-else>
+        <span class="sm:hidden">ゲストで試す</span>
+        <span class="hidden sm:inline">ゲストとして試す (登録不要)</span>
+      </template>
     </button>
     <p v-if="error" role="alert" :class="errorClass">{{ error }}</p>
   </div>

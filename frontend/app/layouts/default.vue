@@ -44,29 +44,34 @@ function fullImageUrl(path) {
   <div class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
     <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
       <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-        <NuxtLink to="/" class="text-xl font-bold text-brand-600 dark:text-brand-50 flex items-center gap-2">
+        <NuxtLink to="/" aria-label="trip-diary" class="text-base sm:text-xl font-bold text-brand-600 dark:text-brand-50 flex items-center gap-2 shrink-0 whitespace-nowrap">
           <span>✈️</span>
-          <span>trip-diary</span>
+          <span v-if="auth.user" class="hidden sm:inline">trip-diary</span>
+          <span v-else>trip-diary</span>
         </NuxtLink>
-        <nav class="flex items-center gap-3">
+        <nav class="flex items-center gap-2 sm:gap-3">
           <button
             type="button"
             :aria-label="isDark ? 'ライトモードに切替' : 'ダークモードに切替'"
             :title="isDark ? 'ライトモードに切替 (屋外の光が強い時に推奨)' : 'ダークモードに切替'"
-            class="w-10 h-10 flex items-center justify-center text-2xl rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
+            class="w-10 h-10 shrink-0 flex items-center justify-center text-2xl rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
             @click="toggleDark"
           >{{ isDark ? "☀️" : "🌙" }}</button>
           <template v-if="auth.user">
-            <NotificationsBell />
+            <NotificationsBell class="shrink-0" />
             <NuxtLink
               :to="newTripTo"
-              class="bg-brand-500 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-brand-600"
-            >+ 新しい旅行記録</NuxtLink>
-            <NuxtLink to="/trips/drafts" class="text-sm text-slate-600 dark:text-slate-300 hover:underline">下書き</NuxtLink>
-            <NuxtLink to="/favorites" class="text-sm text-slate-600 dark:text-slate-300 hover:underline">★</NuxtLink>
+              aria-label="新しい旅行記録"
+              class="bg-brand-500 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-brand-600 shrink-0 whitespace-nowrap"
+            >
+              <span class="sm:hidden">+</span>
+              <span class="hidden sm:inline">+ 新しい旅行記録</span>
+            </NuxtLink>
+            <NuxtLink to="/trips/drafts" class="text-sm text-slate-600 dark:text-slate-300 hover:underline shrink-0 whitespace-nowrap">下書き</NuxtLink>
+            <NuxtLink to="/favorites" aria-label="お気に入り" class="text-sm text-slate-600 dark:text-slate-300 hover:underline shrink-0">★</NuxtLink>
             <NuxtLink
               :to="`/users/${auth.user.id}`"
-              class="flex items-center"
+              class="flex items-center shrink-0"
               :title="`@${auth.user.display_name}`"
               :aria-label="`@${auth.user.display_name} のプロフィール`"
             >
@@ -82,17 +87,23 @@ function fullImageUrl(path) {
               >👤</span>
             </NuxtLink>
             <button
-              class="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 underline"
+              type="button"
+              aria-label="ログアウト"
+              title="ログアウト"
+              class="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 underline shrink-0 whitespace-nowrap"
               @click="logout"
-            >ログアウト</button>
+            >
+              <span class="sm:hidden">🚪</span>
+              <span class="hidden sm:inline">ログアウト</span>
+            </button>
           </template>
           <template v-else-if="auth.fetched">
-            <GuestLoginButton />
-            <NuxtLink to="/login" class="text-sm text-slate-700 dark:text-slate-200 hover:underline">ログイン</NuxtLink>
-            <NuxtLink v-if="signupEnabled" to="/signup" class="text-sm bg-brand-500 text-white px-3 py-1.5 rounded">サインアップ</NuxtLink>
+            <GuestLoginButton class="shrink-0" />
+            <NuxtLink to="/login" class="text-sm text-slate-700 dark:text-slate-200 hover:underline shrink-0 whitespace-nowrap">ログイン</NuxtLink>
+            <NuxtLink v-if="signupEnabled" to="/signup" class="hidden sm:inline-block text-sm bg-brand-500 text-white px-3 py-1.5 rounded shrink-0 whitespace-nowrap">サインアップ</NuxtLink>
           </template>
           <template v-else>
-            <span class="text-xs text-slate-400 dark:text-slate-500">読み込み中…</span>
+            <span class="text-xs text-slate-400 dark:text-slate-500 shrink-0 whitespace-nowrap">読み込み中…</span>
           </template>
         </nav>
       </div>

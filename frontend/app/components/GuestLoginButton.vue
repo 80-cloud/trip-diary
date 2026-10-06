@@ -39,7 +39,7 @@ async function handleGuestLogin() {
 
 <template>
   <div :class="wrapperClass">
-    <button type="button" :disabled="submitting" :class="buttonClass" @click="handleGuestLogin">
+    <button type="button" aria-label="ゲストとして試す (登録不要)" :disabled="submitting" :class="buttonClass" @click="handleGuestLogin">
       <template v-if="submitting">準備中…</template>
       <template v-else-if="block">ゲストとして試す (登録不要)</template>
       <template v-else>

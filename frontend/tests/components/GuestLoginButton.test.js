@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs"
 import { parse } from "vue/compiler-sfc"
 
 // ヘッダーの小さいボタンだけ、狭い幅で文言を短くすることを確かめる (Issue #172)。
+// 文言を短くしても、ボタンの名前はどの幅でも変えない (Issue #205)。
 const source = readFileSync("app/components/GuestLoginButton.vue", "utf8")
 const root = parse(source).descriptor.template.ast
 
@@ -20,11 +21,13 @@ function text(node) {
 }
 
 describe("components/GuestLoginButton.vue", () => {
-  it("shows a short label on narrow screens", () => {
+  it("shows a short label on narrow screens but keeps one name", () => {
     const spans = elements(root, "span")
     const short = spans.find((e) => attr(e, "class") === "sm:hidden")
     const full = spans.find((e) => attr(e, "class") === "hidden sm:inline")
     expect(text(short)).toBe("ゲストで試す")
     expect(text(full)).toBe("ゲストとして試す (登録不要)")
+    const button = elements(root, "button")[0]
+    expect(attr(button, "aria-label")).toBe("ゲストとして試す (登録不要)")
   })
 })

@@ -23,7 +23,7 @@
     "@pinia/nuxt": "^0.11.0",
     "nuxt": "4.5.2",
     "pinia": "^3.0.3",
-    "vue": "^3.5.33",
+    "vue": "^3.5.43",
     "vue-advanced-cropper": "^2.8.9"
   },
   "devDependencies": {

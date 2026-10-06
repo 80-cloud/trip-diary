@@ -14,6 +14,9 @@ const submitting = ref(false)
 
 // block: ログイン画面などで横幅いっぱいに出す / 既定: ヘッダー用の小さいボタン
 const wrapperClass = computed(() => (props.block ? "w-full" : "relative"))
+// ヘッダー用の名前。狭い幅で見える「ゲストで試す」も広い幅の文字も、この名前に含まれる (Issue #205・#209)
+const headerLabel = "ゲストで試す (登録不要)"
+const ariaLabel = computed(() => (props.block ? null : headerLabel))
 const buttonClass = computed(() => [
   "border border-brand-500 text-brand-600 dark:text-brand-50 rounded font-medium hover:bg-brand-50 dark:hover:bg-slate-700 disabled:opacity-50",
   props.block ? "w-full py-2" : "text-sm px-3 py-1.5 whitespace-nowrap"
@@ -39,12 +42,12 @@ async function handleGuestLogin() {
 
 <template>
   <div :class="wrapperClass">
-    <button type="button" aria-label="ゲストとして試す (登録不要)" :disabled="submitting" :class="buttonClass" @click="handleGuestLogin">
+    <button type="button" :aria-label="ariaLabel" :disabled="submitting" :class="buttonClass" @click="handleGuestLogin">
       <template v-if="submitting">準備中…</template>
       <template v-else-if="block">ゲストとして試す (登録不要)</template>
       <template v-else>
         <span class="sm:hidden">ゲストで試す</span>
-        <span class="hidden sm:inline">ゲストとして試す (登録不要)</span>
+        <span class="hidden sm:inline">ゲストで試す (登録不要)</span>
       </template>
     </button>
     <p v-if="error" role="alert" :class="errorClass">{{ error }}</p>

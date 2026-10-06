@@ -17,7 +17,7 @@
 6. **AI 操作禁止**: `terraform destroy` / `terraform apply -auto-approve` / `aws *delete*` / `rm -rf` 等は人間承認必須
 7. **`.env` などの機密情報を絶対にコミットしない** (`git status` で必ず事前確認)
 8. **テストファースト**: Phase 2 以降は Issue の受け入れ条件 → テスト → 実装の順で書く (Phase 1 の実装にも後からテストを足した。件数は [docs/テスト計画書.md](docs/テスト計画書.md) §4 / 詳細 §11)
-9. **Vue/Nuxt 規約**: `ref(route.query.x)` はリバース同期 watch 必須 / ヘルパー 3+ ファイル重複は composable 抽出 / submit でない `<button>` は `type="button"` 明示 / `useAsyncData` は必要なら `{deep:true}` / 権限ガードは派生集計値にも適用 / 未使用 `catch` 変数は `_e` prefix / `@click` で async action は handler 関数経由 / Headlessui `Menu` open 検知は slot prop 経由 / Vue 3 で `@nuxt/eslint` 導入時は `vue/no-multiple-template-root: off` 必須 / 文字の色は WCAG AA (灰色は `text-slate-500 dark:text-slate-400`・白字は `bg-brand-600`) / 入力欄は label の `for` と `id`・アイコンだけは `aria-label` / 狭い幅で文字を隠しても名前は変えない / 本人だけに出る画面も DevTools の Issues を見る (詳細 §12)
+9. **Vue/Nuxt 規約**: `ref(route.query.x)` はリバース同期 watch 必須 / ヘルパー 3+ ファイル重複は composable 抽出 / submit でない `<button>` は `type="button"` 明示 / `useAsyncData` は必要なら `{deep:true}` / 権限ガードは派生集計値にも適用 / 未使用 `catch` 変数は `_e` prefix / `@click` で async action は handler 関数経由 / Headlessui `Menu` open 検知は slot prop 経由 / Vue 3 で `@nuxt/eslint` 導入時は `vue/no-multiple-template-root: off` 必須 / 文字の色は WCAG AA (灰色は `text-slate-500 dark:text-slate-400`・白字は `bg-brand-600`) / 入力欄は label の `for` と `id`・アイコンだけは `aria-label` / 狭い幅で文字を隠しても名前は変えない (見える文字は名前に含める) / 本人だけに出る画面も DevTools の Issues を見る (詳細 §12)
 
 ### Jidoka 発動条件 (作業中に頭をよぎったら止まる)
 
@@ -504,6 +504,8 @@ export default withNuxt({
 **Why**: #176 でスマホの幅のヘッダーを短くしたとき、E2E (Playwright) は「ログアウト」などの名前でボタンを押している。幅によって名前が変わると、iPhone の E2E だけが落ちる。
 
 **How to apply**: 見せる文字を幅で切り替えるときは、外側の要素に `aria-label` で名前を 1 つ付け、どの幅でも同じにする。名前を変える PR では、ブランチで E2E の full (Chromium・WebKit・iPhone 14) を流す。
+
+**見える文字は名前に含める**: どの幅で見える文字も、`aria-label` の中にそのまま含まれるようにする (WCAG 2.5.3 Label in Name。音声で見える文字を言って押す人のため)。#206 でゲストのボタンに「ゲストとして試す (登録不要)」と付けたら、狭い幅の「ゲストで試す」が含まれず、Lighthouse の `label-content-name-mismatch` が失敗した (重み 0 なので点は 100 のまま。#209 で名前を「ゲストで試す (登録不要)」にした)。Lighthouse の点だけでなく、score が 1 未満の項目も見る。「+」のような記号だけの文字は対象外
 
 ### 12-13. ログインした本人にだけ出る画面も、DevTools の Issues を見る
 

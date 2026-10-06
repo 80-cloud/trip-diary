@@ -139,6 +139,8 @@ jobs:
       # ALLOW (空白区切り): 修正版が無く、公開環境のイメージに入らない依存の勧告だけを書く。
       #   GHSA-86w9-cpqp-85rv: node-forge。開発サーバー (nuxt dev → listhen) だけが読み込む (2026-10-02 確認・#163)
       #   GHSA-vfj7-8cjw-p6xm: braces。Tailwind のビルドとファイルの見張りだけが使う (2026-10-04 確認・#167)
+      #   GHSA-858h-whjf-mvg5・GHSA-g4wm-2vf7-vfgr・GHSA-x6jw-m9v5-85vh・GHSA-v5rq-49vh-5v5c: simple-git。
+      #     nuxt → @nuxt/devtools 3.4.2 → simple-git 3.36.0。devtools は開発のときだけ使い、安定版は修正版に未対応 (2026-10-06 確認・#207)
       #   公開環境のイメージは静的ファイルだけを配り、node_modules は入らない。
       #   修正版が出て audit に出なくなったら警告が出るので、その行と ALLOW の URL を外す
       - name: npm audit (frontend 依存脆弱性)
@@ -147,6 +149,10 @@ jobs:
           ALLOW: >-
             https://github.com/advisories/GHSA-86w9-cpqp-85rv
             https://github.com/advisories/GHSA-vfj7-8cjw-p6xm
+            https://github.com/advisories/GHSA-858h-whjf-mvg5
+            https://github.com/advisories/GHSA-g4wm-2vf7-vfgr
+            https://github.com/advisories/GHSA-x6jw-m9v5-85vh
+            https://github.com/advisories/GHSA-v5rq-49vh-5v5c
           NG_FILTER: >-
             ($allow | split(" ")) as $ok
             | [.vulnerabilities[].via[] | objects | select(.severity == "high" or .severity == "critical") | .url]

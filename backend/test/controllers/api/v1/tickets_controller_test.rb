@@ -1,6 +1,8 @@
 require "test_helper"
 
 class Api::V1::TicketsControllerTest < ActionDispatch::IntegrationTest
+  include ActiveJob::TestHelper
+
   setup do
     @owner = users(:alice)
     @trip  = trips(:alice_kyoto)
@@ -75,6 +77,19 @@ class Api::V1::TicketsControllerTest < ActionDispatch::IntegrationTest
       delete "/api/v1/trips/#{@trip.id}/tickets/#{ticket.id}"
     end
     assert_response :no_content
+  end
+
+  test "DELETE で PurgeJob が予約され、実行すると blob とファイルも消える" do
+    ticket = @trip.tickets.create!(kind: "train", file: { io: StringIO.new("x"), filename: "a.png", content_type: "image/png" })
+    blob = ticket.file.blob
+    login_via_api(@owner)
+    clear_enqueued_jobs
+    assert_enqueued_with(job: ActiveStorage::PurgeJob) do
+      delete "/api/v1/trips/#{@trip.id}/tickets/#{ticket.id}"
+    end
+    perform_enqueued_jobs
+    assert_not ActiveStorage::Blob.exists?(blob.id)
+    assert_not ActiveStorage::Blob.service.exist?(blob.key)
   end
 
   test "trip 詳細 (本人) は tickets を返す" do

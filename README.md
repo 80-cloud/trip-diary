@@ -86,7 +86,7 @@ Ruby on Rails 8.1 (API) + Nuxt 4 + MySQL 8 で作っています。
 
 | 種別 | 件数 | カバレッジ |
 |---|---|---|
-| Backend (Minitest) | 363 件 | Line 94.78% / Branch 79.64% |
+| Backend (Minitest) | 364 件 | Line 94.78% / Branch 79.64% |
 | Frontend (Vitest) | 75 件 | 全体 Line 7.43% / composables Line 62.87% |
 | E2E (Playwright) | smoke 1 件 (PR は Chromium、main は Chromium・WebKit・iPhone 14) | — |
 | 性能 (k6) | シナリオ 6 種 | — |

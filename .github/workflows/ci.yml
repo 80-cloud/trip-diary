@@ -30,7 +30,7 @@ jobs:
         working-directory: backend
 
     services:
-      # 本番の MySQL 8 系と揃える (ローカル docker compose も mysql:8.0)
+      # 公開環境の TiDB Cloud Starter (MySQL 8.0 互換) に合わせて 8.0 (ローカル docker compose も mysql:8.0)
       mysql:
         image: mysql:8.0
         env:

@@ -59,7 +59,7 @@ Ruby on Rails 8.1 (API) + Nuxt 4 + MySQL 8 で作っています。
 |---|---|
 | バックエンド | Ruby 3.4.9 / Ruby on Rails 8.1 (API モード) |
 | フロントエンド | Nuxt 4 / Vue 3 / Tailwind CSS (JavaScript。TypeScript は使っていない) |
-| DB | MySQL 8 (開発は Docker) |
+| DB | MySQL 8 (開発と CI は Docker) / 公開環境は TiDB Cloud Starter (MySQL 8.0 互換) |
 | 認証 | JWT を HttpOnly Cookie に入れる方式 |
 | 画像 | Active Storage (開発: ディスク / 公開環境: Cloudinary / 過去の本番: S3) |
 | テスト | Minitest / Vitest / Playwright (E2E) / k6 (性能) |

@@ -62,8 +62,8 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          # backend/Gemfile の ruby "3.4.9" + backend/.ruby-version と同期
-          ruby-version: 3.4.9
+          # backend/Gemfile の ruby "3.4.13" + backend/.ruby-version と同期
+          ruby-version: 3.4.13
           bundler-cache: true
           working-directory: backend
 
@@ -110,7 +110,7 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.4.9
+          ruby-version: 3.4.13
           bundler-cache: true
           working-directory: backend
 

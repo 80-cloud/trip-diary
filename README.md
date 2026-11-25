@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/80-cloud/trip-diary/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/80-cloud/trip-diary/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Ruby](https://img.shields.io/badge/Ruby-3.4.9-CC342D)](https://www.ruby-lang.org)
+[![Ruby](https://img.shields.io/badge/Ruby-3.4.13-CC342D)](https://www.ruby-lang.org)
 [![Rails](https://img.shields.io/badge/Rails-8.1-CC0000)](https://rubyonrails.org)
 [![Node](https://img.shields.io/badge/Node-22-339933)](https://nodejs.org)
 [![Nuxt](https://img.shields.io/badge/Nuxt-4-00DC82)](https://nuxt.com)
@@ -57,7 +57,7 @@ Ruby on Rails 8.1 (API) + Nuxt 4 + MySQL 8 で作っています。
 
 | レイヤー | 採用技術 |
 |---|---|
-| バックエンド | Ruby 3.4.9 / Ruby on Rails 8.1 (API モード) |
+| バックエンド | Ruby 3.4.13 / Ruby on Rails 8.1 (API モード) |
 | フロントエンド | Nuxt 4 / Vue 3 / Tailwind CSS (JavaScript。TypeScript は使っていない) |
 | DB | MySQL 8 (開発と CI は Docker) / 公開環境は TiDB Cloud Starter (MySQL 8.0 互換) |
 | 認証 | JWT を HttpOnly Cookie に入れる方式 |
@@ -126,7 +126,7 @@ Ruby on Rails 8.1 (API) + Nuxt 4 + MySQL 8 で作っています。
 
 ## ローカルで動かす
 
-前提: Docker Desktop・Ruby 3.4.9・Node.js 22.12 以上
+前提: Docker Desktop・Ruby 3.4.13・Node.js 22.12 以上
 
 ```bash
 git clone https://github.com/80-cloud/trip-diary.git

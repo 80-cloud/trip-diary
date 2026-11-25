@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
-# Ruby version は .ruby-version (3.4.9) と同期 (本番デプロイ時の不整合事故防止)
-ruby "3.4.9"
+# Ruby version は .ruby-version (3.4.13) と同期 (本番デプロイ時の不整合事故防止)
+ruby "3.4.13"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.1.3"
